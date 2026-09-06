@@ -1,0 +1,6 @@
+diff --git a/example.ts b/example.ts
+--- a/example.ts
++++ b/example.ts
+@@ -1 +1 @@
+-export const answer = 41;
++export const answer = 42;
