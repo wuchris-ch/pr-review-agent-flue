@@ -72,7 +72,7 @@ function configuration(): WatcherConfig {
 }
 
 function marker(headSha: string): string {
-  return `<!-- pr-review-agent-flue head:${headSha} policy:${REVIEW_POLICY_VERSION} -->`;
+  return `<!-- pr-review-agent head:${headSha} policy:${REVIEW_POLICY_VERSION} -->`;
 }
 
 export function formatAutomatedReview(review: Review, headSha: string): string {
@@ -172,7 +172,7 @@ class GitHubClient {
       body: JSON.stringify({
         state,
         description: description.slice(0, 140),
-        context: 'PR review agent (Flue)',
+        context: 'PR review agent',
         target_url: targetUrl,
       }),
     });

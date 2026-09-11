@@ -1,6 +1,6 @@
 # PR review agent, Flue edition
 
-A standalone Flue implementation of [pr-review-agent](https://github.com/wuchris-ch/pr-review-agent). It reviews unified diffs for security and correctness and produces the same strict JSON verdict. It supports raw diffs, local Git changes, manual GitHub PR reviews, and an explicitly started GitHub watcher.
+The active successor to [pr-review-agent](https://github.com/wuchris-ch/pr-review-agent). It uses Flue to review unified diffs for security and correctness and produces the same strict JSON verdict. It supports raw diffs, local Git changes, manual GitHub PR reviews, and an explicitly started GitHub watcher.
 
 **Installing, building, and testing do not start a watcher.** CI only verifies code against a local mock model endpoint. This repository contains no deployment workflow, scheduled review job, or credentials.
 
@@ -45,7 +45,7 @@ node --env-file=.env dist/pr.js 123 --repo owner/repository
 node --env-file=.env dist/pr.js 123 --repo owner/repository --publish
 ```
 
-`npm link` optionally installs distinct commands so the original agent can coexist:
+`npm link` installs the Flue commands and the original `pr-review`, `pr-review-pr`, `pr-review-agent`, and `pr-review-watch` names as compatibility aliases:
 
 | Binary | Behavior |
 | --- | --- |
@@ -116,9 +116,9 @@ Findings contain `severity`, `category`, `file`, `line`, and `detail`. A blocker
 
 Flue controls transient retry classification and backoff, so these differ from the original handwritten HTTP retry policy. The application still caps actual requests and total child execution. A partition can use up to six HTTP requests across both format attempts. Cost fields in the custom provider are zero placeholders, not billing estimates.
 
-## Optional watcher, inactive until started
+## Continuous GitHub reviews
 
-The watcher runs only when you explicitly execute its command. Before doing so, provide `GITHUB_TOKEN` and `GITHUB_REPOSITORIES` in the environment or local `.env`. The token needs read access to PRs and write access to reviews and commit statuses for the chosen repositories. Repository targets are comma-separated `owner/repository` names.
+The production worker is managed by the companion [agent-eval-k3s](https://github.com/wuchris-ch/agent-eval-k3s) stack, which explicitly runs `node dist/watcher.js`. It replaces the original worker using the same runtime Secret and repository configuration. The daily independent evaluation also uses this Flue implementation. Local installation does not start a watcher. Before doing so, provide `GITHUB_TOKEN` and `GITHUB_REPOSITORIES` in the environment or local `.env`. The token needs read access to PRs and write access to reviews and commit statuses for the chosen repositories. Repository targets are comma-separated `owner/repository` names.
 
 ```sh
 # This command enables continuous reviews and GitHub writes. Run only when desired.
@@ -127,9 +127,9 @@ npm run watch
 
 The default interval is 60 seconds after each full polling pass; `REVIEW_POLL_INTERVAL_SECONDS` can override it, with a 15-second minimum. Repositories and PRs are processed sequentially.
 
-The Flue watcher uses status context **`PR review agent (Flue)`** and marker `pr-review-agent-flue` so it does not share the original reviewer's completion markers or statuses. It publishes COMMENT reviews and commit statuses. Merge enforcement requires a separately configured GitHub branch rule.
+The Flue watcher preserves status context **`PR review agent`** and policy-2 marker `pr-review-agent` from the retired reviewer. Existing branch protection checks and completed-head deduplication continue to work after migration. It publishes COMMENT reviews and commit statuses. Merge enforcement requires a separately configured GitHub branch rule.
 
-Inherited watcher limitations: only the first 100 open PRs and first 100 reviews are fetched, duplicate suppression is not safe across simultaneous watcher instances, and the current implementation does not recheck the head revision before publication. Keep it disabled until those tradeoffs fit your rollout. JSON validation also does not prove findings are correct or ensure finding line numbers lie inside changed hunks.
+Inherited watcher limitations: only the first 100 open PRs and first 100 reviews are fetched, duplicate suppression is not safe across simultaneous watcher instances, and the current implementation does not recheck the head revision before publication. Run exactly one worker; the companion stack uses a Recreate deployment strategy to prevent overlap during upgrades. JSON validation also does not prove findings are correct or ensure finding line numbers lie inside changed hunks.
 
 ## Privacy and configuration
 
