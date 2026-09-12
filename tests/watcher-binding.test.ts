@@ -181,6 +181,27 @@ describe('revision-bound watcher publication', () => {
 });
 
 describe('GitHub immutable diff transport', () => {
+  it('refreshes the real base branch when PR metadata retains an older SHA', async () => {
+    const stale = { ...initial, base: { sha: base, ref: 'release/v1' } };
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(stale))
+      .mockResolvedValueOnce(Response.json({ ref: 'refs/heads/release/v1', object: { type: 'commit', sha: next } }))
+      .mockResolvedValueOnce(Response.json(stale))
+      .mockResolvedValueOnce(Response.json({ ref: 'refs/heads/release/v1', object: { type: 'commit', sha: mergeBase } }));
+    const client = new GitHubClient('test-only', fetcher);
+    expect((await client.getPullRequest('owner/repo', 1)).base.sha).toBe(next);
+    expect((await client.getPullRequest('owner/repo', 1)).base.sha).toBe(mergeBase);
+    expect(fetcher.mock.calls[1]?.[0]).toBe('https://api.github.com/repos/owner/repo/git/ref/heads/release%2Fv1');
+    expect(fetcher.mock.calls[3]?.[0]).toBe(fetcher.mock.calls[1]?.[0]);
+  });
+
+  it('fails closed when the requested base branch cannot be identified', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json({ ...initial, base: { sha: base, ref: 'main' } }))
+      .mockResolvedValueOnce(Response.json({ ref: 'refs/heads/other', object: { type: 'commit', sha: next } }));
+    await expect(new GitHubClient('test-only', fetcher).getPullRequest('owner/repo', 1)).rejects.toThrow(/base branch identity/);
+  });
+
   it('resolves the merge base and fetches the diff using only full immutable commit IDs', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ base_commit: { sha: base }, merge_base_commit: { sha: mergeBase }, files: [{ filename: 'a.py' }] }))
       .mockResolvedValueOnce(new Response(diff.bytes));

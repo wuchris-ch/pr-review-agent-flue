@@ -10,7 +10,7 @@ export interface PullRequest {
   html_url: string;
   state: 'open' | 'closed';
   head: { sha: string };
-  base: { sha: string };
+  base: { sha: string; ref?: string };
 }
 
 export interface PullRequestReview {
@@ -91,6 +91,20 @@ export class GitHubClient {
     const pr = await this.request<PullRequest>(`/repos/${repository}/pulls/${number}`);
     if (pr.number !== number || !COMMIT_SHA.test(pr.head?.sha ?? '') || !COMMIT_SHA.test(pr.base?.sha ?? '')
       || !['open', 'closed'].includes(pr.state)) throw new Error('GitHub returned an invalid PR snapshot');
+    if (pr.state === 'open') {
+      // PR metadata can retain an older base SHA after the target branch advances.
+      // Read the actual branch ref on every snapshot, including publication rechecks.
+      if (typeof pr.base.ref !== 'string' || !pr.base.ref || pr.base.ref.length > 1024) {
+        throw new Error('GitHub returned an invalid PR base reference');
+      }
+      const ref = await this.request<{ ref: string; object: { type: string; sha: string } }>(
+        `/repos/${repository}/git/ref/heads/${encodeURIComponent(pr.base.ref)}`,
+      );
+      if (ref.ref !== `refs/heads/${pr.base.ref}` || ref.object?.type !== 'commit' || !COMMIT_SHA.test(ref.object?.sha ?? '')) {
+        throw new Error('GitHub base branch identity could not be verified');
+      }
+      pr.base = { ...pr.base, sha: ref.object.sha };
+    }
     return { ...pr, html_url: `https://github.com/${repository}/pull/${number}` };
   }
 
