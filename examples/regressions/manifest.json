@@ -27,7 +27,7 @@
     "reference_findings": [
       {
         "file": "runner.py",
-        "line": 5,
+        "line": 8,
         "severity": "blocker",
         "category": "security"
       }
@@ -39,6 +39,6 @@
     "diff": "quoted-command-flow/change.diff",
     "clean": true,
     "reference_findings": [],
-    "justification": "The callee quotes the full revision as one shell argument before the caller executes it. Adversarial metacharacters remain data."
+    "justification": "An explicit POSIX platform guard limits the runner to the shell syntax supported by shlex.quote. The callee quotes the full revision as one argument before the caller executes it; adversarial metacharacters remain data."
   }
 ]

@@ -19,6 +19,11 @@ const trials = Number(options.trials ?? 3);
 if (!Number.isInteger(trials) || trials < 1 || trials > 3) throw new Error('trials must be 1 through 3');
 const cases = JSON.parse(readFileSync(options.cases));
 if (!Array.isArray(cases) || cases.length < 1 || cases.length > 32) throw new Error('provide 1 through 32 development cases');
+const inputs = new Map();
+for (const testcase of cases) {
+  if (typeof testcase.id !== 'string' || inputs.has(testcase.id)) throw new Error('case IDs must be unique');
+  inputs.set(testcase.id, readFileSync(resolve(dirname(options.cases), testcase.diff)));
+}
 if (existsSync(options.out)) throw new Error('output already exists; previous trials must be preserved');
 const gateway = process.env.MODEL_GATEWAY_BASE_URL;
 const credential = process.env.MODEL_GATEWAY_API_KEY;
@@ -36,7 +41,7 @@ const report = {
   schema_version: '1.0', purpose: 'paired development comparison', started_at: new Date().toISOString(),
   model_alias: 'model-gateway/reviewer', order: 'baseline first on odd pairs, candidate first on even pairs; sequential',
   baseline: identity(resolve(options.baseline)), candidate: identity(resolve(options.candidate)),
-  cases: cases.map(c => ({ id: c.id, input_sha256: hash(readFileSync(resolve(dirname(options.cases), c.diff))) })),
+  cases: cases.map(c => ({ id: c.id, input_sha256: hash(inputs.get(c.id)) })),
   trials, planned_invocations: trials * cases.length * 2, records,
 };
 mkdirSync(dirname(resolve(options.out)), { recursive: true, mode: 0o700 });
@@ -93,7 +98,7 @@ try {
   for (let trial = 1; trial <= trials; trial++) for (const testcase of cases) {
     const order = pair++ % 2 === 0 ? ['baseline', 'candidate'] : ['candidate', 'baseline'];
     for (const variant of order) {
-      const input = readFileSync(resolve(dirname(options.cases), testcase.diff));
+      const input = inputs.get(testcase.id);
       const record = { case_id: testcase.id, trial, variant, started_at: new Date().toISOString(), requests: [], exit_code: null, latency_ms: null, output: null, error: null };
       records.push(record); active = record; save();
       const env = { ...process.env, MODEL_GATEWAY_BASE_URL: proxyUrl, MODEL_GATEWAY_API_KEY: token };

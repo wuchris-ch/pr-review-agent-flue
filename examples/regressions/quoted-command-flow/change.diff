@@ -9,12 +9,12 @@ index aac002e..978baf8 100644
 -    return ["git", "show", revision]
 +    return f"git show {shlex.quote(revision)}"
 diff --git a/runner.py b/runner.py
-index d8891e3..de00e73 100644
+index 2ccb144..fdef0b4 100644
 --- a/runner.py
 +++ b/runner.py
-@@ -2,4 +2,4 @@ import subprocess
- from command import command_for_revision
- 
+@@ -5,4 +5,4 @@ from command import command_for_revision
  def show_revision(revision: str):
+     if os.name != "posix":
+         raise RuntimeError("This command runner requires POSIX")
 -    return subprocess.run(command_for_revision(revision), check=True, capture_output=True)
 +    return subprocess.run(command_for_revision(revision), shell=True, check=True, capture_output=True)
