@@ -128,9 +128,13 @@ npm run watch
 
 The default interval is 60 seconds after each full polling pass; `REVIEW_POLL_INTERVAL_SECONDS` can override it, with a 15-second minimum. Repositories and PRs are processed sequentially.
 
-The Flue watcher preserves status context **`PR review agent`** and policy-2 marker `pr-review-agent` from the retired reviewer. Existing branch protection checks and completed-head deduplication continue to work after migration. It publishes COMMENT reviews and commit statuses. Merge enforcement requires a separately configured GitHub branch rule.
+The watcher preserves status context **`PR review agent`** and the policy-2 marker. Each new review also records the base tip, merge base, head, exact diff hash, and verdict in a structured receipt. GitHub reviews explicitly set `commit_id` to the reviewed head, and final statuses link to that review.
 
-Inherited watcher limitations: only the first 100 open PRs and first 100 reviews are fetched, duplicate suppression is not safe across simultaneous watcher instances, and the current implementation does not recheck the head revision before publication. Run exactly one worker; the companion stack uses a Recreate deployment strategy to prevent overlap during upgrades. Source anchors verify locations and quoted text; semantic findings are evaluated separately against development regressions and independent evaluation cohorts.
+The worker refreshes the PR before fetching an immutable merge-base/head comparison. It rechecks base/head after fetching, before posting, and around final status publication. When it observes a change, it defers to the next poll. A lost publication response is reconciled against saved review receipts; a restart after review creation can restore the status without another model call or duplicate review. Unchanged receipts avoid redundant diff downloads and status writes.
+
+An open PR with only an older head-only marker gets one fully bound review, then participates in receipt-based deduplication. The first 100 open PRs are polled; review history is paginated up to 1,000 entries. Comparison responses at GitHub's 300-file cap are rejected so partial file coverage cannot produce a passing review. Run one worker; the companion stack uses a Recreate deployment strategy.
+
+GitHub review and status writes are separate from branch updates. Explicit commit IDs keep a review attached to the analyzed revision, and observed revision changes invalidate its status until reconciliation. Merge enforcement uses the repository's branch rules.
 
 ## Privacy and configuration
 
@@ -179,5 +183,7 @@ The harness runs 1 to 3 rounds over at most 32 development cases, with a 120-sec
 - [Flue standalone Node runtime](https://flueframework.com/docs/reference/agent-api/#start)
 - [Flue model provider integration](https://flueframework.com/docs/reference/provider-api/)
 - [Flue durability](https://flueframework.com/docs/guide/durability/)
+- [GitHub immutable comparisons](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
+- [GitHub review commit binding](https://docs.github.com/en/rest/pulls/reviews#create-a-review-for-a-pull-request)
 
 Licensed under Apache-2.0. Application review policy and adapters originate from `pr-review-agent`; this repository starts with independent Git history.

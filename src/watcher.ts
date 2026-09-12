@@ -2,30 +2,13 @@
 import { realpathSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { decodeDiff } from './input.js';
+import type { DiffInput } from './input.js';
+import { GitHubClient, sameRevision, type PullRequest, type PullRequestReview, type ReviewBinding } from './github.js';
 import { formatGitHubReview } from './pr.js';
 import { reviewDiff } from './runner.js';
 import type { Review } from './schema.js';
 
-const API_ROOT = 'https://api.github.com';
-const MAX_API_RESPONSE_BYTES = 4 * 1024 * 1024;
-const USER_AGENT = 'pr-review-agent-flue';
 const REVIEW_POLICY_VERSION = '2';
-
-interface PullRequest {
-  number: number;
-  html_url: string;
-  head: { sha: string };
-}
-
-interface PullRequestReview {
-  body: string | null;
-  user: { login: string } | null;
-}
-
-interface GitHubUser {
-  login: string;
-}
 
 interface WatcherConfig {
   token: string;
@@ -75,177 +58,121 @@ function marker(headSha: string): string {
   return `<!-- pr-review-agent head:${headSha} policy:${REVIEW_POLICY_VERSION} -->`;
 }
 
-export function formatAutomatedReview(review: Review, headSha: string): string {
-  return `${formatGitHubReview(review)}\n${marker(headSha)}\n`;
+function bindingMarker(binding: ReviewBinding, state: 'success' | 'failure'): string {
+  return `<!-- pr-review-agent binding:${JSON.stringify({ version: 1, base: binding.base, merge_base: binding.merge_base, head: binding.head, diff: binding.diff, state })} -->`;
 }
 
-class GitHubClient {
-  constructor(private readonly token: string) {}
-
-  private async request<T>(
-    path: string,
-    options: RequestInit = {},
-  ): Promise<T> {
-    const response = await fetch(`${API_ROOT}${path}`, {
-      ...options,
-      headers: {
-        accept: 'application/vnd.github+json',
-        authorization: `Bearer ${this.token}`,
-        'user-agent': USER_AGENT,
-        'x-github-api-version': '2022-11-28',
-        ...options.headers,
-      },
-    });
-    const bytes = Buffer.from(await response.arrayBuffer());
-    if (bytes.length > MAX_API_RESPONSE_BYTES) {
-      throw new Error('GitHub response exceeded the safe byte limit');
-    }
-    if (!response.ok) {
-      throw new Error(`GitHub API returned HTTP ${String(response.status)}`);
-    }
-    if (!bytes.length) {
-      return undefined as T;
-    }
-    return JSON.parse(bytes.toString('utf8')) as T;
-  }
-
-  currentUser(): Promise<GitHubUser> {
-    return this.request('/user');
-  }
-
-  listPullRequests(repository: string): Promise<PullRequest[]> {
-    return this.request(`/repos/${repository}/pulls?state=open&per_page=100`);
-  }
-
-  async pullRequestDiff(repository: string, number: number): Promise<Buffer> {
-    const response = await fetch(
-      `${API_ROOT}/repos/${repository}/pulls/${String(number)}`,
-      {
-        headers: {
-          accept: 'application/vnd.github.v3.diff',
-          authorization: `Bearer ${this.token}`,
-          'user-agent': USER_AGENT,
-          'x-github-api-version': '2022-11-28',
-        },
-      },
-    );
-    const bytes = Buffer.from(await response.arrayBuffer());
-    if (!response.ok) {
-      throw new Error(`GitHub diff request returned HTTP ${String(response.status)}`);
-    }
-    if (!bytes.length || bytes.length > MAX_API_RESPONSE_BYTES) {
-      throw new Error('pull request diff is empty or exceeds the safe byte limit');
-    }
-    return bytes;
-  }
-
-  listReviews(
-    repository: string,
-    number: number,
-  ): Promise<PullRequestReview[]> {
-    return this.request(
-      `/repos/${repository}/pulls/${String(number)}/reviews?per_page=100`,
-    );
-  }
-
-  publishReview(repository: string, number: number, body: string): Promise<void> {
-    return this.request(
-      `/repos/${repository}/pulls/${String(number)}/reviews`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ event: 'COMMENT', body }),
-      },
-    );
-  }
-
-  setStatus(
-    repository: string,
-    headSha: string,
-    state: 'error' | 'failure' | 'pending' | 'success',
-    description: string,
-    targetUrl: string,
-  ): Promise<void> {
-    return this.request(`/repos/${repository}/statuses/${headSha}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        state,
-        description: description.slice(0, 140),
-        context: 'PR review agent',
-        target_url: targetUrl,
-      }),
-    });
-  }
+export function formatAutomatedReview(review: Review, headSha: string, binding?: ReviewBinding): string {
+  if (binding && (binding.head !== headSha || binding.diff !== review.input_sha256)) throw new Error('review does not match its source binding');
+  return `${formatGitHubReview(review)}\n${marker(headSha)}\n${binding ? bindingMarker(binding, review.blocked ? 'failure' : 'success') + '\n' : ''}`;
 }
 
-async function alreadyReviewed(
-  client: GitHubClient,
+interface Receipt { review: PullRequestReview; state: 'success' | 'failure' }
+
+type WatcherClient = Pick<GitHubClient, 'getPullRequest' | 'snapshotDiff' | 'listReviews' | 'publishReview' | 'latestStatus' | 'setStatus'>;
+
+function matchingReceipt(reviews: PullRequestReview[], binding: ReviewBinding, login: string): Receipt | undefined {
+  for (const review of reviews) {
+    if (review.user?.login !== login || review.commit_id !== binding.head || review.state !== 'COMMENTED'
+      || !Number.isSafeInteger(review.id) || review.id <= 0) continue;
+    for (const state of ['success', 'failure'] as const) {
+      if (review.body?.split('\n').includes(bindingMarker(binding, state))) return { review, state };
+    }
+  }
+  return undefined;
+}
+
+function receiptForRevision(reviews: PullRequestReview[], snapshot: PullRequest, login: string): Receipt | undefined {
+  // Immutable base/head IDs imply the same comparison. Reuse its verified receipt without downloading the diff again.
+  for (const review of [...reviews].reverse()) {
+    for (const line of review.body?.split('\n') ?? []) {
+      const match = /^<!-- pr-review-agent binding:(\{.*\}) -->$/.exec(line);
+      if (!match) continue;
+      try {
+        const binding = JSON.parse(match[1]!) as ReviewBinding & { version: number; state: string };
+        if (binding.version !== 1 || binding.base !== snapshot.base.sha || binding.head !== snapshot.head.sha
+          || !/^[a-f0-9]{40}$/.test(binding.merge_base) || !/^[a-f0-9]{64}$/.test(binding.diff)) continue;
+        const receipt = matchingReceipt([review], { base: binding.base, merge_base: binding.merge_base, head: binding.head, diff: binding.diff }, login);
+        if (receipt) return receipt;
+      } catch { /* A comment is untrusted data; malformed markers are not receipts. */ }
+    }
+  }
+  return undefined;
+}
+
+/** Receipt-based reconciliation covers a lost POST response and a restart before status publication. */
+async function settleReceipt(client: WatcherClient, repository: string, snapshot: PullRequest, receipt: Receipt): Promise<boolean> {
+  const unchanged = (): Promise<boolean> => client.getPullRequest(repository, snapshot.number).then((current) => sameRevision(snapshot, current));
+  if (!await unchanged()) return false;
+  const url = `https://github.com/${repository}/pull/${snapshot.number}#pullrequestreview-${receipt.review.id}`;
+  const status = await client.latestStatus(repository, snapshot.head.sha);
+  if (status?.state !== receipt.state || status.target_url !== url) {
+    await client.setStatus(repository, snapshot.head.sha, receipt.state,
+      receipt.state === 'failure' ? 'Automated review found blocking issues' : 'Automated review found no blocking issues', url);
+  }
+  // The create-review/status APIs have no atomic compare-and-swap on a PR's base/head pair.
+  // Reconcile changes observed during publication without ever assigning this result to a new head.
+  return unchanged();
+}
+
+export async function reviewPullRequest(
+  client: WatcherClient,
   repository: string,
-  pullRequest: PullRequest,
+  listed: Pick<PullRequest, 'number'>,
   login: string,
-): Promise<boolean> {
-  const expected = marker(pullRequest.head.sha);
-  const reviews = await client.listReviews(repository, pullRequest.number);
-  return reviews.some(
-    (review) => review.user?.login === login && review.body?.includes(expected),
-  );
-}
-
-async function reviewPullRequest(
-  client: GitHubClient,
-  repository: string,
-  pullRequest: PullRequest,
-  login: string,
-): Promise<void> {
-  if (await alreadyReviewed(client, repository, pullRequest, login)) {
-    return;
-  }
-
-  const label = `${repository}#${String(pullRequest.number)}`;
-  console.log(`reviewing ${label} at ${pullRequest.head.sha.slice(0, 12)}`);
+  reviewer: (diff: DiffInput) => Review | Promise<Review> = reviewDiff,
+): Promise<'reviewed' | 'reconciled' | 'changed' | 'closed' | 'failed'> {
+  const label = `${repository}#${listed.number}`;
+  let snapshot: PullRequest | undefined;
+  let ownsStatus = false;
+  const changed = async (): Promise<'changed'> => {
+    if (snapshot && ownsStatus) await client.setStatus(repository, snapshot.head.sha, 'error', 'PR base or head changed; review deferred to the next poll', snapshot.html_url);
+    return 'changed';
+  };
   try {
-    await client.setStatus(
-      repository,
-      pullRequest.head.sha,
-      'pending',
-      'Automated review is running',
-      pullRequest.html_url,
-    );
-    const diff = decodeDiff(await client.pullRequestDiff(
-      repository,
-      pullRequest.number,
-    ));
-    const review = reviewDiff(diff);
-    await client.setStatus(
-      repository,
-      pullRequest.head.sha,
-      review.blocked ? 'failure' : 'success',
-      review.blocked
-        ? 'Automated review found blocking issues'
-        : 'Automated review found no blocking issues',
-      pullRequest.html_url,
-    );
-    await client.publishReview(
-      repository,
-      pullRequest.number,
-      formatAutomatedReview(review, pullRequest.head.sha),
-    );
-    console.log(`completed ${label}`);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'unknown error';
-    console.error(`review failed for ${label}: ${message}`);
-    try {
-      await client.setStatus(
-        repository,
-        pullRequest.head.sha,
-        'error',
-        'Automated review could not complete and will retry',
-        pullRequest.html_url,
-      );
-    } catch {
-      console.error(`could not publish failure status for ${label}`);
+    // Never use the potentially stale head from the polling list as the analysis identity.
+    snapshot = await client.getPullRequest(repository, listed.number);
+    if (snapshot.state !== 'open') return 'closed';
+    const existing = receiptForRevision(await client.listReviews(repository, listed.number), snapshot, login);
+    if (existing) {
+      ownsStatus = true;
+      return await settleReceipt(client, repository, snapshot, existing) ? 'reconciled' : await changed();
     }
+    const { binding, diff } = await client.snapshotDiff(repository, snapshot);
+    if (!sameRevision(snapshot, await client.getPullRequest(repository, listed.number))) return await changed();
+    let receipt = matchingReceipt(await client.listReviews(repository, listed.number), binding, login);
+    if (receipt) {
+      ownsStatus = true;
+      return await settleReceipt(client, repository, snapshot, receipt) ? 'reconciled' : await changed();
+    }
+    console.log(`reviewing ${label} at ${binding.head.slice(0, 12)}`);
+    ownsStatus = true;
+    await client.setStatus(repository, binding.head, 'pending', 'Automated review is running', snapshot.html_url);
+    const review = await reviewer(diff);
+    const body = formatAutomatedReview(review, binding.head, binding);
+    if (!sameRevision(snapshot, await client.getPullRequest(repository, listed.number))) return await changed();
+    // Reconcile once more before POST, including a prior ambiguous publication.
+    receipt = matchingReceipt(await client.listReviews(repository, listed.number), binding, login);
+    if (!receipt) {
+      try {
+        const published = await client.publishReview(repository, listed.number, binding.head, body);
+        receipt = matchingReceipt([published], binding, login);
+      } catch {
+        // Do not blindly repeat a POST: GitHub may have committed it before the connection failed.
+      }
+      receipt ??= matchingReceipt(await client.listReviews(repository, listed.number), binding, login);
+      if (!receipt) throw new Error('GitHub review publication is unconfirmed; the next poll will reconcile it');
+    }
+    if (!await settleReceipt(client, repository, snapshot, receipt)) return await changed();
+    console.log(`completed ${label} at ${binding.head.slice(0, 12)}`);
+    return 'reviewed';
+  } catch {
+    console.error(`review failed for ${label}; will reconcile on the next poll`);
+    if (snapshot && ownsStatus) {
+      await client.setStatus(repository, snapshot.head.sha, 'error', 'Automated review could not complete and will retry', snapshot.html_url)
+        .catch(() => console.error(`could not publish failure status for ${label}`));
+    }
+    return 'failed';
   }
 }
 
