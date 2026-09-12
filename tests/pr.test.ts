@@ -66,7 +66,7 @@ describe('remote pull request command', () => {
         {
           severity: 'blocker',
           category: 'security',
-          file: 'src/auth.ts',
+          file: 'src/account_lookup.ts',
           line: 12,
           detail: 'Do not notify @owner or trust *input*.',
         },
@@ -76,10 +76,19 @@ describe('remote pull request command', () => {
 
     const body = formatGitHubReview(review);
     expect(body).toContain('BLOCKER · security');
-    expect(body).toContain('`src/auth.ts:12`');
+    expect(body).toContain('`src/account_lookup.ts:12`');
     expect(body).toContain('@\u200bowner');
     expect(body).not.toContain('@owner');
     expect(body).toContain('Authorization can be bypassed.');
+  });
+
+  it('keeps backticks in a filename inside one literal code span', () => {
+    const body = formatGitHubReview({
+      schema_version: '1.0', input_sha256: 'c'.repeat(64), risk: 'high', blocked: true,
+      findings: [{ severity: 'blocker', category: 'security', file: 'src/`![image](https://example.test/a)_name.ts', line: 7, detail: 'Unsafe query.' }],
+      rationale: 'Unsafe query.',
+    });
+    expect(body).toContain('`` src/`![image](https://example.test/a)_name.ts:7 ``');
   });
 
   it('publishes a comment review through gh without checking out code', () => {

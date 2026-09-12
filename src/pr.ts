@@ -152,6 +152,13 @@ function safeMarkdown(value: string): string {
     .replaceAll('>', '&gt;');
 }
 
+function inlineCode(value: string): string {
+  const longestRun = (value.match(/`+/g) ?? []).reduce((longest, run) => Math.max(longest, run.length), 0);
+  const fence = '`'.repeat(longestRun + 1);
+  const padding = longestRun > 0 ? ' ' : '';
+  return `${fence}${padding}${value.replaceAll('\n', ' ').replaceAll('\r', ' ')}${padding}${fence}`;
+}
+
 export function formatGitHubReview(review: Review): string {
   const lines = [
     '## PR review agent',
@@ -166,9 +173,9 @@ export function formatGitHubReview(review: Review): string {
   } else {
     lines.push('### Findings', '');
     for (const [index, finding] of review.findings.entries()) {
-      const location = `${safeMarkdown(finding.file)}:${finding.line}`;
+      const location = inlineCode(`${finding.file}:${finding.line}`);
       lines.push(
-        `${index + 1}. **${finding.severity.toUpperCase()} · ${finding.category}** at \`${location}\``,
+        `${index + 1}. **${finding.severity.toUpperCase()} · ${finding.category}** at ${location}`,
         `   ${safeMarkdown(finding.detail)}`,
         '',
       );
