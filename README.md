@@ -156,6 +156,8 @@ The container defaults to the one-shot raw-diff CLI. Running the watcher inside 
 
 ## Development comparisons
 
+The [September 12 paired comparison](docs/results/2026-09-12-evidence.md) records all 144 main invocations, the retained pilot, unchanged strict release gates, request accounting, and latency for both reviewers.
+
 [Four multi-file regression examples](examples/regressions/manifest.json) pair broken required-error and shell-execution flows with valid fallback and safely quoted controls. `python3 scripts/test-regressions.py` checks their behavior independently of the reviewer. The command-execution fixtures use a mocked subprocess call and never execute the injected strings.
 
 A paired comparison preserves both compiled checkouts and alternates invocation order, sequentially using the same configured gateway:
@@ -167,6 +169,8 @@ node scripts/compare-reviewers.mjs \
   --cases examples/regressions/manifest.json \
   --trials 3 --out /absolute/private/path/comparison.json
 ```
+
+To reproduce the 24-case development comparison, use an evaluator checkout pinned to `048a8d4` and its Python environment. `scripts/prepare-comparison.py --evaluator EVALUATOR_DIR --out-dir PRIVATE_RUN_DIR` validates the familiar corpus and freezes it alongside the four authored examples. Pass the resulting `cases.json` to the comparison harness. `scripts/inspect-comparison.mjs` decodes initial responses with each checkout's own validator; `scripts/score-comparison.py` uses the pinned evaluator's unchanged scorer and complete strict gate. Raw, inspected, and scored reports remain separate files.
 
 The harness runs 1 to 3 rounds over at most 32 development cases, with a 120-second limit per invocation and no evaluator feedback. It records every invocation, initial/correction requests, latency, source identity, and usage when the gateway supplies it. Existing reports cannot be overwritten. A loopback streaming proxy records responses locally; report files contain review content and use owner-only permissions. Publish a reviewed summary, keeping the raw reports local. The known evaluator corpus and these fixtures are development data; independent holdout evaluation is maintained by the evaluator project.
 
