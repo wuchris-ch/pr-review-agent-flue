@@ -1,0 +1,25 @@
+diff --git a/batch.py b/batch.py
+index b941fc2..8ca0f7a 100644
+--- a/batch.py
++++ b/batch.py
+@@ -2,8 +2,5 @@ from parsing import parse_count
+ 
+ def make_batch(value: str):
+     """Malformed optional configuration means no work."""
+-    try:
+-        count = parse_count(value)
+-    except ValueError:
+-        count = 0
++    count = parse_count(value)
+     return [str(i) for i in range(count)]
+diff --git a/parsing.py b/parsing.py
+index bf8b1ba..b73a7fa 100644
+--- a/parsing.py
++++ b/parsing.py
+@@ -1,2 +1,5 @@
+ def parse_count(value: str) -> int:
+-    return int(value)
++    try:
++        return int(value)
++    except ValueError:
++        return 0

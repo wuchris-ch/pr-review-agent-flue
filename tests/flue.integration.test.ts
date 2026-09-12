@@ -32,7 +32,7 @@ const server = createServer(async (request, response) => {
     return;
   }
   const output = mode === 'digest' ? { ...verdict, input_sha256: 'b'.repeat(64) }
-    : mode === 'blocked' ? { ...verdict, blocked: true, risk: 'high', findings: [{ severity: 'blocker', category: 'security', file: 'example.ts', line: 1, detail: 'Synthetic blocking finding for contract verification.' }] }
+    : mode === 'blocked' ? { ...verdict, blocked: true, risk: 'high', findings: [{ severity: 'blocker', category: 'security', evidence: { anchor: 'F1N1', quote: 'export const answer = 42;' }, detail: 'Synthetic blocking finding for contract verification.' }] }
     : verdict;
   completion(response, mode === 'format' && requests.length === 1 ? 'not valid JSON' : JSON.stringify(output));
 });

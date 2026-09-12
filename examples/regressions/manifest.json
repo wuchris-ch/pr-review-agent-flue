@@ -1,0 +1,44 @@
+[
+  {
+    "id": "required-error-flow",
+    "diff": "required-error-flow/change.diff",
+    "clean": false,
+    "reference_findings": [
+      {
+        "file": "parsing.py",
+        "line": 5,
+        "severity": "major",
+        "category": "correctness"
+      }
+    ],
+    "justification": "The displayed caller contract requires malformed configuration to raise. Returning zero silently creates an empty job."
+  },
+  {
+    "id": "optional-fallback-flow",
+    "diff": "optional-fallback-flow/change.diff",
+    "clean": true,
+    "reference_findings": [],
+    "justification": "The caller already treats invalid input as an empty optional job; moving that fallback into the parser preserves the shown behavior."
+  },
+  {
+    "id": "unsafe-command-flow",
+    "diff": "unsafe-command-flow/change.diff",
+    "clean": false,
+    "reference_findings": [
+      {
+        "file": "runner.py",
+        "line": 5,
+        "severity": "blocker",
+        "category": "security"
+      }
+    ],
+    "justification": "A request-controlled revision becomes shell syntax when the changed caller executes the constructed string with shell=True."
+  },
+  {
+    "id": "quoted-command-flow",
+    "diff": "quoted-command-flow/change.diff",
+    "clean": true,
+    "reference_findings": [],
+    "justification": "The callee quotes the full revision as one shell argument before the caller executes it. Adversarial metacharacters remain data."
+  }
+]

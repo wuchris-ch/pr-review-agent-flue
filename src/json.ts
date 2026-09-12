@@ -164,7 +164,7 @@ class StrictJsonScanner {
   }
 }
 
-export function extractReview(text: string): Review {
+export function parseStrictJson(text: string): unknown {
   if (!text.trim()) {
     throw new ReviewValidationError('model produced no output');
   }
@@ -182,5 +182,9 @@ export function extractReview(text: string): Review {
     throw new ReviewValidationError('model output contains invalid JSON');
   }
 
-  return validateReview(value);
+  return value;
+}
+
+export function extractReview(text: string): Review {
+  return validateReview(parseStrictJson(text));
 }

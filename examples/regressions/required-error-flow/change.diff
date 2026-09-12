@@ -1,0 +1,21 @@
+diff --git a/batch.py b/batch.py
+index 9025880..a53f510 100644
+--- a/batch.py
++++ b/batch.py
+@@ -3,4 +3,4 @@ from parsing import parse_count
+ def make_batch(value: str):
+     """Malformed required configuration must raise, not create an empty job."""
+     count = parse_count(value)
+-    return [str(i) for i in range(count)]
++    return list(map(str, range(count)))
+diff --git a/parsing.py b/parsing.py
+index bf8b1ba..b73a7fa 100644
+--- a/parsing.py
++++ b/parsing.py
+@@ -1,2 +1,5 @@
+ def parse_count(value: str) -> int:
+-    return int(value)
++    try:
++        return int(value)
++    except ValueError:
++        return 0

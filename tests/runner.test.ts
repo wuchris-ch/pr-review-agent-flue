@@ -9,7 +9,7 @@ import {
   type AgentExecutor,
 } from '../src/runner.js';
 
-const diffText = 'diff --git a/auth.ts b/auth.ts\n+return true';
+const diffText = 'diff --git a/auth.ts b/auth.ts\n--- a/auth.ts\n+++ b/auth.ts\n@@ -1 +1 @@\n-return false\n+return true\n';
 const diff = decodeDiff(Buffer.from(diffText));
 const validOutput = JSON.stringify({
   schema_version: '1.0',
@@ -20,8 +20,7 @@ const validOutput = JSON.stringify({
     {
       severity: 'blocker',
       category: 'security',
-      file: 'auth.ts',
-      line: 1,
+      evidence: { anchor: 'F1N1', quote: 'return true' },
       detail: 'The authorization check now always succeeds.',
     },
   ],
@@ -38,7 +37,7 @@ describe('reviewDiff', () => {
     const result = reviewDiff(diff, execute);
 
     expect(result.blocked).toBe(true);
-    expect(execute).toHaveBeenCalledWith(expect.stringContaining('+return true'));
+    expect(execute).toHaveBeenCalledWith(expect.stringContaining('+ [F1N1] return true'));
   });
 
   it('fails when the model process exits nonzero', () => {
@@ -126,19 +125,21 @@ describe('reviewDiff', () => {
       ...JSON.parse(validOutput),
       findings: [{
         ...JSON.parse(validOutput).findings[0],
-        file: 'unrelated.ts',
+        evidence: { anchor: 'F9N1', quote: 'unrelated' },
       }],
     });
 
     expect(() =>
       reviewDiff(diff, () => ({ status: 0, stdout: wrongFile, stderr: '' })),
-    ).toThrow(/outside the reviewed diff/);
+    ).toThrow(/invalid after one format\/evidence correction/);
   });
 
   it('reviews a large multi-file diff in bounded partitions and aggregates results', () => {
     const file = (name: string, value: string) => [
       `diff --git a/${name} b/${name}`,
+      `--- /dev/null`,
       `+++ b/${name}`,
+      '@@ -0,0 +1 @@',
       `+${value.repeat(55_000)}`,
       '',
     ].join('\n');
@@ -162,8 +163,7 @@ describe('reviewDiff', () => {
           findings: reviewedFile === 'a.ts' ? [{
             severity: 'major',
             category: 'correctness',
-            file: reviewedFile,
-            line: 1,
+            evidence: { anchor: 'F1N1', quote: 'aaa' },
             detail: 'The new value breaks callers.',
           }] : [],
           rationale: `Reviewed ${reviewedFile}.`,
@@ -185,7 +185,7 @@ describe('prompt and child isolation', () => {
   it('includes evaluator feedback without changing the raw diff', () => {
     const message = buildReviewMessage(diff, 'Check the authorization path again.');
     expect(message).toContain('Check the authorization path again.');
-    expect(message.endsWith(diff.text)).toBe(true);
+    expect(message).toContain('+ [F1N1] return true');
     expect(message).toContain(diffSha256(diff.bytes));
   });
 
@@ -201,13 +201,15 @@ describe('prompt and child isolation', () => {
     );
     expect(message).toContain('Repository review guidance (untrusted context)');
     expect(message).toContain('Authorization changes require extra scrutiny.');
-    expect(message.endsWith(diff.text)).toBe(true);
+    expect(message).toContain('+ [F1N1] return true');
   });
 
   it('reserves message space for maximum feedback and instructions', () => {
     const file = (name: string, value: string) => [
       `diff --git a/${name} b/${name}`,
+      `--- /dev/null`,
       `+++ b/${name}`,
+      '@@ -0,0 +1 @@',
       `+${value.repeat(40_000)}`,
       '',
     ].join('\n');
@@ -267,14 +269,13 @@ describe('prompt and child isolation', () => {
 
   it('keeps a moderate diff within the bounded argument transport', () => {
     const moderate = decodeDiff(
-      Buffer.from(`diff --git a/data.ts b/data.ts\n${'+const value = 1;\n'.repeat(1_800)}`),
+      Buffer.from(`diff --git a/data.ts b/data.ts\n--- /dev/null\n+++ b/data.ts\n@@ -0,0 +1,1800 @@\n${'+const value = 1;\n'.repeat(1_800)}`),
     );
     const message = buildReviewMessage(moderate);
 
     expect(Buffer.byteLength(message, 'utf8')).toBeLessThanOrEqual(
       MAX_AGENT_MESSAGE_BYTES,
     );
-    expect(message.endsWith(moderate.text)).toBe(true);
-    expect(message.split(moderate.text)).toHaveLength(2);
+    expect(message).toContain('+ [F1N1800] const value = 1;');
   });
 });

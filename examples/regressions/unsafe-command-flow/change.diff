@@ -1,0 +1,18 @@
+diff --git a/command.py b/command.py
+index aac002e..046ab56 100644
+--- a/command.py
++++ b/command.py
+@@ -1,2 +1,2 @@
+ def command_for_revision(revision: str):
+-    return ["git", "show", revision]
++    return f"git show {revision}"
+diff --git a/runner.py b/runner.py
+index d8891e3..de00e73 100644
+--- a/runner.py
++++ b/runner.py
+@@ -2,4 +2,4 @@ import subprocess
+ from command import command_for_revision
+ 
+ def show_revision(revision: str):
+-    return subprocess.run(command_for_revision(revision), check=True, capture_output=True)
++    return subprocess.run(command_for_revision(revision), shell=True, check=True, capture_output=True)
