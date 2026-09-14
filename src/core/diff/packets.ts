@@ -2,8 +2,20 @@ import type { EvidenceFile, EvidenceHunk, EvidencePacket, SourceAnchor } from '.
 
 export const MAX_CONTEXT_BYTES = 16 * 1024;
 export const MAX_CONTEXT_HUNKS = 4;
-export const MAX_PARTITIONS = 24;
+export const MAX_PARTITIONS = 48;
+/**
+ * Largest share of a partition that read-only related context may take.
+ *
+ * Fixed at 16 KB this crowded out the diff itself once partitions got
+ * smaller, leaving too little room for the files actually under review.
+ */
+const CONTEXT_SHARE = 4;
 const PACKET_HEADER_RESERVE_BYTES = 256;
+
+/** Bytes of related context allowed alongside a partition of this size. */
+function contextReserve(partitionBytes: number): number {
+  return Math.min(MAX_CONTEXT_BYTES, Math.floor(partitionBytes / CONTEXT_SHARE));
+}
 
 const COMMON_WORDS = new Set(
   `const let var return def function class export import from if else elif try except catch throw
@@ -19,31 +31,54 @@ function symbols(text: string): Set<string> {
   return new Set(words.filter((word) => !COMMON_WORDS.has(word.toLowerCase())));
 }
 
-/** Split files into groups that each fit one agent message. */
-function groupFiles(files: readonly EvidenceFile[], budget: number): EvidenceFile[][] {
+/**
+ * Split files into groups, preferring `target` bytes but allowing `ceiling`.
+ *
+ * Two budgets rather than one: `target` is the size the model answers
+ * quickly and reliably at, and `ceiling` is the hard protocol limit. A file
+ * too large for the target gets a partition of its own up to the ceiling,
+ * so one big file makes a single review slower instead of making the whole
+ * change unreviewable.
+ */
+function groupFiles(
+  files: readonly EvidenceFile[],
+  target: number,
+  ceiling: number,
+): EvidenceFile[][] {
   const groups: EvidenceFile[][] = [];
   let group: EvidenceFile[] = [];
   let bytes = 0;
 
+  const flush = (): void => {
+    if (group.length) {
+      groups.push(group);
+    }
+    group = [];
+    bytes = 0;
+  };
+
   for (const file of files) {
     const size = Buffer.byteLength(file.text) + 2;
-    if (size > budget) {
+    if (size > ceiling) {
       throw new Error(
         'a single diff file exceeds the agent message limit; split the change into a smaller patch',
       );
     }
-    if (bytes + size > budget) {
-      groups.push(group);
-      group = [];
-      bytes = 0;
+    if (size > target) {
+      // Oversized on its own: give it an exclusive partition rather than
+      // pairing it with files it would push past the ceiling.
+      flush();
+      groups.push([file]);
+      continue;
+    }
+    if (bytes + size > target) {
+      flush();
     }
     group.push(file);
     bytes += size;
   }
 
-  if (group.length) {
-    groups.push(group);
-  }
+  flush();
   if (groups.length > MAX_PARTITIONS) {
     throw new Error('diff exceeds the review partition budget');
   }
@@ -81,6 +116,7 @@ function buildPacket(
   files: readonly EvidenceFile[],
   targets: readonly EvidenceFile[],
   maxBytes: number,
+  reserve: number,
 ): EvidencePacket {
   const anchors = new Map<string, SourceAnchor>();
   const targetIds = new Set<string>();
@@ -104,7 +140,7 @@ function buildPacket(
     }
     const rendered = `Related context only, file ${JSON.stringify(file.path)}:\n${hunk.text}`;
     const size = Buffer.byteLength(rendered) + 2;
-    if (contextBytes + size > MAX_CONTEXT_BYTES) {
+    if (contextBytes + size > reserve) {
       continue;
     }
     context.push(rendered);
@@ -138,10 +174,19 @@ function buildPacket(
  * partitions of the same change and stay read-only evidence, so a review
  * cannot depend on repository state the caller did not provide.
  */
-export function evidencePackets(files: EvidenceFile[], maxBytes: number): EvidencePacket[] {
-  const budget = maxBytes - MAX_CONTEXT_BYTES - PACKET_HEADER_RESERVE_BYTES;
-  if (budget <= 0) {
+export function evidencePackets(
+  files: EvidenceFile[],
+  maxBytes: number,
+  targetBytes: number = maxBytes,
+): EvidencePacket[] {
+  const partition = Math.min(Math.max(targetBytes, 0) || maxBytes, maxBytes);
+  const reserve = contextReserve(partition);
+  const target = partition - reserve - PACKET_HEADER_RESERVE_BYTES;
+  const ceiling = maxBytes - reserve - PACKET_HEADER_RESERVE_BYTES;
+  if (target <= 0) {
     throw new Error('review guidance leaves no room for source evidence');
   }
-  return groupFiles(files, budget).map((targets) => buildPacket(files, targets, maxBytes));
+  return groupFiles(files, target, ceiling).map((targets) =>
+    buildPacket(files, targets, maxBytes, reserve),
+  );
 }

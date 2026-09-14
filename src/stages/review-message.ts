@@ -1,7 +1,19 @@
 import { indexDiff } from '../core/diff/parse.js';
 import type { DiffInput } from '../core/input.js';
 
+/** Hard protocol ceiling for one agent message. */
 export const MAX_AGENT_MESSAGE_BYTES = 96 * 1024;
+/**
+ * Preferred size of one agent message.
+ *
+ * Separate from the ceiling because the two answer different questions.
+ * The ceiling is what the transport accepts; this is the size the model
+ * answers quickly and reliably at. A near-ceiling partition makes the model
+ * reason for well over a minute before replying, which pushed requests past
+ * their timeout. Smaller partitions cost more of them, which the concurrent
+ * pool absorbs.
+ */
+export const TARGET_AGENT_MESSAGE_BYTES = 48 * 1024;
 export const MAX_FEEDBACK_BYTES = 16 * 1024;
 const PARTITION_OVERHEAD_RESERVE_BYTES = 128;
 
@@ -83,13 +95,17 @@ export function buildReviewMessage(diff: DiffInput, options: MessageOptions = {}
 }
 
 /** Bytes left for diff text once the fixed framing and a correction suffix are reserved. */
-export function availableDiffBytes(diff: DiffInput, options: MessageOptions = {}): number {
+export function availableDiffBytes(
+  diff: DiffInput,
+  options: MessageOptions = {},
+  messageBytes: number = MAX_AGENT_MESSAGE_BYTES,
+): number {
   const framing = buildReviewMessage(diff, {
     ...options,
     partition: { index: 999, total: 999, text: '' },
   });
   return (
-    MAX_AGENT_MESSAGE_BYTES -
+    messageBytes -
     Buffer.byteLength(framing, 'utf8') -
     PARTITION_OVERHEAD_RESERVE_BYTES -
     Buffer.byteLength(FORMAT_RETRY_INSTRUCTION, 'utf8')

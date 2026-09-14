@@ -1,14 +1,40 @@
 import { ReviewValidationError } from './schema.js';
 
+/**
+ * The reply stopped early instead of being malformed.
+ *
+ * Worth separating: a truncated reply means the model ran out of output
+ * budget, which is a configuration problem the operator can fix, while
+ * malformed JSON means the model ignored the contract. Both used to report
+ * as "invalid JSON", which hid a token limit behind an apparent compliance
+ * failure.
+ */
+export class TruncatedOutputError extends ReviewValidationError {
+  constructor() {
+    super(
+      'model output ended before the JSON object was complete, which means the reply hit its output token limit',
+    );
+    this.name = 'TruncatedOutputError';
+  }
+}
+
 class StrictJsonScanner {
   private index = 0;
 
   constructor(private readonly text: string) {}
 
+  /** Reject the input, reporting a clean end of input as truncation. */
+  private fail(message: string): never {
+    if (this.index >= this.text.length) {
+      throw new TruncatedOutputError();
+    }
+    throw new ReviewValidationError(message);
+  }
+
   scan(): void {
     this.skipWhitespace();
     if (this.peek() !== '{') {
-      throw new ReviewValidationError('model output must contain only one JSON object');
+      this.fail('model output must contain only one JSON object');
     }
     this.scanObject();
     this.skipWhitespace();
@@ -38,7 +64,7 @@ class StrictJsonScanner {
     } else if (character === '-' || (character !== undefined && /[0-9]/.test(character))) {
       this.scanNumber();
     } else {
-      throw new ReviewValidationError('model output contains invalid JSON');
+      this.fail('model output contains invalid JSON');
     }
   }
 
@@ -55,7 +81,7 @@ class StrictJsonScanner {
     while (true) {
       this.skipWhitespace();
       if (this.peek() !== '"') {
-        throw new ReviewValidationError('JSON object keys must be strings');
+        this.fail('JSON object keys must be strings');
       }
       const key = this.scanString();
       if (keys.has(key)) {
@@ -120,21 +146,21 @@ class StrictJsonScanner {
       }
     }
 
-    throw new ReviewValidationError('model output contains an unterminated string');
+    throw new TruncatedOutputError();
   }
 
   private scanNumber(): void {
     const remaining = this.text.slice(this.index);
     const match = remaining.match(/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/);
     if (!match) {
-      throw new ReviewValidationError('model output contains an invalid number');
+      this.fail('model output contains an invalid number');
     }
     this.index += match[0].length;
   }
 
   private scanLiteral(literal: string): void {
     if (this.text.slice(this.index, this.index + literal.length) !== literal) {
-      throw new ReviewValidationError('model output contains invalid JSON');
+      this.fail('model output contains invalid JSON');
     }
     this.index += literal.length;
   }
@@ -147,7 +173,7 @@ class StrictJsonScanner {
 
   private expect(character: string): void {
     if (this.peek() !== character) {
-      throw new ReviewValidationError('model output contains invalid JSON');
+      this.fail('model output contains invalid JSON');
     }
     this.index += 1;
   }
@@ -164,7 +190,7 @@ export function parseStrictJson(text: string): unknown {
 
   const trimmed = text.trim();
   const fenced = /^```(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n```$/iu.exec(trimmed);
-  const candidate = fenced?.[1] ?? text;
+  const candidate = fenced?.[1] ?? trimmed;
 
   new StrictJsonScanner(candidate).scan();
 

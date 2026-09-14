@@ -11,8 +11,23 @@ import {
 } from './review-message.js';
 import type { ReviewContext, ReviewStage, StageAttempt, StageResult } from './types.js';
 
-export const DEFAULT_PARTITION_TIMEOUT_MS = 120_000;
-export const DEFAULT_CONCURRENCY = 4;
+/**
+ * Wall clock for one partition, including a retried child.
+ *
+ * Exceeds the child's own read timeout so an unresponsive child is
+ * surfaced by its internal deadline, with its specific reason, instead of
+ * being killed by the parent first.
+ */
+export const DEFAULT_PARTITION_TIMEOUT_MS = 210_000;
+/**
+ * Partitions in flight at once.
+ *
+ * Sized against the tuned partition budget: smaller partitions mean roughly
+ * three times as many of them, so the pool widened to keep a large review's
+ * wall clock flat. Each slot is a child process that spends nearly all its
+ * time waiting on the gateway.
+ */
+export const DEFAULT_CONCURRENCY = 6;
 /** Attempts per partition: one review plus one format/evidence correction. */
 export const ATTEMPTS_PER_PARTITION = 2;
 /**

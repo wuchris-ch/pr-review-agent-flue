@@ -86,14 +86,19 @@ export function buildReviewContext(diff: DiffInput, options: ReviewOptions = {})
 
   const config = { ...reviewConfig(), ...options.config };
   const feedback = options.feedback ?? process.env.AGENT_EVAL_FEEDBACK;
-  const budget = availableDiffBytes(diff, {
+  const framing = {
     ...(feedback === undefined ? {} : { feedback }),
     ...(options.instructions === undefined ? {} : { instructions: options.instructions }),
-  });
+  };
+  // Two budgets: the ceiling the transport accepts, and the smaller size the
+  // model answers reliably at. The packer prefers the second and uses the
+  // first only for a file too large to fit it.
+  const budget = availableDiffBytes(diff, framing);
+  const target = availableDiffBytes(diff, framing, config.partitionBytes);
 
   return {
     diff,
-    packets: evidencePackets(indexDiff(diff.text), budget),
+    packets: evidencePackets(indexDiff(diff.text), budget, target),
     deadline: Deadline.in(config.deadlineMs),
     ...(options.instructions === undefined ? {} : { instructions: options.instructions }),
     ...(feedback === undefined ? {} : { feedback }),

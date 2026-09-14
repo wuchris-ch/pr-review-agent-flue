@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseStrictJson } from '../../src/core/json.js';
+import { parseStrictJson, TruncatedOutputError } from '../../src/core/json.js';
 import { validateReview } from '../../src/core/schema.js';
 
 /** The parse-then-validate path the grounding layer uses. */
@@ -67,5 +67,29 @@ describe('extractReview', () => {
     expect(() => extractReview('')).toThrow(/no output/);
     expect(() => extractReview('analysis complete')).toThrow(/only one JSON/);
     expect(() => extractReview('{"risk":"low"}')).toThrow(/does not match/);
+  });
+
+  it('reports a reply that stopped early as truncation, not as malformed JSON', () => {
+    // A reasoning model spends most of its output budget thinking, so a low
+    // token limit cuts the object off part-way. That is an operator-fixable
+    // budget problem and must not be reported as the model ignoring the
+    // contract.
+    const cut = [
+      '{"schema_version": "1.0", "risk": "low", "findings": [{"severity": "ma',
+      '{"schema_version": "1.0", "findings": [',
+      '{"schema_version":',
+      '{',
+    ];
+    for (const text of cut) {
+      expect(() => parseStrictJson(text)).toThrow(TruncatedOutputError);
+      expect(() => parseStrictJson(text)).toThrow(/output token limit/);
+    }
+  });
+
+  it('still reports genuinely malformed output as invalid rather than truncated', () => {
+    for (const text of ['not json at all', '{"a": 1} trailing', '{"a": nope}', '[1, 2]']) {
+      expect(() => parseStrictJson(text)).toThrow();
+      expect(() => parseStrictJson(text)).not.toThrow(TruncatedOutputError);
+    }
   });
 });

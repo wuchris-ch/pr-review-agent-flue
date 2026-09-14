@@ -151,8 +151,12 @@ that still fails ends the review rather than returning a partial verdict.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `REVIEW_CONCURRENCY` | 4 | Partitions reviewed at once, bounding concurrent child processes. |
-| `REVIEW_PARTITION_TIMEOUT_SECONDS` | 120 | Wall clock for one partition attempt. |
+| `REVIEW_CONCURRENCY` | 6 | Partitions reviewed at once, bounding concurrent child processes. |
+| `REVIEW_PARTITION_KIB` | 48 | Preferred agent message size. Smaller partitions answer faster; the 96 KiB ceiling still applies. |
+| `REVIEW_REASONING_EFFORT` | low | How much the model thinks before answering, or `default` to leave it to the gateway. |
+| `REVIEW_MAX_OUTPUT_TOKENS` | 32768 | Output tokens per reply. Reasoning is billed against this. |
+| `REVIEW_GATEWAY_TIMEOUT_SECONDS` | 180 | Total network time one child may spend across its attempts. |
+| `REVIEW_PARTITION_TIMEOUT_SECONDS` | 210 | Wall clock for one partition attempt. |
 | `REVIEW_DEADLINE_SECONDS` | 900 | Wall clock for the whole review across every stage. |
 | `REVIEW_VERIFY_STAGE` | on | Whether the gated second opinion runs. |
 | `REVIEW_VERIFY_MAX_PARTITIONS` | 4 | Largest diff, in partitions, worth a second opinion. |
@@ -181,19 +185,24 @@ Findings contain `severity`, `category`, `file`, `line`, and `detail`. A blocker
 | Evaluator feedback, `AGENT_EVAL_FEEDBACK` | 16 KiB |
 | Partition message, including correction | 96 KiB |
 | Related diff context per partition | 16 KiB, at most 4 complete hunks |
-| Partitions per review | 24 |
-| File splitting | File boundaries only; an oversized individual file is rejected |
-| Actual gateway HTTP requests | At most 3 per child, including retry requests |
-| Per-request deadline | 35 seconds, including streamed response consumption |
-| Requested output tokens | 4,096 |
+| Preferred partition message | 48 KiB, `REVIEW_PARTITION_KIB` |
+| Partitions per review | 48 |
+| File splitting | File boundaries only. A file above the preferred size gets its own partition, and is rejected only if it exceeds the 96 KiB ceiling |
+| Actual gateway HTTP requests | At most 2 per child, including retry requests |
+| Network deadline | 180 seconds per child, shared across its attempts, `REVIEW_GATEWAY_TIMEOUT_SECONDS` |
+| Requested output tokens | 32,768, `REVIEW_MAX_OUTPUT_TOKENS` |
 | Gateway response | 1 MiB, enforced while reading the stream |
-| One partition attempt, including its child | 120 seconds, `REVIEW_PARTITION_TIMEOUT_SECONDS` |
+| One partition attempt, including its child | 210 seconds, `REVIEW_PARTITION_TIMEOUT_SECONDS` |
 | Complete review, every stage and partition | 900 seconds, `REVIEW_DEADLINE_SECONDS` |
-| Partitions reviewed concurrently | 4, `REVIEW_CONCURRENCY` |
+| Partitions reviewed concurrently | 6, `REVIEW_CONCURRENCY` |
 | Retries of a failed child, per attempt | 1, and none for a non-retryable rejection |
 | Format or evidence correction | At most one fresh child per partition, with its own deadline |
 
-Flue controls transient retry classification and backoff inside a child. The application caps actual requests per child and bounds total execution with the deadlines above. A partition can reach twelve upstream requests in the worst case: two format attempts, each retried once after a transient child failure, at three requests per child. Cost fields in the custom provider are zero placeholders, not billing estimates.
+Flue controls transient retry classification and backoff inside a child. The application caps actual requests per child and bounds total execution with the deadlines above. A partition can reach eight upstream requests in the worst case: two format attempts, each retried once after a transient child failure, at two requests per child. Cost fields in the custom provider are zero placeholders, not billing estimates.
+
+The budgets above nest, and that ordering is load-bearing. A child's shared network budget is smaller than the read timeout it sits inside, which is smaller than the partition deadline the parent enforces. When an inner budget is larger than an outer one, a timeout stops being reported as a timeout and instead surfaces as an unexplained stall, because the outer layer kills the child before the inner layer can name the reason.
+
+Output tokens deserve particular care because the reviewer model reasons before answering and that reasoning is billed against the same budget. Too small a budget truncates the reply mid-object, or returns an empty reply with an HTTP 200 when reasoning consumes all of it. `REVIEW_REASONING_EFFORT` bounds the thinking itself, which is more predictable than bounding the total: without it, a small clean diff can spend minutes second-guessing itself, since a model with no defect to find keeps looking until its budget runs out. Any change to that level should be judged with `npm run eval:full` and `npm run eval:holdout` rather than by inspection.
 
 ## Continuous GitHub reviews
 

@@ -4,6 +4,7 @@ import { once } from 'node:events';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { childEnvironment } from '../../src/agents/executor.js';
+import { DEFAULT_MAX_OUTPUT_TOKENS, MAX_GATEWAY_REQUESTS } from '../../src/agents/gateway.js';
 
 const diff =
   'diff --git a/example.ts b/example.ts\n--- a/example.ts\n+++ b/example.ts\n@@ -1 +1 @@\n-export const answer = 41;\n+export const answer = 42;\n';
@@ -129,8 +130,11 @@ describe('compiled CLI through real Flue and Pi against loopback SSE', () => {
     expect(request.model).toBe('test-wire-model');
     expect(request.stream).toBe(true);
     expect(request.temperature).toBe(0);
-    expect(request.max_tokens).toBe(4096);
+    expect(request.max_tokens).toBe(DEFAULT_MAX_OUTPUT_TOKENS);
     expect(request.tools ?? []).toEqual([]);
+    // JSON mode keeps the reply free of the markdown fence the model
+    // otherwise adds, and shortens the reasoning it spends first.
+    expect(request.response_format).toEqual({ type: 'json_object' });
     expect(JSON.stringify(request.messages)).toContain('senior pull-request reviewer');
     expect(JSON.stringify(request.messages)).toContain(sha);
     expect(JSON.stringify(request)).not.toContain('github-token-must-not-reach-model');
@@ -180,7 +184,7 @@ describe('compiled CLI through real Flue and Pi against loopback SSE', () => {
     const result = await review('exhaust');
     expect(result.code).toBe(1);
     expect(result.stdout).toBe('');
-    // Three requests per child, and one fresh child after the first failure.
-    expect(requests).toHaveLength(6);
+    // Every attempt the child is allowed, then one fresh child after it fails.
+    expect(requests).toHaveLength(MAX_GATEWAY_REQUESTS * 2);
   }, 120_000);
 });

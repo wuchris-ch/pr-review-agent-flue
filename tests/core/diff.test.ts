@@ -155,20 +155,21 @@ describe('source provenance', () => {
 
 describe('bounded context retrieval', () => {
   it('retrieves related caller evidence across partitions without making it another finding target', () => {
-    const file = (path: string, content: string[]) =>
-      `diff --git a/${path} b/${path}\n--- /dev/null\n+++ b/${path}\n@@ -0,0 +1,${content.length} @@\n${content.map((line) => `+${line}`).join('\n')}\n`;
+    // Bulk lives in its own hunk so the file is large enough to need two
+    // partitions while the meaningful hunk stays small enough to retrieve.
+    const file = (path: string, content: string[], padding: string) =>
+      `diff --git a/${path} b/${path}\n--- /dev/null\n+++ b/${path}\n` +
+      `@@ -0,0 +1,${content.length} @@\n${content.map((line) => `+${line}`).join('\n')}\n` +
+      `@@ -0,0 +100,1 @@\n+bulk = "${padding}"\n`;
     const text =
-      file('caller.py', [
-        'from parser import parse_port',
-        'port = parse_port(config)',
-        `padding = "${'x'.repeat(9000)}"`,
-      ]) +
-      file('parser.py', [
-        'def parse_port(config):',
-        '    return 0',
-        `padding = "${'y'.repeat(9000)}"`,
-      ]);
-    const packets = evidencePackets(indexDiff(text), MAX_CONTEXT_BYTES + 12_000);
+      file(
+        'caller.py',
+        ['from parser import parse_port', 'port = parse_port(config)'],
+        'x'.repeat(9000),
+      ) + file('parser.py', ['def parse_port(config):', '    return 0'], 'y'.repeat(9000));
+    // A target below the ceiling forces the two files apart, which is what
+    // makes the cross-partition retrieval observable.
+    const packets = evidencePackets(indexDiff(text), MAX_CONTEXT_BYTES + 12_000, 16_000);
     expect(packets).toHaveLength(2);
     expect(packets[0]?.retrievedHunks).toBe(1);
     expect(packets[0]?.anchors.get('F2N2')).toMatchObject({ file: 'parser.py', line: 2 });
@@ -176,5 +177,41 @@ describe('bounded context retrieval', () => {
     expect(packets[0]?.text).toContain('Related context only');
     for (const packet of packets)
       expect(Buffer.byteLength(packet.text)).toBeLessThanOrEqual(MAX_CONTEXT_BYTES + 12_000);
+  });
+
+  it('gives a file larger than the target partition its own partition instead of failing', () => {
+    // A single large file used to abort the whole review with advice to
+    // send a smaller patch. It now costs one slower partition, bounded by
+    // the hard ceiling rather than the tuned target.
+    const file = (path: string, lines: number, pad: number) =>
+      `diff --git a/${path} b/${path}\n--- /dev/null\n+++ b/${path}\n@@ -0,0 +1,${lines} @@\n${Array.from(
+        { length: lines },
+        (_unused, index) => `+value_${String(index)} = "${'z'.repeat(pad)}"`,
+      ).join('\n')}\n`;
+
+    const text = file('small_a.py', 2, 10) + file('huge.py', 40, 900) + file('small_b.py', 2, 10);
+    const packets = evidencePackets(indexDiff(text), 96 * 1024, 16 * 1024);
+
+    expect(packets.length).toBeGreaterThanOrEqual(2);
+    const huge = packets.filter((packet) => packet.text.includes('huge.py'));
+    expect(huge).toHaveLength(1);
+    // Alone as a review target. Other files may still appear beneath it as
+    // read-only related context, which renders with a different prefix.
+    expect(huge[0]?.text).not.toContain('File: "small_a.py"');
+    expect(huge[0]?.text).not.toContain('File: "small_b.py"');
+    for (const packet of packets) {
+      expect(Buffer.byteLength(packet.text)).toBeLessThanOrEqual(96 * 1024);
+    }
+  });
+
+  it('refuses only a file that cannot fit the hard ceiling at all', () => {
+    const lines = 400;
+    const text = `diff --git a/huge.py b/huge.py\n--- /dev/null\n+++ b/huge.py\n@@ -0,0 +1,${lines} @@\n${Array.from(
+      { length: lines },
+      (_unused, index) => `+value_${String(index)} = "${'z'.repeat(900)}"`,
+    ).join('\n')}\n`;
+    expect(() => evidencePackets(indexDiff(text), 32 * 1024, 16 * 1024)).toThrow(
+      /exceeds the agent message limit/,
+    );
   });
 });

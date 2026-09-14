@@ -9,6 +9,8 @@
 export interface ReviewConfig {
   /** Partitions reviewed at once. Bounds concurrent model child processes. */
   concurrency: number;
+  /** Preferred bytes per agent message, below the hard protocol ceiling. */
+  partitionBytes: number;
   /** Per-partition wall clock, including its format correction attempt. */
   partitionTimeoutMs: number;
   /** Wall clock for the whole review across every stage. */
@@ -56,8 +58,9 @@ function flag(env: NodeJS.ProcessEnv, name: string, fallback: boolean): boolean 
 export function reviewConfig(env: NodeJS.ProcessEnv = process.env): ReviewConfig {
   const runLogDir = env.REVIEW_RUN_LOG_DIR?.trim();
   return {
-    concurrency: integer(env, 'REVIEW_CONCURRENCY', 4, 1, 8),
-    partitionTimeoutMs: integer(env, 'REVIEW_PARTITION_TIMEOUT_SECONDS', 120, 15, 600) * 1000,
+    concurrency: integer(env, 'REVIEW_CONCURRENCY', 6, 1, 12),
+    partitionBytes: integer(env, 'REVIEW_PARTITION_KIB', 48, 8, 96) * 1024,
+    partitionTimeoutMs: integer(env, 'REVIEW_PARTITION_TIMEOUT_SECONDS', 210, 15, 600) * 1000,
     deadlineMs: integer(env, 'REVIEW_DEADLINE_SECONDS', 900, 30, 3600) * 1000,
     verifyEnabled: flag(env, 'REVIEW_VERIFY_STAGE', true),
     verifyMaxPartitions: integer(env, 'REVIEW_VERIFY_MAX_PARTITIONS', 4, 1, 24),

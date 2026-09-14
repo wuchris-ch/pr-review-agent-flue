@@ -60,10 +60,11 @@ main().catch((error: unknown) => {
   // SDK errors can include private endpoints, response bodies, or credentials,
   // so only the retry classification crosses the process boundary.
   const rejected = error instanceof GatewayRejectedError;
+  const detail = error instanceof Error ? error.message : '';
   process.stderr.write(
     rejected
       ? 'model request rejected: check local model gateway configuration\n'
-      : 'model request failed: the gateway did not return a usable response in time\n',
+      : `model request failed: the gateway did not return a usable response. ${detail}\n`,
   );
   process.exitCode = rejected ? EXIT_REJECTED : EXIT_TRANSIENT;
 });
