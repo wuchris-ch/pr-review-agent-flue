@@ -1,0 +1,16 @@
+diff --git a/api/pricing.py b/api/pricing.py
+--- a/api/pricing.py
++++ b/api/pricing.py
+@@ -1,8 +1,9 @@
++from decimal import Decimal
+ from typing import Iterable
+ 
+ 
+-def total(items):
+-    result = 0
++def total(items: Iterable["LineItem"]) -> Decimal:
++    result = Decimal("0")
+     for item in items:
+-        result = result + item.price * item.quantity
++        result += Decimal(str(item.price)) * item.quantity
+     return result

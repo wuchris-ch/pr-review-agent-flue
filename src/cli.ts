@@ -1,52 +1,16 @@
 #!/usr/bin/env node
-import { realpathSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { readReviewInput } from './input.js';
-import { reviewDiff } from './runner.js';
-
-export interface CliIo {
-  stdout(text: string): void;
-  stderr(text: string): void;
-}
-
-const defaultIo: CliIo = {
-  stdout: (text) => process.stdout.write(text),
-  stderr: (text) => process.stderr.write(text),
-};
+// Compatibility entry point. Every command shares src/cli/main.ts; this file
+// only fixes the subcommand so the documented script path and binary name keep
+// working.
+import { type CommandIo, defaultIo, runEntrypoint } from './cli/harness.js';
+import { runCli } from './cli/main.js';
 
 export function main(
   args: readonly string[] = process.argv.slice(2),
-  io: CliIo = defaultIo,
-): number {
-  try {
-    const input = readReviewInput(args);
-    const review = reviewDiff(input.diff, undefined, {
-      ...(input.instructions === undefined
-        ? {}
-        : { instructions: input.instructions }),
-    });
-    io.stdout(`${JSON.stringify(review)}\n`);
-    return 0;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    io.stderr(`review failed: ${message}\n`);
-    return 1;
-  }
+  io: CommandIo = defaultIo,
+  cwd: string = process.cwd(),
+): Promise<number> {
+  return runCli(['agent', ...args], io, cwd);
 }
 
-function isMainModule(): boolean {
-  const entrypoint = process.argv[1];
-  if (!entrypoint) {
-    return false;
-  }
-
-  try {
-    return realpathSync(entrypoint) === realpathSync(fileURLToPath(import.meta.url));
-  } catch {
-    return false;
-  }
-}
-
-if (isMainModule()) {
-  process.exitCode = main();
-}
+runEntrypoint(import.meta.url, () => main());
