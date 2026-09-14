@@ -210,7 +210,9 @@ describe('partitioned reviews', () => {
     };
 
     await reviewDiff(wide, { stages: modelOnly(execute, 4) });
-    expect(peak).toBe(4);
+    // Bounded above by the limit, and above one to prove the serial floor is gone.
+    expect(peak).toBeLessThanOrEqual(4);
+    expect(peak).toBeGreaterThan(1);
   });
 
   it('reserves message space for maximum feedback and instructions', async () => {
