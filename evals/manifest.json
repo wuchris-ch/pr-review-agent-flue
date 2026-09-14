@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "sets": {
+    "smoke": "Fast pre-merge signal. Three cases, one model review each.",
+    "full": "Every tuning case. Run before a release or after a prompt change.",
+    "holdout": "Never used while tuning prompts or the rubric. Run last, read once."
+  },
+  "cases": [
+    {
+      "id": "unsafe-command-flow",
+      "sets": ["smoke", "full"],
+      "diff": "../examples/regressions/unsafe-command-flow/change.diff",
+      "blocked": true,
+      "expect": [{ "file": "runner.py", "line": 8, "severity": "blocker" }],
+      "notes": "A request-controlled revision reaches a shell through the changed caller."
+    },
+    {
+      "id": "quoted-command-flow",
+      "sets": ["smoke", "full"],
+      "diff": "../examples/regressions/quoted-command-flow/change.diff",
+      "blocked": false,
+      "expect": [],
+      "notes": "Near-identical to unsafe-command-flow but correctly quoted. Pins the false-positive boundary."
+    },
+    {
+      "id": "leaked-credential",
+      "sets": ["smoke", "full"],
+      "diff": "cases/leaked-credential.diff",
+      "blocked": true,
+      "expect": [{ "file": "service/settings.py", "line": 7, "severity": "blocker" }],
+      "notes": "Caught by the free static stage, so it should never depend on model judgement."
+    },
+    {
+      "id": "required-error-flow",
+      "sets": ["full"],
+      "diff": "../examples/regressions/required-error-flow/change.diff",
+      "blocked": true,
+      "expect": [{ "file": "parsing.py", "line": 5, "severity": "major" }],
+      "notes": "Suppressing a required error and continuing with invalid state."
+    },
+    {
+      "id": "optional-fallback-flow",
+      "sets": ["full"],
+      "diff": "../examples/regressions/optional-fallback-flow/change.diff",
+      "blocked": false,
+      "expect": [],
+      "notes": "A legitimate fallback the callers already handle. Pins the counterpart to required-error-flow."
+    },
+    {
+      "id": "safe-diff",
+      "sets": ["full"],
+      "diff": "../examples/safe.diff",
+      "blocked": false,
+      "expect": [],
+      "notes": "Baseline clean change. Also exercises the gated second-opinion stage."
+    },
+    {
+      "id": "missing-ownership-check",
+      "sets": ["holdout"],
+      "diff": "cases/missing-ownership-check.diff",
+      "blocked": true,
+      "expect": [],
+      "notes": "A removed authorization guard in a deletion-only hunk."
+    },
+    {
+      "id": "typed-refactor",
+      "sets": ["holdout"],
+      "diff": "cases/typed-refactor.diff",
+      "blocked": false,
+      "expect": [],
+      "notes": "A correct typing and precision refactor that should not be blocked."
+    }
+  ]
+}

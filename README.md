@@ -56,33 +56,112 @@ node --env-file=.env dist/pr.js 123 --repo owner/repository --publish
 
 A valid verdict exits **0**, including a blocked verdict. Invalid input, execution failure, or invalid output exits **1**. Integrations must inspect `blocked` to decide whether a review passes.
 
-## Review workflow
+## Architecture
 
-Pinned framework version: **`@flue/runtime` 2.0.3**. Its Pi model integration is pinned to **`@earendil-works/pi-ai` 0.83.0**. Verified against the installed package and official documentation on **September 6, 2026**.
+The review runs as a pipeline of stages over a diff that has already been
+indexed into exact source anchors. Stages share one contract, so a
+deterministic detector and a model call compose the same way, and a later
+stage can decide whether it is still needed based on what earlier ones found.
 
 ```mermaid
 flowchart TD
-  I[Diff, local Git, or GitHub PR] --> V[Validate bytes, hash input, map exact hunk coordinates]
-  V --> P[Pack target files and retrieve related diff hunks]
-  P --> F[Flue reviewer returns findings with source anchors and quotes]
-  F --> J{Validate schema, digest, anchors, and exact quotes}
-  J -->|Valid| A[Resolve file and line, aggregate verdict]
-  J -->|First invalid attempt| C[One format or evidence correction]
-  C --> J
-  J -->|Budget exhausted| E[Return review error]
-  A --> O[CLI JSON or GitHub review and status]
+  S["DiffSource: stdin, local Git, gh CLI, GitHub API"] --> V["Validate bytes, hash input, index hunk coordinates"]
+  V --> P["Pack partitions, retrieve related hunks"]
+  P --> A["static-checks (free)"]
+  A --> B["model-review (bounded concurrency)"]
+  B --> G{"Blocking finding?"}
+  G -- "yes" --> D["Merge findings"]
+  G -- "no, and diff is small" --> C["model-verify (second opinion)"]
+  C --> D
+  D --> E["policy.decideVerdict"]
+  E --> O["JSON, GitHub review, commit status"]
 ```
 
-- [`src/agents/reviewer.ts`](src/agents/reviewer.ts) is a real Flue agent module with the `use agent` directive and `useModel` hook.
-- [`src/agents/runtime.ts`](src/agents/runtime.ts) uses the supported standalone Node `start()` API and Flue's `init()`, `dispatch()`, `read()`, and `stop()` lifecycle. No web server or Vite build is needed for this CLI architecture.
-- [`src/agents/gateway.ts`](src/agents/gateway.ts) registers a custom Pi provider for the configured model gateway. Pi owns chat serialization and SSE parsing; Flue owns agent execution and transient model retries. A wrapper enforces network limits and keeps the real model ID out of runtime metadata by using the public alias `reviewer`.
-- [`src/evidence.ts`](src/evidence.ts) maps old and new hunk coordinates, labels source anchors, retrieves related hunks across partitions, and validates exact evidence quotes. The model selects an anchor; the application supplies the public finding file and line.
-- [`src/runner.ts`](src/runner.ts) owns child isolation, one shared format/evidence correction attempt per partition, complete-review budgets, digest checks, aggregation, and optional per-attempt diagnostics.
-- [`src/watcher.ts`](src/watcher.ts) retains GitHub polling and publication. Flue does not control GitHub credentials or publication tools.
+| Layer | Responsibility |
+| --- | --- |
+| [`src/sources`](src/sources) | Where a diff comes from. One adapter per input behind `DiffSource`. |
+| [`src/core`](src/core) | Diff indexing, evidence grounding, strict JSON, schema, verdict policy, budgets. |
+| [`src/stages`](src/stages) | The pipeline and its stages. New checks are added here. |
+| [`src/agents`](src/agents) | Flue runtime, model gateway provider, isolated child process. |
+| [`src/render`](src/render) | Output formatting, currently GitHub Markdown. |
+| [`src/cli`](src/cli) | Command registry. Every binary is the same harness with a fixed subcommand. |
+| [`src/telemetry`](src/telemetry) | Per-run JSONL records for replay and evaluation. |
 
-Each partition and correction attempt gets a fresh conversation backed by Flue's **in-memory SQLite**. There is no cross-review memory or restart recovery. This deliberately preserves the original stateless review behavior. Persistent Flue conversations would require an explicit storage and lifecycle design.
+Pinned framework version: **`@flue/runtime` 2.0.3**. Its Pi model integration is pinned to **`@earendil-works/pi-ai` 0.83.0**. Verified against the installed package and official documentation on **September 6, 2026**.
 
-Context retrieval searches only the supplied diff. Related hunks are ranked by shared code identifiers and remain read-only evidence for the current partition. Each file is reviewed as a target once. Unchanged files outside the diff are not loaded; include their relevant context when a caller contract is needed. The workflow uses one reviewer and deterministic evidence verification, with no second opinion agent or execution of PR code.
+### Stages
+
+`static-checks` runs deterministic detectors over the added lines and costs
+nothing. It exists so a leaked credential, disabled certificate verification,
+or a `write-all` workflow does not depend on model judgement. Its findings
+carry real file and line numbers because it reads the same anchor index the
+model sees.
+
+`model-review` sends each partition to the reviewer. Partitions run through a
+bounded worker pool, and each one draws its own deadline from the review
+deadline, so a larger diff costs throughput rather than becoming impossible
+to finish.
+
+`model-verify` is a second independent pass, and it runs only when the review
+is otherwise clean and the diff is small enough to be worth one. A missed
+defect is the expensive error for a security reviewer, so a clean verdict on
+a small change earns one more look. It is optional by contract: if it fails,
+the review still stands and the rationale says the stage did not complete, so
+an absent check is never mistaken for a passing one. Set
+`REVIEW_VERIFY_STAGE=off` to disable it.
+
+Findings that share a file, line, and category are treated as one defect.
+Overlap between a detector and the model is agreement, not two problems: the
+more severe report wins and the detail notes that something else concurred.
+
+### Verdict policy
+
+[`src/core/policy.ts`](src/core/policy.ts) is the only definition of how
+findings become a risk level and a blocking decision. The schema validator
+calls it, the pipeline calls it, and the system prompt is rendered from the
+same rule table, so the text the model is given cannot drift from the rules
+the application enforces. Adding a severity tier means adding one row.
+
+### Evidence grounding
+
+[`src/core/diff`](src/core/diff) maps old and new hunk coordinates and labels
+every source line with an anchor. [`src/core/grounding.ts`](src/core/grounding.ts)
+requires each finding to cite a supplied anchor and quote that line exactly.
+The model selects an anchor; the application resolves the file and line. A
+finding can therefore never point somewhere the diff does not support.
+
+Retrieval never leaves the supplied diff. Related hunks come from other
+partitions of the same change, ranked by shared identifiers, and stay
+read-only evidence. Unchanged files outside the diff are not loaded.
+
+Each partition and correction attempt gets a fresh conversation in an
+isolated child process backed by Flue's in-memory SQLite. There is no
+cross-review memory or restart recovery.
+
+### Failure handling
+
+A transient child failure is retried once with a fresh child, because the
+gateway can stall until the child's internal deadline. A rejection that no
+retry can fix, such as an incomplete configuration or a refused credential,
+exits with a distinct code and is not retried. Bad model output gets one
+corrective prompt; a dead child gets the same prompt again. A required stage
+that still fails ends the review rather than returning a partial verdict.
+
+### Configuration
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `REVIEW_CONCURRENCY` | 6 | Partitions reviewed at once, bounding concurrent child processes. |
+| `REVIEW_PARTITION_KIB` | 48 | Preferred agent message size. Smaller partitions answer faster; the 96 KiB ceiling still applies. |
+| `REVIEW_REASONING_EFFORT` | low | How much the model thinks before answering, or `default` to leave it to the gateway. |
+| `REVIEW_MAX_OUTPUT_TOKENS` | 32768 | Output tokens per reply. Reasoning is billed against this. |
+| `REVIEW_GATEWAY_TIMEOUT_SECONDS` | 180 | Total network time one child may spend across its attempts. |
+| `REVIEW_PARTITION_TIMEOUT_SECONDS` | 210 | Wall clock for one partition attempt. |
+| `REVIEW_DEADLINE_SECONDS` | 900 | Wall clock for the whole review across every stage. |
+| `REVIEW_VERIFY_STAGE` | on | Whether the gated second opinion runs. |
+| `REVIEW_VERIFY_MAX_PARTITIONS` | 4 | Largest diff, in partitions, worth a second opinion. |
+| `REVIEW_WATCH_CONCURRENCY` | 2 | Pull requests reviewed at once by the watcher. |
+| `REVIEW_RUN_LOG_DIR` | unset | Directory for per-run JSONL records. Unset keeps them in memory. |
 
 ## Verdict and limits
 
@@ -106,16 +185,24 @@ Findings contain `severity`, `category`, `file`, `line`, and `detail`. A blocker
 | Evaluator feedback, `AGENT_EVAL_FEEDBACK` | 16 KiB |
 | Partition message, including correction | 96 KiB |
 | Related diff context per partition | 16 KiB, at most 4 complete hunks |
-| Partitions / total model attempts | 24 / 32 |
-| File splitting | File boundaries only; an oversized individual file is rejected |
-| Actual gateway HTTP requests | At most 3 per child, including retry requests |
-| Per-request deadline | 35 seconds, including streamed response consumption |
-| Requested output tokens | 4,096 |
+| Preferred partition message | 48 KiB, `REVIEW_PARTITION_KIB` |
+| Partitions per review | 48 |
+| File splitting | File boundaries only. A file above the preferred size gets its own partition, and is rejected only if it exceeds the 96 KiB ceiling |
+| Actual gateway HTTP requests | At most 2 per child, including retry requests |
+| Network deadline | 180 seconds per child, shared across its attempts, `REVIEW_GATEWAY_TIMEOUT_SECONDS` |
+| Requested output tokens | 32,768, `REVIEW_MAX_OUTPUT_TOKENS` |
 | Gateway response | 1 MiB, enforced while reading the stream |
-| Complete review, including every child | 120 seconds |
-| Format or evidence correction | At most one fresh child per partition, sharing the same budget |
+| One partition attempt, including its child | 210 seconds, `REVIEW_PARTITION_TIMEOUT_SECONDS` |
+| Complete review, every stage and partition | 900 seconds, `REVIEW_DEADLINE_SECONDS` |
+| Partitions reviewed concurrently | 6, `REVIEW_CONCURRENCY` |
+| Retries of a failed child, per attempt | 1, and none for a non-retryable rejection |
+| Format or evidence correction | At most one fresh child per partition, with its own deadline |
 
-Flue controls transient retry classification and backoff, so these differ from the original handwritten HTTP retry policy. The application still caps actual requests and total child execution. A partition can use up to six HTTP requests across both format attempts. Cost fields in the custom provider are zero placeholders, not billing estimates.
+Flue controls transient retry classification and backoff inside a child. The application caps actual requests per child and bounds total execution with the deadlines above. A partition can reach eight upstream requests in the worst case: two format attempts, each retried once after a transient child failure, at two requests per child. Cost fields in the custom provider are zero placeholders, not billing estimates.
+
+The budgets above nest, and that ordering is load-bearing. A child's shared network budget is smaller than the read timeout it sits inside, which is smaller than the partition deadline the parent enforces. When an inner budget is larger than an outer one, a timeout stops being reported as a timeout and instead surfaces as an unexplained stall, because the outer layer kills the child before the inner layer can name the reason.
+
+Output tokens deserve particular care because the reviewer model reasons before answering and that reasoning is billed against the same budget. Too small a budget truncates the reply mid-object, or returns an empty reply with an HTTP 200 when reasoning consumes all of it. `REVIEW_REASONING_EFFORT` bounds the thinking itself, which is more predictable than bounding the total: without it, a small clean diff can spend minutes second-guessing itself, since a model with no defect to find keeps looking until its budget runs out. Any change to that level should be judged with `npm run eval:full` and `npm run eval:holdout` rather than by inspection.
 
 ## Continuous GitHub reviews
 
@@ -126,7 +213,9 @@ The production worker is managed by the companion [agent-eval-platform](https://
 npm run watch
 ```
 
-The default interval is 60 seconds after each full polling pass; `REVIEW_POLL_INTERVAL_SECONDS` can override it, with a 15-second minimum. Repositories and PRs are processed sequentially.
+The default interval is 60 seconds after each full polling pass; `REVIEW_POLL_INTERVAL_SECONDS` can override it, with a 15-second minimum. Repositories are polled in order, and pull requests within a repository are reviewed `REVIEW_WATCH_CONCURRENCY` at a time. Total concurrent model children is that value multiplied by `REVIEW_CONCURRENCY`.
+
+A revision the process has already reconciled is skipped on later polls, so an unchanged pull request costs one metadata request instead of a full review-history page walk. GitHub receipts remain the durable source of truth; a restart clears the in-memory set and reconciles again from them.
 
 The watcher preserves status context **`PR review agent`** and the policy-2 marker. Each new review also records the base tip, merge base, head, exact diff hash, and verdict in a structured receipt. GitHub reviews explicitly set `commit_id` to the reviewed head, and final statuses link to that review.
 
@@ -154,9 +243,36 @@ python3 scripts/test-regressions.py
 docker build -t pr-review-agent-flue:local .
 ```
 
-Tests cover input/JSON/schema/partition/GitHub formatting behavior, source mapping, exact evidence checks, and bounded context retrieval and run the **compiled CLI through the real Flue runtime and Pi transport** against a loopback SSE server. They verify format correction, digest rejection, blocking verdicts, transient recovery, authentication failures, request limits, and privacy boundaries. Tests require no model or GitHub credentials and do not load `.env`.
+The test tree mirrors `src`. Tests cover diff indexing and path decoding, exact evidence checks, bounded context retrieval, the verdict policy, stage gating and merge rules, deterministic detectors, deadlines and the concurrency pool, transient-failure retries and the optional-stage fail-open contract, every diff source, the command registry, run records, and GitHub formatting. They also run the **compiled CLI through the real Flue runtime and Pi transport** against a loopback SSE server, verifying format correction, digest rejection, blocking verdicts, transient recovery, non-retryable rejections, request limits, and privacy boundaries. Tests require no model or GitHub credentials and do not load `.env`.
+
+`npm run lint` runs Biome over `src`, `tests`, and `scripts`; `npm run format` applies it. CI runs the linter before the type check.
 
 The container defaults to the one-shot raw-diff CLI. Running the watcher inside a container requires explicitly selecting `node dist/watcher.js` and supplying configuration. There are no deployment steps or schedules in GitHub Actions.
+
+## Evaluation
+
+`evals/manifest.json` holds labelled cases in three sets. Objective outcomes
+are enforced: whether a review blocks, and whether it points at the expected
+file and line. Everything else, including severity wording and rationale
+quality, is reported in the summary and never gates, because there is no
+correct answer a harness can check.
+
+```sh
+npm run eval:smoke     # 3 cases, pre-merge signal
+npm run eval:full      # 6 cases, before a release or after a prompt change
+npm run eval:holdout   # 2 cases, never used while tuning
+```
+
+The holdout set is disjoint from the tuning sets, and a unit test enforces
+that separation along with parsing every case diff and resolving every
+expected location, so a malformed case fails in seconds instead of after a
+paid run. Results land in `evals/results/<timestamp>-<set>/` as a
+schema-versioned `results.json` and a `summary.md`; the directory is ignored
+by Git because reviews contain repository content.
+
+Setting `REVIEW_RUN_LOG_DIR` records one JSON line per review with stage
+timings, per-attempt outcomes, latency, and the input digest. This is the
+data to read when a review is slow or a verdict needs explaining.
 
 ## Development comparisons
 
