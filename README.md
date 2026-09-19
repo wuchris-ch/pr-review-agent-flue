@@ -1,10 +1,22 @@
 # PR Review & Regression Testing Platform
 
-Self-hostable code review tooling for engineering teams, built around a staged AI review pipeline, source-linked findings and reproducible regression checks. Review local changes or GitHub pull requests, investigate security and correctness issues across the supplied diff, and publish verdicts tied to the exact revision reviewed.
+A self-hostable review workflow that turns suspected bugs into executable evidence and developer-approved fixes. Keep the existing Flue CLI for focused diff review, or run the team platform to investigate exact Git revisions, reproduce a regression, validate intent independently and test a proposed repair.
 
-The review engine combines deterministic checks, concurrent Flue review agents and a gated independent verification pass. Every finding is validated against source anchors before it reaches a developer or a GitHub status check.
+**Platform:** Python, FastAPI, Temporal, PostgreSQL, React and Docker. **Review engine:** TypeScript, Flue, Valibot, Vitest and OpenTelemetry.
 
-**Core stack:** TypeScript, Node.js, Flue, Valibot, Vitest, Docker and OpenTelemetry. Python supports the regression fixtures and comparison tooling.
+[Run the platform](docs/platform/quickstart.md) · [Architecture and tradeoffs](docs/platform/architecture.md) · [Implementation evidence](docs/platform/verification.md) · [CLI guide](#quick-start)
+
+![The working review console showing reproduced evidence and an approval-gated fix](docs/platform/console.png)
+
+The screenshot comes from the local PostgreSQL/Temporal/Docker demonstration. Specialist responses use the explicit deterministic fixture provider; source snapshots and executions are real. No live-model accuracy or production deployment is implied.
+
+- **Investigate:** specialized cross-file, security and API compatibility roles produce typed, source-grounded candidates through Flue.
+- **Reproduce and check intent:** the same frozen test runs on base and PR commits in isolated containers, then a separate validator checks the repository's intended behavior.
+- **Review a fix:** constrained source changes must pass the frozen regression and existing suite. Approval binds the user, exact commit and evidence digest before local application.
+- **Resume safely:** Temporal retries stages from stored evidence; PostgreSQL locks, unique constraints and the dispatch outbox handle concurrent requests and lost acknowledgements.
+- **Control access:** the React console exposes repository roles, provider aliases, lifetime review allowances and audit events. Every review and artifact API enforces tenant/repository authorization.
+
+The platform currently targets small UTF-8 Python repositories and progresses one candidate per review. GitHub review publication remains in the existing revision-bound CLI watcher. See [supported scope and remaining work](docs/platform/verification.md) before choosing a deployment profile.
 
 ## Review workflow
 
@@ -14,7 +26,7 @@ The review engine combines deterministic checks, concurrent Flue review agents a
 - **Control execution:** bound concurrency, requests and deadlines; run model calls in separate child processes with restricted environment inheritance and no GitHub credentials.
 - **Publish consistently:** bind reviews to the base, merge base, head and diff hash; defer changed revisions and reconcile saved GitHub receipts after interruptions to avoid duplicate publication.
 
-[Architecture](#architecture) · [Regression examples](#development-comparisons) · [Evaluation](#evaluation) · [Platform roadmap](#platform-roadmap)
+[Architecture](#architecture) · [Regression examples](#development-comparisons) · [Evaluation](#evaluation) · [Team platform](#platform-implementation)
 
 ## Quick start
 
@@ -220,7 +232,7 @@ Output tokens deserve particular care because the reviewer model reasons before 
 
 ## Continuous GitHub reviews
 
-The production worker is managed by the companion [agent-eval-platform](https://github.com/wuchris-ch/agent-eval-platform) stack, which explicitly runs `node dist/watcher.js`. It replaces the original worker using the same runtime Secret and repository configuration. The daily independent evaluation also uses this Flue implementation. Local installation does not start a watcher. Before doing so, provide `GITHUB_TOKEN` and `GITHUB_REPOSITORIES` in the environment or local `.env`. The token needs read access to PRs and write access to reviews and commit statuses for the chosen repositories. Repository targets are comma-separated `owner/repository` names.
+The companion [agent-eval-platform](https://github.com/wuchris-ch/agent-eval-platform) can run the CLI watcher as `node dist/watcher.js`. This is separate from the new Temporal platform worker. Local installation does not start a watcher. Before doing so, provide `GITHUB_TOKEN` and `GITHUB_REPOSITORIES` in the environment or local `.env`. The token needs read access to PRs and write access to reviews and commit statuses for the chosen repositories. Repository targets are comma-separated `owner/repository` names.
 
 ```sh
 # This command enables continuous reviews and GitHub writes. Run only when desired.
@@ -308,13 +320,11 @@ To reproduce the 24-case development comparison, use an evaluator checkout pinne
 
 The harness runs 1 to 3 rounds over at most 32 development cases, with a 120-second limit per invocation and no evaluator feedback. It records every invocation, initial/correction requests, latency, source identity, and usage when the gateway supplies it. Existing reports cannot be overwritten. A loopback streaming proxy records responses locally; report files contain review content and use owner-only permissions. Publish a reviewed summary, keeping the raw reports local. The known evaluator corpus and these fixtures are development data; independent holdout evaluation is maintained by the evaluator project.
 
-## Platform roadmap
+## Platform implementation
 
-Planned work extends the review engine into a team workflow for executable bug reproduction and regression-tested fixes:
+The team platform is implemented under [`platform/`](platform/) and [`console/`](console/), with a runnable [two-revision example](examples/platform/README.md). Start with the [quickstart](docs/platform/quickstart.md), then read the [architecture](docs/platform/architecture.md) and [verification map](docs/platform/verification.md).
 
-- **Reproduction and repair:** specialized agents for cross-file bugs, security and API compatibility; generated tests run against base and PR revisions in isolated workers; optional patches checked against frozen regression tests and existing suites, with developer approval before application.
-- **Durable orchestration:** resumable Temporal workflows with Python/FastAPI services and PostgreSQL records, including bounded worker concurrency, crash recovery and cancellation of superseded reviews.
-- **Team console:** a React interface for repository access, model-provider configuration, usage controls and audit records, with tenant-isolated artifacts and scoped execution credentials.
+Next extensions are a shared GitHub publication outbox for platform evidence, broader repository/runtime support, multiple verified findings per review, and operational identity/retention controls. The current CLI, JSON contract, evaluator fixtures and watcher remain supported.
 
 ## References
 

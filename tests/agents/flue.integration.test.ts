@@ -17,7 +17,8 @@ const verdict = {
   findings: [],
   rationale: 'No actionable defects found.',
 };
-let mode: 'valid' | 'format' | 'digest' | 'retry' | 'auth' | 'exhaust' | 'blocked' = 'valid';
+let mode: 'valid' | 'format' | 'digest' | 'retry' | 'auth' | 'exhaust' | 'blocked' | 'platform' =
+  'valid';
 let requests: Array<Record<string, unknown>> = [];
 let headers: Array<IncomingMessage['headers']> = [];
 
@@ -52,23 +53,25 @@ const server = createServer(async (request, response) => {
     return;
   }
   const output =
-    mode === 'digest'
-      ? { ...verdict, input_sha256: 'b'.repeat(64) }
-      : mode === 'blocked'
-        ? {
-            ...verdict,
-            blocked: true,
-            risk: 'high',
-            findings: [
-              {
-                severity: 'blocker',
-                category: 'security',
-                evidence: { anchor: 'F1N1', quote: 'export const answer = 42;' },
-                detail: 'Synthetic blocking finding for contract verification.',
-              },
-            ],
-          }
-        : verdict;
+    mode === 'platform'
+      ? { findings: [] }
+      : mode === 'digest'
+        ? { ...verdict, input_sha256: 'b'.repeat(64) }
+        : mode === 'blocked'
+          ? {
+              ...verdict,
+              blocked: true,
+              risk: 'high',
+              findings: [
+                {
+                  severity: 'blocker',
+                  category: 'security',
+                  evidence: { anchor: 'F1N1', quote: 'export const answer = 42;' },
+                  detail: 'Synthetic blocking finding for contract verification.',
+                },
+              ],
+            }
+          : verdict;
   completion(
     response,
     mode === 'format' && requests.length === 1 ? 'not valid JSON' : JSON.stringify(output),
@@ -92,21 +95,25 @@ async function review(testMode: typeof mode) {
   mode = testMode;
   requests = [];
   headers = [];
-  const child = spawn(process.execPath, ['dist/cli.js'], {
-    cwd: new URL('../..', import.meta.url),
-    env: {
-      ...childEnvironment({ PATH: process.env.PATH }),
-      MODEL_GATEWAY_BASE_URL: baseUrl,
-      MODEL_GATEWAY_API_KEY: 'test-only-key',
-      REVIEW_AGENT_MODEL: 'test-wire-model',
-      // Wire-level assertions count requests, so pin the optional second
-      // opinion off here. Its gating is covered in tests/stages/pipeline.test.ts.
-      REVIEW_VERIFY_STAGE: 'off',
-      GITHUB_TOKEN: 'github-token-must-not-reach-model',
+  const child = spawn(
+    process.execPath,
+    [testMode === 'platform' ? 'dist/agents/platform-client.js' : 'dist/cli.js'],
+    {
+      cwd: new URL('../..', import.meta.url),
+      env: {
+        ...childEnvironment({ PATH: process.env.PATH }),
+        MODEL_GATEWAY_BASE_URL: baseUrl,
+        MODEL_GATEWAY_API_KEY: 'test-only-key',
+        REVIEW_AGENT_MODEL: 'test-wire-model',
+        // Wire-level assertions count requests, so pin the optional second
+        // opinion off here. Its gating is covered in tests/stages/pipeline.test.ts.
+        REVIEW_VERIFY_STAGE: 'off',
+        GITHUB_TOKEN: 'github-token-must-not-reach-model',
+      },
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 90_000,
     },
-    stdio: ['pipe', 'pipe', 'pipe'],
-    timeout: 90_000,
-  });
+  );
   let stdout = '';
   let stderr = '';
   child.stdout.on('data', (data) => {
@@ -115,7 +122,15 @@ async function review(testMode: typeof mode) {
   child.stderr.on('data', (data) => {
     stderr += data;
   });
-  child.stdin.end(diff);
+  child.stdin.end(
+    testMode === 'platform'
+      ? JSON.stringify({
+          role: 'cross_file',
+          schema: { type: 'object' },
+          evidence: { source: diff },
+        })
+      : diff,
+  );
   const [code] = await once(child, 'close');
   return { code, stdout, stderr };
 }
@@ -139,6 +154,17 @@ describe('compiled CLI through real Flue and Pi against loopback SSE', () => {
     expect(JSON.stringify(request.messages)).toContain(sha);
     expect(JSON.stringify(request)).not.toContain('github-token-must-not-reach-model');
     expect(headers[0]?.authorization).toBe('Bearer test-only-key');
+  });
+
+  it('routes platform roles through a separate tool-free Flue agent', async () => {
+    const result = await review('platform');
+    expect(result.code, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({ findings: [] });
+    expect(requests).toHaveLength(1);
+    expect(JSON.stringify(requests[0]?.messages)).toContain('cross_file');
+    expect(JSON.stringify(requests[0]?.messages)).toContain('regression review pipeline');
+    expect(requests[0]?.tools ?? []).toEqual([]);
+    expect(JSON.stringify(requests)).not.toContain('github-token-must-not-reach-model');
   });
 
   it('repairs invalid output once with a fresh Flue conversation', async () => {

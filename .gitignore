@@ -13,3 +13,12 @@ coverage/
 *.db-shm
 *.db-wal
 evals/results/
+
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.demo/
+console/playwright-report/
+console/test-results/
+*.tsbuildinfo

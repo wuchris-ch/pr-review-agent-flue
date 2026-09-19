@@ -26,3 +26,56 @@ jobs:
       - run: npm test
       - run: python3 scripts/test-regressions.py
       - run: npm run build
+
+  platform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql+psycopg://review:local-review-password@127.0.0.1:55432/reviews
+      TEST_POSTGRES_URL: postgresql+psycopg://review:local-review-password@127.0.0.1:55432/reviews
+      RUN_DOCKER_TESTS: "1"
+      RUN_TEMPORAL_TESTS: "1"
+      ALLOW_FIXTURE_PROVIDER: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            console/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: false
+      - run: npm ci && npm run build
+      - run: npm ci --prefix console
+      - run: npm audit --prefix console --audit-level=high
+      - run: npm run lint --prefix console && npm run build --prefix console
+      - run: uv sync --project platform --frozen
+      - run: uv run --project platform ruff check platform
+      - run: docker compose -f compose.platform.yml up -d --wait
+      - run: docker build -t review-platform-runner:local platform/worker_image
+      - run: uv run --project platform alembic -c platform/alembic.ini upgrade head
+      - run: uv run --project platform pytest platform/tests -q
+      - name: Start local platform
+        run: |
+          uv run --project platform uvicorn review_platform.api:from_environment --factory --host 127.0.0.1 --port 8017 >/tmp/platform-api.log 2>&1 &
+          uv run --project platform python -m review_platform.worker >/tmp/platform-worker.log 2>&1 &
+          npm run dev --prefix console >/tmp/platform-console.log 2>&1 &
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8017/health && curl -fsS http://127.0.0.1:5173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - run: uv run --project platform python scripts/prepare-console-demo.py
+      - run: npm exec --prefix console -- playwright install --with-deps chromium
+      - run: npm test --prefix console
+      - name: Service diagnostics on failure
+        if: failure()
+        run: |
+          docker compose -f compose.platform.yml ps
+          cat /tmp/platform-api.log /tmp/platform-worker.log /tmp/platform-console.log 2>/dev/null || true
+      - if: always()
+        run: docker compose -f compose.platform.yml down
