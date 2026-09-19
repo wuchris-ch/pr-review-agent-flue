@@ -48,6 +48,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
+          enable-cache: false
       - run: npm ci && npm run build
       - run: npm ci --prefix console
       - run: npm audit --prefix console --audit-level=high
