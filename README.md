@@ -6,10 +6,6 @@ A self-hostable review workflow that turns suspected bugs into executable eviden
 
 [Run the platform](docs/platform/quickstart.md) · [Architecture and tradeoffs](docs/platform/architecture.md) · [Implementation evidence](docs/platform/verification.md) · [CLI guide](#quick-start)
 
-![The working review console showing reproduced evidence and an approval-gated fix](docs/platform/console.png)
-
-The screenshot comes from the local PostgreSQL/Temporal/Docker demonstration. Specialist responses use the explicit deterministic fixture provider; source snapshots and executions are real. No live-model accuracy or production deployment is implied.
-
 - **Investigate:** specialized cross-file, security and API compatibility roles produce typed, source-grounded candidates through Flue.
 - **Reproduce and check intent:** the same frozen test runs on base and PR commits in isolated containers, then a separate validator checks the repository's intended behavior.
 - **Review a fix:** constrained source changes must pass the frozen regression and existing suite. Approval binds the user, exact commit and evidence digest before local application.
