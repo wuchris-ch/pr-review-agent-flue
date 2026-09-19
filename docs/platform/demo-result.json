@@ -1,0 +1,26 @@
+{
+  "verified_at": "2026-09-19T03:37:13.556923+00:00",
+  "provider": "fixture",
+  "services": [
+    "FastAPI",
+    "PostgreSQL",
+    "Temporal",
+    "Docker",
+    "React"
+  ],
+  "review_id": "88b7f769-9772-47a6-8b69-2001f8525907",
+  "base": "b7f1c0c40a2dea8229eada1f8770dd4d0d212a6d",
+  "head": "fce9607743f083686a77dc1d9ab0fa84e3cbb484",
+  "runner_image": "sha256:561ed15bd037bb41bf12c5838e730124153d26a1b6745b65edb28ec2320291d0",
+  "evidence_digest": "ff48311469bf1eda9683f9cedbfdd57315fa8d267752fdb58fb2cb58b221e697",
+  "base_regression": "passed",
+  "pr_regression": "failed",
+  "candidate_regression": "passed",
+  "candidate_existing_suite": "passed",
+  "approval": "approved",
+  "applied_candidate_digest_matches": true,
+  "applied_regression": "passed",
+  "applied_existing_suite": "passed",
+  "github_writes": false,
+  "live_model_calls": false
+}

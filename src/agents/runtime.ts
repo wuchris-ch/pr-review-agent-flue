@@ -6,6 +6,7 @@ import {
   type GatewayStatus,
   gatewayConfig,
 } from './gateway.js';
+import { PlatformAgent } from './platform-agent.js';
 import { ReviewAgent } from './reviewer.js';
 
 /**
@@ -34,7 +35,10 @@ export class GatewayRejectedError extends Error {
 }
 
 /** One isolated, process-lifetime conversation per partition and format attempt. */
-export async function runFlueReview(input: string): Promise<string> {
+export async function runFlueReview(
+  input: string,
+  mode: 'review' | 'platform' = 'review',
+): Promise<string> {
   const status: GatewayStatus = { rejected: false };
 
   let provider: ReturnType<typeof createModelGateway>;
@@ -44,8 +48,9 @@ export async function runFlueReview(input: string): Promise<string> {
     throw new GatewayRejectedError();
   }
 
-  const runtime = await start({ agents: [ReviewAgent], providers: [provider], env: {} });
-  const agent = init(ReviewAgent);
+  const definition = mode === 'platform' ? PlatformAgent : ReviewAgent;
+  const runtime = await start({ agents: [definition], providers: [provider], env: {} });
+  const agent = init(definition);
 
   try {
     const receipt = await agent.dispatch(input);

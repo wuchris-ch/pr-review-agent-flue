@@ -1,0 +1,15 @@
+{
+  "tenant_id": "example-team",
+  "name": "Example Engineering",
+  "provider": "team-model",
+  "review_limit": 100,
+  "repositories": [{
+    "id": "example-pricing", "name": "example/pricing",
+    "github_repository": "example/pricing",
+    "path": "/srv/review-mirrors/pricing.git",
+    "suite": ["python", "-B", "-m", "unittest", "discover", "-v"],
+    "writable_paths": ["pricing.py", "discounts.py"]
+  }],
+  "members": [{"user_id": "developer", "token_env": "DEVELOPER_ACCESS_TOKEN",
+               "roles": {"example-pricing": "admin"}}]
+}
