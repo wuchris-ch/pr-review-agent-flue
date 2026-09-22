@@ -9,7 +9,7 @@ The reviewer looks for defects that affect this repository's users, data, securi
 | Performance and resources | A changed operation increases work or resource use on supported workloads, with an identified size/frequency condition and mechanism |
 | Compatibility and delivery | A supported caller, persisted format, configuration, migration, or deployment contract breaks |
 
-The model must explain the trigger, consequence, source evidence, and practical fix. It must not invent traffic levels, capacity limits, benchmarks, or compatibility promises. Formatting, naming, micro-optimizations, generic refactoring, and requests for more tests are not findings by themselves. A small real defect can still be reported with proportionate severity.
+The model must explain the trigger, consequence, source evidence, and practical fix. It compares the same triggering input and state before and after the change, rejecting allegations whose failure behavior is unchanged. It must not invent traffic levels, capacity limits, benchmarks, or compatibility promises. Formatting, naming, micro-optimizations, generic refactoring, and requests for more tests are not findings by themselves. A small real defect can still be reported with proportionate severity.
 
 ## Tell the reviewer what matters here
 

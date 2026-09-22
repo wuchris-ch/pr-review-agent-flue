@@ -42,6 +42,8 @@ export function createFindingValidation(execute?: AgentExecutor): ReviewStage {
             'repository-specific impact, and supported workload/limits for performance allegations,',
             'and whether this revision introduced the defect. Discard incorrect, speculative, pre-existing',
             'or stylistic allegations. Keep a supported defect even when subtle. Never invent new findings.',
+            'Compare the same triggering input/state in the base and head code; discard an allegation',
+            'when the alleged failure was already possible and the change does not materially worsen it.',
             'Return the normal review JSON, with source-anchor evidence for each surviving finding.',
             'Keep the original category and source location of each surviving allegation.',
             'Explain the decisive supporting or contradicting evidence in the rationale.',
