@@ -25,7 +25,7 @@ with patch.object(runner.subprocess, "run") as run:
 ''',
  'quoted-command-flow': '''import runner,shlex
 from unittest.mock import patch
-for payload in ["HEAD; printf unsafe", "$(printf unsafe)", "a'b\\nc"]:
+for payload in ["HEAD; printf unsafe", "$(printf unsafe)", "a'b\\nc", "--output=export.txt", "--help"]:
  with patch.object(runner.subprocess, "run") as run:
   runner.show_revision(payload)
   command = run.call_args.args[0]

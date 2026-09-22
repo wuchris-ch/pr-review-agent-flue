@@ -36,7 +36,7 @@ For a globally available command, run `npm link`. Then use `pr-review init` in y
 Save the [ready-to-copy workflow](examples/github-actions/review.yml) as `.github/workflows/review.yml` in a repository you want reviewed. Configure its three model secrets. It supports automatic reviews of same-repository PRs, a **Run workflow** button, and a maintainer's `/review` comment, including on fork PRs.
 
 ```yaml
-- uses: wuchris-ch/pr-review-agent-flue@v0.2.0
+- uses: wuchris-ch/pr-review-agent-flue@v0.2.1
   with:
     model-key: ${{ secrets.MODEL_GATEWAY_API_KEY }}
     model-url: ${{ secrets.MODEL_GATEWAY_BASE_URL }}
@@ -48,6 +48,7 @@ The Action fetches the diff and source as data through GitHub's API. It does not
 ## What the reviewer does
 
 - **Find relevant evidence.** Index the diff, partition large changes, and retrieve bounded source excerpts, callers, tests and contracts from the same head revision.
+- **Review what matters here.** Use repository contracts and operational limits to prioritize security, serious correctness and reliability bugs, material performance regressions, and compatibility failures. [Customize review priorities](docs/guides/review-priorities.md).
 - **Check concrete defects.** Run deterministic checks, model review, an optional second opinion on small otherwise-clean changes, and a fresh validation pass over actual candidate findings.
 - **Control noise.** Require exact source citations, consolidate overlapping findings, cap inline comments, apply a severity floor, and suppress current comments already posted by the same bot.
 - **Publish against the reviewed revision.** Bind the result to base, merge base, head and diff digest. Recheck before posting and reconcile saved receipts after a lost response.

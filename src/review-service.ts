@@ -38,6 +38,8 @@ export interface ReviewOptions {
 
 const VERIFY_TASK = [
   'A first reviewer found no blocking defect in this unified diff. Independently re-examine it.',
+  'Use the supplied repository contracts to prioritize security, correctness, reliability,',
+  'performance, and compatibility risks; check workload limits before alleging a performance defect.',
   'Concentrate on changed failure paths: removed guards, widened catch blocks, fallback returns,',
   'and what the shown callers do with those values. Report a finding only when the supplied source',
   'demonstrates it. Returning an empty findings array is the correct answer for a sound diff.',

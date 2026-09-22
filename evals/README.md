@@ -6,6 +6,8 @@ Use three separate signals: protocol correctness, behavior on authored scenarios
 
 `npm test` verifies deterministic engine and transport contracts. `npm run examples:check` executes the scenario contracts without a model. `npm run eval:smoke`, `eval:full` and `eval:holdout` retain the original labelled diff suites. The historical holdout belongs to that authored suite; it is not the external benchmark below.
 
+The full suite also includes four [repository-priority cases](priorities/README.md). Run only those with `node --env-file-if-exists=.env scripts/run-eval.mjs --set priorities`. Paired cases share the same diff but supply different operational or idempotency contracts; clean controls require zero findings.
+
 ```sh
 npm run build
 npm run eval:compare -- --arms single-pass,diff-pipeline,context-pipeline,context-validated --repeats 3
@@ -32,7 +34,7 @@ npm run eval:compare -- --dataset external --limit 10 --arms single-pass,context
 
 The importer pins [Martian's public code review benchmark](https://github.com/withmartian/code-review-benchmark/tree/e616e849755441da38f18bf3adba2c9583b03803) at `e616e849755441da38f18bf3adba2c9583b03803`. It supports all 50 PR references, freezes their current API base/head/merge-base IDs and diff bytes, retrieves bounded head context and retains the upstream MIT license. Files stay in ignored `evals/external/`. The default import limit is 50; `--limit 10` starts smaller. Interrupted imports resume existing immutable snapshots. keep that snapshot unchanged when comparing arms.
 
-`gold.json` contains scoring annotations separately. The reviewer never loads those files, expected labels, later fixes or discussion threads. The comparison's external rows remain `adjudication: pending` until a reviewer judges whether each emitted finding is correct, actionable, introduced by the change, and equivalent to a gold issue. Gold comments include style and speculative observations; adjudicate against this project's correctness/security scope rather than rewarding every annotated comment.
+`gold.json` contains scoring annotations separately. The reviewer never loads those files, expected labels, later fixes or discussion threads. The comparison's external rows remain `adjudication: pending` until a reviewer judges whether each emitted finding is correct, actionable, introduced by the change, and equivalent to a gold issue. Gold comments include style and speculative observations; adjudicate against the [review priorities](../docs/guides/review-priorities.md) rather than rewarding every annotated comment.
 
 For a held-out experiment, choose and freeze the evaluation split before prompt changes, group related PRs together, and reserve a separate development split. A public benchmark can have appeared in model training, so measure private or newly collected consenting-repository PRs before generalizing. Do not claim a benchmark win from the six development cases.
 

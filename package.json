@@ -1,6 +1,6 @@
 {
   "name": "@wuchris-ch/pr-review-agent-flue",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Evidence-grounded pull request reviews from your terminal, GitHub Actions, or a GitHub App.",
   "license": "Apache-2.0",
   "private": false,

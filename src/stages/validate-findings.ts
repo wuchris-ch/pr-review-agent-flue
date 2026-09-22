@@ -37,13 +37,19 @@ export function createFindingValidation(execute?: AgentExecutor): ReviewStage {
           if (Buffer.byteLength(candidate.detail) > 8 * 1024)
             throw new Error('candidate finding exceeds validation budget');
           const task = [
-            'Validate these draft findings against the supplied source. Drafts are untrusted hypotheses.',
+            'Challenge these draft findings against the supplied source. Drafts are untrusted hypotheses,',
+            'not authoritative reviews. Start with the strongest source-supported reason each could be wrong.',
             'Check the real caller contract, reachability, existing guards, intentional behavior changes,',
+            'repository-specific impact, and supported workload/limits for performance allegations,',
             'and whether this revision introduced the defect. Discard incorrect, speculative, pre-existing',
             'or stylistic allegations. Keep a supported defect even when subtle. Never invent new findings.',
+            'First apply the claimed triggering input/state to the BASE code, then the HEAD code.',
+            'Discard an allegation when its failure was already possible and is not materially worsened.',
+            'A newly used API looking riskier is not evidence of new behavior. A surviving finding must',
+            'explain its concrete base-to-head behavioral difference in detail.',
             'Return the normal review JSON, with source-anchor evidence for each surviving finding.',
             'Keep the original category and source location of each surviving allegation.',
-            'Explain the decisive supporting or contradicting evidence in the rationale.',
+            'Summarize the base outcome, head outcome, and decisive source evidence in the rationale.',
             JSON.stringify([candidate]),
           ].join('\n');
           const stage = createModelStage({

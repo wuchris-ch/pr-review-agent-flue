@@ -103,6 +103,22 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('revision-bound watcher publication', () => {
+  it('reviews again when a saved receipt used the previous review policy', async () => {
+    const f = fixture();
+    f.reviews.push({
+      id: 1,
+      commit_id: head,
+      state: 'COMMENTED',
+      user: { login: 'reviewer' },
+      body: formatAutomatedReview(clean, head, binding).replace('policy:4', 'policy:3'),
+    });
+    expect(await f.run()).toBe('reviewed');
+    expect(f.reviewer).toHaveBeenCalledTimes(1);
+    expect(f.client.publishReview).toHaveBeenCalledTimes(1);
+    expect(await f.run()).toBe('reconciled');
+    expect(f.reviewer).toHaveBeenCalledTimes(1);
+  });
+
   it('uses the fresh PR head, not the head from the earlier polling list', async () => {
     const f = fixture();
     f.push();

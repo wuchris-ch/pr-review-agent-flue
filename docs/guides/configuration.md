@@ -1,6 +1,6 @@
 # CLI and repository configuration
 
-`pr-review --help` lists all commands. Run `npm link` from a built checkout to install the command locally, or install a release tarball with `npm install -g ./wuchris-ch-pr-review-agent-flue-0.2.0.tgz`. Export model settings before invoking an installed binary. `npm run cli -- ...` loads the project's local `.env` explicitly.
+`pr-review --help` lists all commands. Run `npm link` from a built checkout to install the command locally, or install a release tarball with `npm install -g ./wuchris-ch-pr-review-agent-flue-0.2.1.tgz`. Export model settings before invoking an installed binary. `npm run cli -- ...` loads the project's local `.env` explicitly.
 
 | Command | Purpose |
 | --- | --- |
@@ -53,6 +53,8 @@ Raw records include source-derived findings. Keep them private. Numeric token us
 ```
 
 All fields except `version` are optional with the defaults above, except `rules` and `exclude`, which default to empty arrays. Unknown fields fail validation. Files are limited to 16 KiB. Paths use repository-relative `*`, `**`, and `?` globs. The severity floor and comment cap affect inline publication, not the complete JSON result. Excluded files are omitted from review coverage and reported in the rationale.
+
+Use `rules` to describe repository invariants, supported workloads, compatibility promises, and intentional exceptions. See [review priorities](review-priorities.md) for concrete examples and how the system prompt uses them.
 
 GitHub configuration comes from the trusted base revision. Local review reads the current checkout's config and retrieves unchanged source from immutable HEAD, excluding changed files to avoid confusing committed content with working-tree edits. A raw diff cannot retrieve a repository on its own.
 

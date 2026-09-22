@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: wuchris-ch/pr-review-agent-flue@v0.2.0
+      - uses: wuchris-ch/pr-review-agent-flue@v0.2.1
         with:
           model-key: ${{ secrets.MODEL_GATEWAY_API_KEY }}
           model-url: ${{ secrets.MODEL_GATEWAY_BASE_URL }}

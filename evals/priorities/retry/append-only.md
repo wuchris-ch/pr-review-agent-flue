@@ -1,0 +1,3 @@
+# Inventory delivery contract
+
+`submit(id, payload)` sends an inventory adjustment to a remote append-only ledger. Every accepted request applies the adjustment again, even when its event ID matches a previous entry; that ID is a trace identifier, not a deduplication key. A timeout with code `ETIMEDOUT` can occur after the remote ledger has applied the adjustment but before acknowledgement arrives. Other failures are reported as Error objects with different codes. Applying an adjustment twice produces incorrect inventory and can cause overselling. An uncertain delivery currently requires reconciliation before a new attempt. Do not silently convert uncertain delivery into a second adjustment.

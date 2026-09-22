@@ -3,20 +3,33 @@
   "sets": {
     "smoke": "Fast pre-merge signal. Three cases, one model review each.",
     "full": "Every tuning case. Run before a release or after a prompt change.",
-    "holdout": "Never used while tuning prompts or the rubric. Run last, read once."
+    "holdout": "Never used while tuning prompts or the rubric. Run last, read once.",
+    "priorities": "Repository-aware risk checks: identical changes under high-risk and bounded or idempotent contracts."
   },
   "cases": [
     {
       "id": "unsafe-command-flow",
-      "sets": ["smoke", "full"],
+      "sets": [
+        "smoke",
+        "full"
+      ],
       "diff": "../examples/regressions/unsafe-command-flow/change.diff",
       "blocked": true,
-      "expect": [{ "file": "runner.py", "line": 8, "severity": "blocker" }],
+      "expect": [
+        {
+          "file": "runner.py",
+          "line": 8,
+          "severity": "blocker"
+        }
+      ],
       "notes": "A request-controlled revision reaches a shell through the changed caller."
     },
     {
       "id": "quoted-command-flow",
-      "sets": ["smoke", "full"],
+      "sets": [
+        "smoke",
+        "full"
+      ],
       "diff": "../examples/regressions/quoted-command-flow/change.diff",
       "blocked": false,
       "expect": [],
@@ -24,23 +37,42 @@
     },
     {
       "id": "leaked-credential",
-      "sets": ["smoke", "full"],
+      "sets": [
+        "smoke",
+        "full"
+      ],
       "diff": "cases/leaked-credential.diff",
       "blocked": true,
-      "expect": [{ "file": "service/settings.py", "line": 7, "severity": "blocker" }],
+      "expect": [
+        {
+          "file": "service/settings.py",
+          "line": 7,
+          "severity": "blocker"
+        }
+      ],
       "notes": "Caught by the free static stage, so it should never depend on model judgement."
     },
     {
       "id": "required-error-flow",
-      "sets": ["full"],
+      "sets": [
+        "full"
+      ],
       "diff": "../examples/regressions/required-error-flow/change.diff",
       "blocked": true,
-      "expect": [{ "file": "parsing.py", "line": 5, "severity": "major" }],
+      "expect": [
+        {
+          "file": "parsing.py",
+          "line": 5,
+          "severity": "major"
+        }
+      ],
       "notes": "Suppressing a required error and continuing with invalid state."
     },
     {
       "id": "optional-fallback-flow",
-      "sets": ["full"],
+      "sets": [
+        "full"
+      ],
       "diff": "../examples/regressions/optional-fallback-flow/change.diff",
       "blocked": false,
       "expect": [],
@@ -48,7 +80,9 @@
     },
     {
       "id": "safe-diff",
-      "sets": ["full"],
+      "sets": [
+        "full"
+      ],
       "diff": "../examples/safe.diff",
       "blocked": false,
       "expect": [],
@@ -56,7 +90,9 @@
     },
     {
       "id": "missing-ownership-check",
-      "sets": ["holdout"],
+      "sets": [
+        "holdout"
+      ],
       "diff": "cases/missing-ownership-check.diff",
       "blocked": true,
       "expect": [],
@@ -64,11 +100,75 @@
     },
     {
       "id": "typed-refactor",
-      "sets": ["holdout"],
+      "sets": [
+        "holdout"
+      ],
       "diff": "cases/typed-refactor.diff",
       "blocked": false,
       "expect": [],
       "notes": "A correct typing and precision refactor that should not be blocked."
+    },
+    {
+      "id": "unbounded-batch",
+      "sets": [
+        "full",
+        "priorities"
+      ],
+      "diff": "priorities/batch/change.diff",
+      "instructions": "priorities/batch/large.md",
+      "blocked": true,
+      "expect": [
+        {
+          "file": "batch.mjs",
+          "line": 2,
+          "category": "performance"
+        }
+      ],
+      "notes": "Paired contract check; the reviewer receives the same code change with a different documented repository contract."
+    },
+    {
+      "id": "bounded-batch",
+      "sets": [
+        "full",
+        "priorities"
+      ],
+      "diff": "priorities/batch/change.diff",
+      "instructions": "priorities/batch/bounded.md",
+      "blocked": false,
+      "expect": [],
+      "notes": "Paired contract check; the reviewer receives the same code change with a different documented repository contract.",
+      "maxFindings": 0
+    },
+    {
+      "id": "unsafe-delivery-retry",
+      "sets": [
+        "full",
+        "priorities"
+      ],
+      "diff": "priorities/retry/change.diff",
+      "instructions": "priorities/retry/append-only.md",
+      "blocked": true,
+      "expect": [
+        {
+          "file": "delivery.mjs",
+          "line": 6,
+          "category": "correctness"
+        }
+      ],
+      "notes": "Paired contract check; the reviewer receives the same code change with a different documented repository contract."
+    },
+    {
+      "id": "idempotent-delivery-retry",
+      "sets": [
+        "full",
+        "priorities"
+      ],
+      "diff": "priorities/retry/change.diff",
+      "instructions": "priorities/retry/idempotent.md",
+      "blocked": false,
+      "expect": [],
+      "notes": "Paired contract check; the reviewer receives the same code change with a different documented repository contract.",
+      "maxFindings": 0
     }
   ]
 }
