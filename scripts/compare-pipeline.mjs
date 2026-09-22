@@ -84,6 +84,7 @@ for (const item of cases) {
     { revision, paths: async () => Object.keys(files), read: async (path) => files[path] },
     config,
   );
+  if (!fixture) context.limited = true; // Imported context is a frozen, bounded repository subset.
   // Gold annotations and expected locations never enter the review request.
   for (let repetition = 1; repetition <= options.repeats; repetition++)
     for (const arm of arms) {

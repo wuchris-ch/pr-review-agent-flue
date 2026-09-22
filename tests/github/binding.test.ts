@@ -418,3 +418,41 @@ describe('GitHub immutable diff transport', () => {
     ).rejects.toThrow(/budget/);
   });
 });
+
+describe('unpublished reviews', () => {
+  it('does not write statuses or reviews', async () => {
+    const f = fixture();
+    expect(
+      await reviewPullRequest(
+        f.client,
+        'owner/repo',
+        { number: 1 },
+        'reviewer',
+        f.reviewer,
+        undefined,
+        { publish: false },
+      ),
+    ).toBe('reviewed');
+    expect(f.client.publishReview).not.toHaveBeenCalled();
+    expect(f.client.setStatus).not.toHaveBeenCalled();
+  });
+  it('reports a revision change during a read-only review', async () => {
+    const f = fixture();
+    const review = () => {
+      f.push();
+      return clean;
+    };
+    expect(
+      await reviewPullRequest(
+        f.client,
+        'owner/repo',
+        { number: 1 },
+        'reviewer',
+        review,
+        undefined,
+        { publish: false },
+      ),
+    ).toBe('changed');
+    expect(f.client.setStatus).not.toHaveBeenCalled();
+  });
+});

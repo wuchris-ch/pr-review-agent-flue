@@ -265,7 +265,11 @@ export async function reviewPullRequest(
       );
 
     const review = await reviewer(diff);
-    if (options.publish === false) return 'reviewed';
+    if (options.publish === false) {
+      return sameRevision(snapshot, await client.getPullRequest(repository, listed.number))
+        ? 'reviewed'
+        : changed();
+    }
     const body =
       formatAutomatedReview(review, binding.head, binding, options.advisory) +
       (options.policy ? `\n<!-- pr-review-config:${options.policy} -->\n` : '');
