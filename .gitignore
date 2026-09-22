@@ -19,6 +19,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .demo/
-console/playwright-report/
-console/test-results/
+apps/console/playwright-report/
+apps/console/test-results/
 *.tsbuildinfo
+
+.pr-review/
+evals/external/
+*.tgz

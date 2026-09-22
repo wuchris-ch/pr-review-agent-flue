@@ -38,6 +38,7 @@ export class GatewayRejectedError extends Error {
 export async function runFlueReview(
   input: string,
   mode: 'review' | 'platform' = 'review',
+  onUsage?: (usage: GatewayStatus['usage']) => void,
 ): Promise<string> {
   const status: GatewayStatus = { rejected: false };
 
@@ -75,5 +76,6 @@ export async function runFlueReview(
     throw new Error(`Flue review failed (${describeGatewayStatus(status)})`);
   } finally {
     await runtime.stop();
+    onUsage?.(status.usage);
   }
 }

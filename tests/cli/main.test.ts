@@ -14,7 +14,15 @@ function capture() {
 
 describe('command registry', () => {
   it('registers every documented command exactly once', () => {
-    expect(COMMANDS.map((command) => command.name)).toEqual(['review', 'pr', 'agent', 'watch']);
+    expect(COMMANDS.map((command) => command.name)).toEqual([
+      'review',
+      'pr',
+      'agent',
+      'init',
+      'doctor',
+      'feedback',
+      'serve',
+    ]);
     expect(new Set(COMMANDS.map((command) => command.name)).size).toBe(COMMANDS.length);
     for (const command of COMMANDS) {
       expect(findCommand(command.name)).toBe(command);

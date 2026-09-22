@@ -65,6 +65,7 @@ export interface GatewayConfig {
  */
 export interface GatewayStatus {
   rejected: boolean;
+  usage?: { inputTokens: number; outputTokens: number };
   /** Upstream attempts actually made, for after-the-fact diagnosis. */
   attempts?: number;
   /** Last upstream HTTP status, when one was received. */
@@ -212,12 +213,42 @@ export function boundedFetch(
     if (!response.body) throw new Error('model gateway returned no body');
     const reader = response.body.getReader();
     let bytes = 0;
+    const decoder = new TextDecoder();
+    let pending = '';
+    let usage: GatewayStatus['usage'];
+    const observe = (chunk: Uint8Array): void => {
+      pending += decoder.decode(chunk, { stream: true });
+      const lines = pending.split('\n');
+      pending = lines.pop() ?? '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const value = JSON.parse(line.slice(6)).usage;
+          if (
+            value &&
+            Number.isSafeInteger(value.prompt_tokens) &&
+            value.prompt_tokens >= 0 &&
+            Number.isSafeInteger(value.completion_tokens) &&
+            value.completion_tokens >= 0
+          ) {
+            usage = { inputTokens: value.prompt_tokens, outputTokens: value.completion_tokens };
+          }
+        } catch {
+          /* Only numeric usage metadata crosses the process boundary. */
+        }
+      }
+    };
     return new Response(
       new ReadableStream<Uint8Array>({
         async pull(controller) {
           try {
             const next = await reader.read();
             if (next.done) {
+              if (usage)
+                status.usage = {
+                  inputTokens: (status.usage?.inputTokens ?? 0) + usage.inputTokens,
+                  outputTokens: (status.usage?.outputTokens ?? 0) + usage.outputTokens,
+                };
               controller.close();
               return;
             }
@@ -227,6 +258,7 @@ export function boundedFetch(
               controller.error(new Error('model gateway response exceeded the safe byte limit'));
               return;
             }
+            observe(next.value);
             controller.enqueue(next.value);
           } catch {
             controller.error(new Error('model gateway stream failed'));

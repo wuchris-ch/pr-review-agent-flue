@@ -1,0 +1,11 @@
+diff --git a/repository.py b/repository.py
+--- a/repository.py
++++ b/repository.py
+@@ -4,6 +4,6 @@
+ 
+     def page(self, cursor, limit):
+         return self.connection.execute(
+-            "SELECT id FROM orders WHERE id > ? ORDER BY id LIMIT ?",
++            "SELECT id FROM orders WHERE id >= ? ORDER BY id LIMIT ?",
+             (cursor, limit),
+         ).fetchall()

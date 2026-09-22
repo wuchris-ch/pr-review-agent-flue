@@ -1,0 +1,35 @@
+name: PR Review Agent
+description: Review pull requests with repository context, validated evidence and inline findings.
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  github-token:
+    description: Repository token with contents read, pull requests write and statuses write.
+    default: ${{ github.token }}
+  model-key:
+    description: API key for your model endpoint.
+    required: true
+  model-url:
+    description: OpenAI-compatible API prefix, including /v1 when required.
+    required: true
+  model:
+    description: Review model identifier.
+    required: true
+  publish:
+    description: Publish inline feedback. Set false for a job summary only.
+    default: 'true'
+outputs:
+  outcome:
+    description: reviewed, reconciled, changed, closed, disabled or failed.
+  blocked:
+    description: Whether the completed review contains a blocker or major finding.
+runs:
+  using: docker
+  image: Dockerfile.action
+  env:
+    GITHUB_TOKEN: ${{ inputs.github-token }}
+    MODEL_GATEWAY_API_KEY: ${{ inputs.model-key }}
+    MODEL_GATEWAY_BASE_URL: ${{ inputs.model-url }}
+    REVIEW_AGENT_MODEL: ${{ inputs.model }}
+    REVIEW_PUBLISH: ${{ inputs.publish }}

@@ -6,7 +6,7 @@ export const MAX_REVIEW_BODY_BYTES = 60 * 1024;
  * Escape text that came from a diff or a model before it lands in a GitHub
  * comment, so it cannot mention users or inject formatting.
  */
-function safeMarkdown(value: string): string {
+export function safeMarkdown(value: string): string {
   return value
     .replaceAll('@', '@\u200b')
     .replaceAll('\\', '\\\\')

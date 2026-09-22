@@ -15,6 +15,7 @@ export interface ReviewContext {
 
 /** One model round trip, emitted for telemetry whether or not it succeeded. */
 export interface StageAttempt {
+  usage?: { inputTokens: number; outputTokens: number };
   stage: string;
   partition: number;
   attempt: number;
@@ -34,6 +35,8 @@ export interface StageResult {
   readonly durationMs: number;
   /** Why the stage was skipped or how it failed. */
   readonly reason?: string;
+  /** A successful validation stage replaces draft model findings, never static checks. */
+  readonly replaces?: readonly string[];
 }
 
 /**
@@ -47,6 +50,7 @@ export interface ReviewStage {
   readonly name: string;
   /** `free` stages cost no tokens and always run; `model` stages may be gated. */
   readonly costClass: 'free' | 'model';
+  readonly required?: boolean;
   shouldRun(context: ReviewContext, prior: readonly StageResult[]): boolean;
   run(context: ReviewContext, prior: readonly StageResult[]): Promise<StageResult>;
 }
@@ -57,5 +61,10 @@ export function skipped(stage: string, reason: string): StageResult {
 
 /** Every finding produced so far, across stages that actually ran. */
 export function collectFindings(results: readonly StageResult[]): Finding[] {
-  return results.flatMap((result) => [...result.findings]);
+  const replaced = new Set(
+    results.filter((result) => result.status === 'ran').flatMap((result) => result.replaces ?? []),
+  );
+  return results
+    .filter((result) => !replaced.has(result.stage))
+    .flatMap((result) => [...result.findings]);
 }

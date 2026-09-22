@@ -1,7 +1,8 @@
-import { ghSource, publishGitHubReview } from '../../sources/gh-cli.js';
+import { spawnSync } from 'node:child_process';
+import { GitHubClient } from '../../github/client.js';
+import { runGitHubReview } from '../../github/run.js';
 import type { Command } from '../harness.js';
 import { EXIT_OK } from '../harness.js';
-import { reviewFromSource } from '../review-run.js';
 
 const USAGE = 'usage: pr-review-pr <number-or-url> [--repo <owner/repo>] [--publish]';
 const PR_NUMBER = /^[1-9][0-9]*$/;
@@ -56,21 +57,36 @@ export const prCommand: Command = {
   usage: USAGE,
   async run(args, { io, cwd }) {
     const options = parsePullRequestArgs(args);
-    const review = await reviewFromSource(
-      ghSource({
+    const gh = (args: string[]): string => {
+      const result = spawnSync('gh', args, {
         cwd,
-        pullRequest: options.pullRequest,
-        ...(options.repository === undefined ? {} : { repository: options.repository }),
-        // Only trust local guidance when reviewing the checkout's own repository.
-        useLocalInstructions: options.repository === undefined,
-      }),
-    );
-    io.stdout(`${JSON.stringify(review, null, 2)}\n`);
-
-    if (options.publish) {
-      publishGitHubReview(options, review, cwd);
-      io.stderr('GitHub review comment published.\n');
-    }
-    return EXIT_OK;
+        encoding: 'utf8',
+        timeout: 15_000,
+        maxBuffer: 64 * 1024,
+      });
+      if (result.status !== 0 || result.error)
+        throw new Error('GitHub CLI is unavailable or signed out; run gh auth login');
+      return result.stdout.trim();
+    };
+    const url = /^https:\/\/github\.com\/([^/]+\/[^/]+)\/pull\/(\d+)\/?$/.exec(options.pullRequest);
+    const repository =
+      options.repository ??
+      url?.[1] ??
+      gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']);
+    if (url && options.repository && options.repository !== url[1])
+      throw new Error('PR URL and --repo identify different repositories');
+    const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN ?? gh(['auth', 'token']);
+    const client = new GitHubClient(token);
+    const { login } = await client.currentUser();
+    const result = await runGitHubReview({
+      repository,
+      number: Number(url?.[2] ?? options.pullRequest),
+      token,
+      actor: login,
+      publish: options.publish,
+      client,
+    });
+    io.stdout(`${JSON.stringify(result.review ?? { outcome: result.outcome }, null, 2)}\n`);
+    return ['failed', 'changed'].includes(result.outcome) ? 1 : EXIT_OK;
   },
 };

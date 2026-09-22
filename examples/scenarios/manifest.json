@@ -1,0 +1,62 @@
+[
+  {
+    "id": "tenant-cache-regression",
+    "directory": "tenant-cache",
+    "variant": "regression",
+    "expected_pass": false,
+    "file": "orders.py",
+    "line": 10,
+    "severity": "blocker",
+    "contract": "Orders belong to a tenant. Cache hits must enforce the same tenant boundary as database reads, including when tenants reuse the same order identifier."
+  },
+  {
+    "id": "tenant-cache-safe",
+    "directory": "tenant-cache",
+    "variant": "safe",
+    "expected_pass": true,
+    "file": "orders.py",
+    "line": 10,
+    "severity": "blocker",
+    "contract": "Orders belong to a tenant. Cache hits must enforce the same tenant boundary as database reads, including when tenants reuse the same order identifier."
+  },
+  {
+    "id": "cursor-pagination-regression",
+    "directory": "cursor-pagination",
+    "variant": "regression",
+    "expected_pass": false,
+    "file": "repository.py",
+    "line": 7,
+    "severity": "major",
+    "contract": "The cursor identifies the last returned order. A later page must begin strictly after it. Walking every page must return each order exactly once, in ID order."
+  },
+  {
+    "id": "cursor-pagination-safe",
+    "directory": "cursor-pagination",
+    "variant": "safe",
+    "expected_pass": true,
+    "file": "repository.py",
+    "line": 7,
+    "severity": "major",
+    "contract": "The cursor identifies the last returned order. A later page must begin strictly after it. Walking every page must return each order exactly once, in ID order."
+  },
+  {
+    "id": "webhook-idempotency-regression",
+    "directory": "webhook-idempotency",
+    "variant": "regression",
+    "expected_pass": false,
+    "file": "payments.py",
+    "line": 3,
+    "severity": "blocker",
+    "contract": "The payment provider retries events until acknowledged. Replaying an event must acknowledge it without crediting the account again. New event IDs with equal amounts remain distinct payments."
+  },
+  {
+    "id": "webhook-idempotency-safe",
+    "directory": "webhook-idempotency",
+    "variant": "safe",
+    "expected_pass": true,
+    "file": "payments.py",
+    "line": 3,
+    "severity": "blocker",
+    "contract": "The payment provider retries events until acknowledged. Replaying an event must acknowledge it without crediting the account again. New event IDs with equal amounts remain distinct payments."
+  }
+]

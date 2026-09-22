@@ -1,0 +1,8 @@
+{
+  "name": "PR Review Agent",
+  "url": "https://github.com/wuchris-ch/pr-review-agent-flue",
+  "hook_attributes": { "url": "https://review.example.com/webhooks/github", "active": true },
+  "public": false,
+  "default_permissions": { "contents": "read", "pull_requests": "write", "statuses": "write", "issues": "read" },
+  "default_events": ["pull_request", "issue_comment"]
+}

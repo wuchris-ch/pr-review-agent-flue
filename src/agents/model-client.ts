@@ -43,7 +43,9 @@ async function main(): Promise<void> {
           'gen_ai.request.model': 'reviewer',
         });
         try {
-          const result = await runFlueReview(input);
+          const result = await runFlueReview(input, 'review', (usage) => {
+            if (usage) process.stderr.write(`REVIEW_USAGE ${JSON.stringify(usage)}\n`);
+          });
           span.setStatus({ code: SpanStatusCode.OK });
           return result;
         } finally {

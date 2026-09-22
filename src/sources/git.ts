@@ -1,5 +1,10 @@
 import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { gitReader } from '../context/repository.js';
+import { indexDiff } from '../core/diff/parse.js';
 import { decodeDiff, MAX_DIFF_BYTES } from '../core/input.js';
+import { parseRepositoryConfig } from '../core/repository-config.js';
 import { repositoryInstructions } from './instructions.js';
 import type { DiffSource, ReviewRequest } from './types.js';
 
@@ -80,8 +85,25 @@ export function gitSource(options: GitSourceOptions): DiffSource {
       }
 
       const instructions = repositoryInstructions(root);
+      const configPath = join(root, '.pr-review.json');
+      if (
+        existsSync(configPath) &&
+        (!lstatSync(configPath).isFile() || lstatSync(configPath).size > 16 * 1024)
+      )
+        throw new Error('invalid repository configuration file');
+      const configuration = parseRepositoryConfig(
+        existsSync(configPath) ? readFileSync(configPath, 'utf8') : undefined,
+      );
+      const reader = gitReader(root, git.text(['rev-parse', 'HEAD']));
+      const changed = new Set(indexDiff(bytes.toString('utf8')).map((file) => file.path));
       return {
         diff: decodeDiff(bytes),
+        configuration,
+        // Changed files may include uncommitted edits. Only unchanged HEAD files enrich those diffs.
+        repository: {
+          ...reader,
+          paths: async () => (await reader.paths()).filter((path) => !changed.has(path)),
+        },
         label: `${base}...HEAD`,
         ...(instructions === undefined ? {} : { instructions }),
       };
