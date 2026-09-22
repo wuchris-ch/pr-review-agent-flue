@@ -1,6 +1,6 @@
 # GitHub Action
 
-Copy [examples/github-actions/review.yml](../../examples/github-actions/review.yml) into the target repository's `.github/workflows/` directory and merge it into the default branch. Add repository secrets `MODEL_GATEWAY_API_KEY` and `MODEL_GATEWAY_BASE_URL`, plus the variable `REVIEW_AGENT_MODEL`. Use the built-in `GITHUB_TOKEN`; the Action requires no personal access token or hosted server.
+Copy [examples/github-actions/review.yml](../../examples/github-actions/review.yml) into the target repository's `.github/workflows/` directory and merge it into the default branch. Add repository secrets `MODEL_GATEWAY_API_KEY`, `MODEL_GATEWAY_BASE_URL`, and `REVIEW_AGENT_MODEL`. Use the built-in `GITHUB_TOKEN`; the Action requires no personal access token or hosted server.
 
 The full workflow declares contents read, pull requests write, commit statuses write and issues read. Organization settings must permit Actions to create reviews. Pin the Action to a reviewed release commit SHA when managing upgrades centrally. Docker Actions require a Linux runner.
 

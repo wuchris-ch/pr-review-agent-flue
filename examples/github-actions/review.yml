@@ -34,4 +34,4 @@ jobs:
         with:
           model-key: ${{ secrets.MODEL_GATEWAY_API_KEY }}
           model-url: ${{ secrets.MODEL_GATEWAY_BASE_URL }}
-          model: ${{ vars.REVIEW_AGENT_MODEL }}
+          model: ${{ secrets.REVIEW_AGENT_MODEL }}

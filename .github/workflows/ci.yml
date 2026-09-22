@@ -27,7 +27,7 @@ jobs:
       - run: python3 scripts/test-regressions.py
       - run: npm run examples:check
       - run: npm pack --dry-run
-      - run: docker build -f integrations/github-action/Dockerfile -t pr-review-action:test .
+      - run: docker build -f Dockerfile.action -t pr-review-action:test .
       - run: npm run build
 
   platform:

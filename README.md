@@ -33,14 +33,14 @@ For a globally available command, run `npm link`. Then use `pr-review init` in y
 
 ## Add a GitHub Action
 
-Save the [ready-to-copy workflow](examples/github-actions/review.yml) as `.github/workflows/review.yml` in a repository you want reviewed. Configure its model secrets and variables. It supports automatic reviews of same-repository PRs, a **Run workflow** button, and a maintainer's `/review` comment, including on fork PRs.
+Save the [ready-to-copy workflow](examples/github-actions/review.yml) as `.github/workflows/review.yml` in a repository you want reviewed. Configure its three model secrets. It supports automatic reviews of same-repository PRs, a **Run workflow** button, and a maintainer's `/review` comment, including on fork PRs.
 
 ```yaml
 - uses: wuchris-ch/pr-review-agent-flue@v0.2.0
   with:
     model-key: ${{ secrets.MODEL_GATEWAY_API_KEY }}
     model-url: ${{ secrets.MODEL_GATEWAY_BASE_URL }}
-    model: ${{ vars.REVIEW_AGENT_MODEL }}
+    model: ${{ secrets.REVIEW_AGENT_MODEL }}
 ```
 
 The Action fetches the diff and source as data through GitHub's API. It does not check out or run PR code. Reviews are advisory by default. [Setup, permissions, forks and branch protection](docs/guides/github-action.md).
