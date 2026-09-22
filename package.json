@@ -1,9 +1,9 @@
 {
   "name": "@wuchris-ch/pr-review-agent-flue",
-  "version": "0.1.0",
-  "description": "A Flue-based structured security and correctness review agent for unified diffs.",
+  "version": "0.2.0",
+  "description": "Evidence-grounded pull request reviews from your terminal, GitHub Actions, or a GitHub App.",
   "license": "Apache-2.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "engines": {
     "node": ">=22.19.0"
@@ -12,11 +12,9 @@
     "pr-review-flue": "dist/review.js",
     "pr-review-flue-pr": "dist/pr.js",
     "pr-review-flue-agent": "dist/cli.js",
-    "pr-review-flue-watch": "dist/watcher.js",
-    "pr-review": "dist/review.js",
+    "pr-review": "dist/bin/main.js",
     "pr-review-pr": "dist/pr.js",
-    "pr-review-agent": "dist/cli.js",
-    "pr-review-watch": "dist/watcher.js"
+    "pr-review-agent": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -24,9 +22,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json",
     "review": "node --env-file-if-exists=.env dist/cli.js",
-    "watch": "node --env-file-if-exists=.env dist/watcher.js",
     "lint": "biome check src tests scripts",
     "format": "biome check --write src tests scripts",
     "test": "npm run build && vitest run",
@@ -34,7 +31,12 @@
     "eval:smoke": "node --env-file-if-exists=.env scripts/run-eval.mjs --set smoke",
     "eval:full": "node --env-file-if-exists=.env scripts/run-eval.mjs --set full",
     "eval:holdout": "node --env-file-if-exists=.env scripts/run-eval.mjs --set holdout",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run build"
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
+    "prepack": "npm run build",
+    "cli": "node --env-file-if-exists=.env dist/bin/main.js",
+    "examples:check": "python3 scripts/examples/check-scenarios.py",
+    "eval:compare": "node --env-file-if-exists=.env scripts/compare-pipeline.mjs",
+    "eval:import": "node scripts/import-external-benchmark.mjs"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "0.83.0",
@@ -50,5 +52,9 @@
     "@types/node": "^22.10.10",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wuchris-ch/pr-review-agent-flue.git"
   }
 }

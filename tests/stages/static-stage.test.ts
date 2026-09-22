@@ -84,6 +84,6 @@ describe('static checks', () => {
 
   it('costs nothing, so it reports a verdict with no model configured', async () => {
     const review = await reviewDiff(diffOf('safe.ts', ['export const value = 1;']), staticOnly);
-    expect(review.rationale).toBe('No actionable defects found.');
+    expect(review.rationale).toContain('No actionable defects found.');
   });
 });

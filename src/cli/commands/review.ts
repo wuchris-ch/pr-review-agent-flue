@@ -4,7 +4,7 @@ import { EXIT_OK } from '../harness.js';
 import { reviewFromSource } from '../review-run.js';
 import { prCommand } from './pr.js';
 
-const USAGE = 'usage: pr-review [--base <git-ref>]';
+const USAGE = 'usage: pr-review review [--base <git-ref>]';
 
 export function parseBase(args: readonly string[]): string | undefined {
   if (args.length === 0) {

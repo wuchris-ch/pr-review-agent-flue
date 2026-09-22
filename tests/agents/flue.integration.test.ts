@@ -139,7 +139,10 @@ describe('compiled CLI through real Flue and Pi against loopback SSE', () => {
   it('returns the original JSON contract through the registered Flue agent', async () => {
     const result = await review('valid');
     expect(result.code, result.stderr).toBe(0);
-    expect(JSON.parse(result.stdout)).toEqual(verdict);
+    expect(JSON.parse(result.stdout)).toEqual({
+      ...verdict,
+      rationale: `${verdict.rationale} Context was limited to the supplied diff.`,
+    });
     expect(requests).toHaveLength(1);
     const request = requests[0]!;
     expect(request.model).toBe('test-wire-model');
@@ -170,7 +173,10 @@ describe('compiled CLI through real Flue and Pi against loopback SSE', () => {
   it('repairs invalid output once with a fresh Flue conversation', async () => {
     const result = await review('format');
     expect(result.code, result.stderr).toBe(0);
-    expect(JSON.parse(result.stdout)).toEqual(verdict);
+    expect(JSON.parse(result.stdout)).toEqual({
+      ...verdict,
+      rationale: `${verdict.rationale} Context was limited to the supplied diff.`,
+    });
     expect(requests).toHaveLength(2);
     expect(JSON.stringify(requests[1]?.messages)).toContain('Protocol correction');
     expect(JSON.stringify(requests[1]?.messages)).not.toContain('not valid JSON');
@@ -193,7 +199,10 @@ describe('compiled CLI through real Flue and Pi against loopback SSE', () => {
   it('recovers from a transient HTTP error inside Flue', async () => {
     const result = await review('retry');
     expect(result.code, result.stderr).toBe(0);
-    expect(JSON.parse(result.stdout)).toEqual(verdict);
+    expect(JSON.parse(result.stdout)).toEqual({
+      ...verdict,
+      rationale: `${verdict.rationale} Context was limited to the supplied diff.`,
+    });
     expect(requests).toHaveLength(2);
   }, 30_000);
 

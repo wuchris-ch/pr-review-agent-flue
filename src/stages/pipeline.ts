@@ -82,8 +82,13 @@ interface StageRun {
  * rationale and bury the explanation a reader actually wants.
  */
 function buildRationale(runs: readonly StageRun[]): string {
+  const replaced = new Set(
+    runs.filter((run) => run.result.status === 'ran').flatMap((run) => run.result.replaces ?? []),
+  );
   const notesFrom = (costClass: ReviewStage['costClass']) =>
-    runs.filter((run) => run.costClass === costClass).flatMap((run) => run.result.notes);
+    runs
+      .filter((run) => run.costClass === costClass && !replaced.has(run.result.stage))
+      .flatMap((run) => run.result.notes);
 
   const notes = [...new Set([...notesFrom('model'), ...notesFrom('free')].filter(Boolean))];
   const text = notes.length ? notes.join(' ') : 'No actionable defects found.';
@@ -109,12 +114,16 @@ export async function runPipeline(
   };
 
   for (const stage of stages) {
-    if (context.deadline.expired()) {
-      record(stage, skipped(stage.name, 'review deadline expired'));
-      continue;
-    }
     if (!stage.shouldRun(context, results)) {
       record(stage, skipped(stage.name, 'gated by an earlier stage'));
+      continue;
+    }
+    if (context.deadline.expired()) {
+      if (stage.required) throw new Error(`review deadline expired before required ${stage.name}`);
+      record(stage, {
+        ...skipped(stage.name, 'review deadline expired'),
+        notes: [`The ${stage.name} stage did not complete.`],
+      });
       continue;
     }
     record(stage, await stage.run(context, results));

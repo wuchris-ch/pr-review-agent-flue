@@ -6,16 +6,16 @@ Checked locally on September 18, 2026 (America/Vancouver), from the successor re
 
 | Capability | Implementation | Executable evidence | Scope |
 | --- | --- | --- | --- |
-| Investigate, reproduce and propose fixes | `platform/review_platform/pipeline.py`, `agents.py`, `src/agents/platform-agent.ts` | `test_lifecycle.py`, `test_agents.py`, `tests/agents/flue.integration.test.ts` | Three typed specialist roles through Flue; one candidate progresses to repair |
+| Investigate, reproduce and propose fixes | `apps/platform/review_platform/pipeline.py`, `agents.py`, `src/agents/platform-agent.ts` | `test_lifecycle.py`, `test_agents.py`, `tests/agents/flue.integration.test.ts` | Three typed specialist roles through Flue; one candidate progresses to repair |
 | Independent validation on base and PR | `source.py`, `execution.py`, `pipeline.py`, image-owned `runner.py` | `test_execution.py`, validator veto and negative reproduction tests | Exact Git snapshots; same test bytes; separate validator conversation; Python runner |
 | Developer-approved, regression-tested repairs | `service.py`, `api.py`, `scripts/apply-approved-fix.py` | `test_apply.py`, approval/rejection, tamper, stale-head and unauthorized-path tests | Approval binds commit and evidence digest; authenticated local application; no automatic Git push |
 | Temporal recovery with PostgreSQL | `workflow.py`, `worker.py`, `db.py`, three Alembic migrations | `test_durable_integration.py`, `test_dispatch.py`, negative-result crash-window tests | Actual Temporal restart/replay and PostgreSQL concurrency exercised; local history uses Temporal's development server |
-| Outdated-review cancellation and duplicate GitHub prevention | Platform supersession and dispatch; existing `src/watch/service.ts` and `src/sources/github-api.ts` | Platform stale/late-write tests and `tests/watch/binding.test.ts` | Cancellation fences platform writes; GitHub publication reconciliation is in the existing CLI watcher |
-| Console, repository roles and tenant boundaries | `console/src`, `api.py`, `service.py`, composite foreign keys in `db.py` | Three Playwright scenarios; authorization/quota/cross-tenant API tests | Provider aliases, lifetime review allowances and audit trail; operator-provisioned tokens and memberships |
+| Outdated-review cancellation and duplicate GitHub prevention | Platform supersession and dispatch; existing `src/github/review.ts` and `src/github/client.ts` | Platform stale/late-write tests and `tests/github/binding.test.ts` | Cancellation fences platform writes; GitHub publication reconciliation is in the existing shared GitHub integration |
+| Console, repository roles and tenant boundaries | `apps/console/src`, `api.py`, `service.py`, composite foreign keys in `db.py` | Three Playwright scenarios; authorization/quota/cross-tenant API tests | Provider aliases, lifetime review allowances and audit trail; operator-provisioned tokens and memberships |
 
 ## Verification performed
 
-- **154 TypeScript tests (also passed on Node.js 22.23.2):** existing CLI contracts, reviewer stages, Flue/Pi streaming integration, privacy boundaries and watcher binding/reconciliation, plus the new platform-agent route through Flue using a loopback mock gateway.
+- **154 TypeScript tests (also passed on Node.js 22.23.2):** existing CLI contracts, reviewer stages, Flue/Pi streaming integration, privacy boundaries and GitHub binding/reconciliation, plus the new platform-agent route through Flue using a loopback mock gateway.
 - **43 Python tests with integration flags:** API/lifecycle/fix checks, real Docker base-pass/PR-fail execution, read-only source/test mounts, immutable runner image binding, absent credentials and denied network access; real PostgreSQL quota contention; real Temporal lost-ack recovery, worker replacement and history replay.
 - **Three browser scenarios:** inspect source evidence/patch/logs, approve and download, update allowance, inspect audit events, enforce viewer controls, check mobile width and prevent an in-flight request from restoring a signed-out session.
 - **Real local end-to-end demonstration:** FastAPI and PostgreSQL submission, Temporal dispatch, three fixture specialists, base/PR execution, independent fixture validation, candidate regression and suite execution, approval, and authenticated artifact download. An optional [console capture](console.png) records the UI from this flow. [The saved result](demo-result.json) records the exact commits, evidence digest and execution outcomes.
@@ -33,7 +33,7 @@ The complete local path works for the supplied Python example and the documented
 
 All specialist candidates are stored, but only one candidate per review proceeds through reproduction and repair. Independent validation is a separate, source-grounded model decision when a live provider is configured; it is not a formal proof or a measured false-positive rate.
 
-The existing watcher prevents duplicate GitHub comments through revision/author-aware reconciliation. The new console currently stores and exports its richer evidence without posting it to GitHub. A shared platform publication outbox and approval-aware GitHub patch delivery are concrete follow-up integrations.
+The shared GitHub integration reconciles revision-bound receipts. The console can explicitly publish reproduced evidence after role, revision and artifact-integrity checks. `test_publication.py` covers lost responses, duplicate requests, stale revisions, tampered evidence and access control. Patch application remains an approved local operation.
 
 For a production installation, supply production Temporal infrastructure, TLS, backups and a dedicated execution host. SSO, expiring/rotating access tokens, invitations, automated artifact retention, orphan cleanup and token-cost accounting are not implemented. The Compose profile is intentionally a reproducible local service environment.
 

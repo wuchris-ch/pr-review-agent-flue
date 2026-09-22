@@ -1,0 +1,12 @@
+diff --git a/orders.py b/orders.py
+--- a/orders.py
++++ b/orders.py
+@@ -7,7 +7,7 @@
+         self.cache = {}
+ 
+     def get(self, tenant_id, order_id):
+-        key = (tenant_id, order_id)
++        key = (str(tenant_id), str(order_id))
+         if key not in self.cache:
+             self.cache[key] = self.store.get(tenant_id, order_id)
+         return self.cache[key]

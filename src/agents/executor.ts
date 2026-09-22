@@ -9,6 +9,7 @@ export interface AgentProcess {
   status: number | null;
   stdout: string;
   stderr: string;
+  usage?: { inputTokens: number; outputTokens: number };
 }
 
 export type AgentExecutor = (message: string, timeoutMs: number) => Promise<AgentProcess>;
@@ -102,6 +103,7 @@ export function runModelChild(message: string, timeoutMs: number): Promise<Agent
         status,
         stdout: stdout.read(),
         stderr: stderr.read(),
+        ...usageMetadata(stderr.read()),
       });
     };
 
@@ -122,4 +124,25 @@ export function runModelChild(message: string, timeoutMs: number): Promise<Agent
     child.stdin.on('error', () => abort('model child closed its input stream'));
     child.stdin.end(message, 'utf8');
   });
+}
+
+/** Accept only non-sensitive, numeric metadata from the isolated child. */
+export function usageMetadata(stderr: string): Pick<AgentProcess, 'usage'> {
+  for (const line of stderr.split('\n')) {
+    if (!line.startsWith('REVIEW_USAGE ')) continue;
+    try {
+      const value = JSON.parse(line.slice(13));
+      if (
+        Number.isSafeInteger(value.inputTokens) &&
+        value.inputTokens >= 0 &&
+        Number.isSafeInteger(value.outputTokens) &&
+        value.outputTokens >= 0
+      ) {
+        return { usage: { inputTokens: value.inputTokens, outputTokens: value.outputTokens } };
+      }
+    } catch {
+      /* Malformed metadata cannot affect a review. */
+    }
+  }
+  return {};
 }

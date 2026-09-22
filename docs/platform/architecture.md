@@ -20,7 +20,7 @@ flowchart LR
 
 | Component | Responsibility | Boundary |
 | --- | --- | --- |
-| Existing TypeScript reviewer | Diff parsing, static checks, bounded partition review, evidence grounding and CLI contracts | `src/stages`, `src/core`, `src/watch` remain independently usable |
+| Existing TypeScript reviewer | Diff parsing, static checks, bounded partition review, evidence grounding and CLI contracts | `src/stages`, `src/core`, `src/github` remain independently usable |
 | Flue platform agent | Three specialist roles, independent intent validation, constrained repair output | No execution tools; one fresh process/conversation per request; strict Python response schemas |
 | FastAPI service | Bearer identity, repository roles, review submission, immutable artifact reads and decisions | Never accepts arbitrary repository paths, commands, model endpoints or tenant IDs from browser requests |
 | PostgreSQL | Tenant quotas, memberships, immutable evidence records, review bindings, audit events and dispatch outbox | Composite foreign keys prevent artifacts/memberships from binding across tenant boundaries |
@@ -68,7 +68,7 @@ Each activity adopts an existing immutable result on retry. Completed evidence t
 
 Superseded workflows receive cancellation. Activity writes check state under a lock, so a late worker cannot replace evidence after supersession. The controller also rechecks revisions between execution jobs. An already-running sandbox may finish its bounded job before cancellation is observed; its late result cannot authorize a patch. Multi-worker deployments multiply the configured concurrency; deploy a fixed worker count to enforce an installation-wide cap.
 
-Existing GitHub comment/status publication remains in the TypeScript watcher, with immutable revision checks and author-aware reconciliation tests in `tests/watch/binding.test.ts`. It is an opt-in CLI integration. The new console does not publish its reproduction/fix bundle as a GitHub review. Keeping that integration explicit avoids two publishers competing on one PR. Connecting platform evidence to a shared publication outbox is remaining work.
+The shared TypeScript GitHub integration publishes source-grounded reviews through CLI, Action and App entry points. The console explicitly publishes its reproduced evidence through `publication.py`, with role checks, current revision validation, artifact integrity checks and bot-owned receipt reconciliation. Publication never approves a repair or merges a PR.
 
 ## Execution and trust boundaries
 

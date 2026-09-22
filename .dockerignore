@@ -11,3 +11,10 @@ node_modules
 AGENTS.md
 .flue
 *.db*
+
+apps
+examples
+evals
+.demo
+.pr-review
+*.tgz

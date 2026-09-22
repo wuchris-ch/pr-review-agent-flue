@@ -56,6 +56,7 @@ describe('stage gating', () => {
       'static-checks:ran',
       'model-review:ran',
       'model-verify:ran',
+      'validate-findings:skipped',
     ]);
     expect(execute.mock.calls[1]?.[0]).toContain('A first reviewer found no blocking defect');
   });
@@ -67,14 +68,17 @@ describe('stage gating', () => {
       execute: execute as never,
     });
 
-    expect(execute).toHaveBeenCalledTimes(1);
-    expect(stages.at(-1)).toMatchObject({ stage: 'model-verify', status: 'skipped' });
+    expect(execute).toHaveBeenCalledTimes(2);
+    expect(stages.find((stage) => stage.stage === 'model-verify')).toMatchObject({
+      stage: 'model-verify',
+      status: 'skipped',
+    });
     expect(review.blocked).toBe(true);
   });
 
   it('skips the second opinion when the diff is too large to be worth one', () => {
     const stages = createDefaultStages({ ...config, verifyMaxPartitions: 1 });
-    const verify = stages.at(-1) as ReviewStage;
+    const verify = stages.find((stage) => stage.name === 'model-verify') as ReviewStage;
     const context = { packets: [{}, {}] } as never;
     expect(verify.shouldRun(context, [])).toBe(false);
   });
@@ -113,7 +117,7 @@ describe('stage gating', () => {
     const { review } = await reviewDiffDetailed(diff, { stages: [fakeStatic] });
     expect(review.risk).toBe('medium');
     expect(review.blocked).toBe(true);
-    expect(review.rationale).toBe('Static check fired.');
+    expect(review.rationale).toContain('Static check fired.');
   });
 });
 

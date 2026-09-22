@@ -1,7 +1,8 @@
 import { agentCommand } from './commands/agent.js';
+import { feedbackCommand } from './commands/feedback.js';
 import { prCommand } from './commands/pr.js';
 import { reviewCommand } from './commands/review.js';
-import { watchCommand } from './commands/watch.js';
+import { doctorCommand, initCommand } from './commands/setup.js';
 import {
   type Command,
   type CommandContext,
@@ -12,7 +13,25 @@ import {
   runCommand,
 } from './harness.js';
 
-export const COMMANDS: readonly Command[] = [reviewCommand, prCommand, agentCommand, watchCommand];
+export const COMMANDS: readonly Command[] = [
+  reviewCommand,
+  prCommand,
+  agentCommand,
+  initCommand,
+  doctorCommand,
+  feedbackCommand,
+  {
+    name: 'serve',
+    summary: 'Run the GitHub App webhook receiver.',
+    usage: 'usage: pr-review serve',
+    async run(args) {
+      if (args.length) throw new Error('usage: pr-review serve');
+      const { serveApp } = await import('../github/app.js');
+      await serveApp();
+      return 0;
+    },
+  },
+];
 
 export function findCommand(name: string): Command | undefined {
   return COMMANDS.find((command) => command.name === name);
@@ -55,5 +74,9 @@ export async function runCli(
   }
 
   const context: CommandContext = { io, cwd };
+  if (rest.length === 1 && ['--help', '-h'].includes(rest[0]!)) {
+    io.stdout(`${command.usage}\n`);
+    return EXIT_OK;
+  }
   return runCommand(command, rest, context);
 }

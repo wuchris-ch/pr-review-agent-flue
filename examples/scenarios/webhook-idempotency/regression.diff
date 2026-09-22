@@ -1,0 +1,11 @@
+diff --git a/payments.py b/payments.py
+--- a/payments.py
++++ b/payments.py
+@@ -1,6 +1,6 @@
+ def receive_payment(ledger, event):
+     event_id = event["id"]
+-    if ledger.has_event(event_id):
++    if not event_id:
+         return {"accepted": True, "duplicate": True}
+     ledger.credit(event_id, event["account"], event["amount_cents"])
+     return {"accepted": True, "duplicate": False}

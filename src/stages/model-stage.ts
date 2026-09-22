@@ -145,8 +145,10 @@ async function reviewPartition(
 
   for (let attempt = 0; attempt < ATTEMPTS_PER_PARTITION; attempt += 1) {
     const attemptMessage = attempt === 0 ? message : `${message}${FORMAT_RETRY_INSTRUCTION}`;
+    let usage: AgentProcess['usage'];
     const record = (outcome: StageAttempt['outcome'], output: string, startedAt: number): void => {
       context.onAttempt?.({
+        ...(usage ? { usage } : {}),
         stage,
         partition: position.index,
         attempt: attempt + 1,
@@ -162,9 +164,13 @@ async function reviewPartition(
       execute: options.execute,
       partitionTimeoutMs: options.partitionTimeoutMs,
       deadline: context.deadline,
-      onFailure: (failure, failedAt) => record('execution', failure.stdout, failedAt),
+      onFailure: (failure, failedAt) => {
+        usage = failure.usage;
+        record('execution', failure.stdout, failedAt);
+      },
     });
 
+    usage = result.usage;
     try {
       const review = groundReview(result.stdout, packet, context.diff.sha256);
       record('accepted', result.stdout, startedAt);
@@ -197,7 +203,9 @@ export function createModelStage(options: ModelStageOptions = {}): ReviewStage {
   return {
     name,
     costClass: 'model',
-    shouldRun: (context, prior) => options.shouldRun?.(context, prior) ?? true,
+    required: !options.optional,
+    shouldRun: (context, prior) =>
+      context.packets.length > 0 && (options.shouldRun?.(context, prior) ?? true),
     async run(context) {
       const startedAt = Date.now();
       const packets = options.selectPackets?.(context) ?? context.packets;

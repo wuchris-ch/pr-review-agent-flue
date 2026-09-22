@@ -1,9 +1,15 @@
 import type { AgentExecutor } from './agents/executor.js';
+import { enrichPacket, type RepositoryContext } from './context/repository.js';
 import { type ReviewConfig, reviewConfig } from './core/config.js';
 import { Deadline } from './core/deadline.js';
 import { evidencePackets } from './core/diff/packets.js';
 import { indexDiff } from './core/diff/parse.js';
 import { type DiffInput, diffSha256 } from './core/input.js';
+import {
+  DEFAULT_REPOSITORY_CONFIG,
+  excluded,
+  type RepositoryConfig,
+} from './core/repository-config.js';
 import type { Review } from './core/schema.js';
 import { createModelStage } from './stages/model-stage.js';
 import { type PipelineResult, runPipeline } from './stages/pipeline.js';
@@ -15,8 +21,11 @@ import {
   type ReviewStage,
   type StageAttempt,
 } from './stages/types.js';
+import { createFindingValidation } from './stages/validate-findings.js';
 
 export interface ReviewOptions {
+  repositoryContext?: RepositoryContext;
+  repositoryConfig?: RepositoryConfig;
   instructions?: string;
   feedback?: string;
   /** Replaces the default stage set. Used by tests and specialised callers. */
@@ -56,7 +65,11 @@ function verifyGate(config: ReviewConfig) {
   };
 }
 
-export function createDefaultStages(config: ReviewConfig, execute?: AgentExecutor): ReviewStage[] {
+export function createDefaultStages(
+  config: ReviewConfig,
+  execute?: AgentExecutor,
+  validateFindings = true,
+): ReviewStage[] {
   const shared = {
     concurrency: config.concurrency,
     partitionTimeoutMs: config.partitionTimeoutMs,
@@ -75,6 +88,7 @@ export function createDefaultStages(config: ReviewConfig, execute?: AgentExecuto
       shouldRun: verifyGate(config),
       ...shared,
     }),
+    ...(validateFindings ? [createFindingValidation(execute)] : []),
   ];
 }
 
@@ -85,6 +99,7 @@ export function buildReviewContext(diff: DiffInput, options: ReviewOptions = {})
   }
 
   const config = { ...reviewConfig(), ...options.config };
+  const repository = options.repositoryConfig ?? DEFAULT_REPOSITORY_CONFIG;
   const feedback = options.feedback ?? process.env.AGENT_EVAL_FEEDBACK;
   const framing = {
     ...(feedback === undefined ? {} : { feedback }),
@@ -93,12 +108,20 @@ export function buildReviewContext(diff: DiffInput, options: ReviewOptions = {})
   // Two budgets: the ceiling the transport accepts, and the smaller size the
   // model answers reliably at. The packer prefers the second and uses the
   // first only for a file too large to fit it.
-  const budget = availableDiffBytes(diff, framing);
+  // Reserve space for a bounded candidate allegation in the evidence-validation pass.
+  const budget = availableDiffBytes(diff, framing) - 12 * 1024;
   const target = availableDiffBytes(diff, framing, config.partitionBytes);
 
+  const files = indexDiff(diff.text).filter((file) => !excluded(file.path, repository));
+  const contextBytes = options.repositoryContext
+    ? Math.min(12 * 1024, Math.max(0, Math.floor(target / 3)))
+    : 0;
+  const packets = evidencePackets(files, budget - contextBytes, target - contextBytes);
   return {
     diff,
-    packets: evidencePackets(indexDiff(diff.text), budget, target),
+    packets: options.repositoryContext
+      ? packets.map((packet) => enrichPacket(packet, options.repositoryContext!, contextBytes))
+      : packets,
     deadline: Deadline.in(config.deadlineMs),
     ...(options.instructions === undefined ? {} : { instructions: options.instructions }),
     ...(feedback === undefined ? {} : { feedback }),
@@ -113,8 +136,35 @@ export async function reviewDiffDetailed(
 ): Promise<PipelineResult> {
   const config = { ...reviewConfig(), ...options.config };
   const context = buildReviewContext(diff, options);
-  const stages = options.stages ?? createDefaultStages(config, options.execute);
-  return runPipeline(context, stages);
+  const stages =
+    options.stages ??
+    createDefaultStages(
+      config,
+      options.execute,
+      options.repositoryConfig?.validateFindings ?? true,
+    );
+  const result = await runPipeline(context, stages);
+  const excludedCount =
+    indexDiff(diff.text).length -
+    new Set(
+      context.packets.flatMap((packet) =>
+        [...packet.targets].map((id) => packet.anchors.get(id)!.file),
+      ),
+    ).size;
+  const coverage = [
+    excludedCount > 0
+      ? `${excludedCount} changed files had no reviewed source targets (excluded or metadata-only).`
+      : '',
+    options.repositoryContext
+      ? `Repository context: ${options.repositoryContext.files.length} selected files at ${options.repositoryContext.revision}; ${options.repositoryContext.limited ? 'bounded selection' : 'all candidate paths scanned'}.`
+      : 'Context was limited to the supplied diff.',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return {
+    ...result,
+    review: { ...result.review, rationale: `${result.review.rationale} ${coverage}` },
+  };
 }
 
 /** Review a diff and return the verdict. */

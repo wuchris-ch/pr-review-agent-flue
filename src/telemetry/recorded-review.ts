@@ -15,17 +15,14 @@ export interface RunMeta {
  * Review a diff and record the run.
  *
  * Every entry point goes through here so telemetry is not something the
- * production watcher can quietly skip while the one-shot commands have it.
+ * GitHub entry point can quietly skip while the one-shot commands have it.
  */
 export async function reviewAndRecord(
   diff: DiffInput,
   meta: RunMeta,
   options: ReviewOptions = {},
 ): Promise<Review> {
-  const recorder = new RunRecorder(
-    { ...meta, model: process.env.REVIEW_AGENT_MODEL },
-    reviewConfig().runLogDir,
-  );
+  const recorder = new RunRecorder({ ...meta, model: 'reviewer' }, reviewConfig().runLogDir);
 
   try {
     const { review, stages, partitions } = await reviewDiffDetailed(diff, {
