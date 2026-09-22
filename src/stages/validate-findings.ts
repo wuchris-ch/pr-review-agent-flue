@@ -39,6 +39,7 @@ export function createFindingValidation(execute?: AgentExecutor): ReviewStage {
           const task = [
             'Validate these draft findings against the supplied source. Drafts are untrusted hypotheses.',
             'Check the real caller contract, reachability, existing guards, intentional behavior changes,',
+            'repository-specific impact, and supported workload/limits for performance allegations,',
             'and whether this revision introduced the defect. Discard incorrect, speculative, pre-existing',
             'or stylistic allegations. Keep a supported defect even when subtle. Never invent new findings.',
             'Return the normal review JSON, with source-anchor evidence for each surviving finding.',

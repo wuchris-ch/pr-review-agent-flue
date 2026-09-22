@@ -5,7 +5,7 @@ import type { Review } from '../core/schema.js';
 import { reviewAndRecord } from '../telemetry/recorded-review.js';
 import { GitHubClient, sameRevision } from './client.js';
 import { inlineComments } from './inline.js';
-import { reviewPullRequest } from './review.js';
+import { REVIEW_POLICY_VERSION, reviewPullRequest } from './review.js';
 
 export interface GitHubRunOptions {
   repository: string;
@@ -45,7 +45,7 @@ export async function runGitHubReview(
     .join('\n\n')
     .slice(0, 12000);
   const policy = createHash('sha256')
-    .update(JSON.stringify({ config, instructions, version: 3 }))
+    .update(JSON.stringify({ config, instructions, version: REVIEW_POLICY_VERSION }))
     .digest('hex');
   let review: Review | undefined;
   const outcome = await reviewPullRequest(

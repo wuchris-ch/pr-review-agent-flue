@@ -36,7 +36,7 @@ function parseArgs(argv) {
       else options.concurrency = Number(value);
     } else {
       throw new Error(
-        'usage: run-eval.mjs [--set smoke|full|holdout] [--concurrency N] [--no-fail]',
+        'usage: run-eval.mjs [--set smoke|full|priorities|holdout] [--concurrency N] [--no-fail]',
       );
     }
   }
@@ -54,7 +54,10 @@ async function reviewCase(testCase) {
   const diffPath = resolve(dirname(MANIFEST), testCase.diff);
   const startedAt = Date.now();
   try {
-    const { stdout } = await run(process.execPath, ['dist/cli.js', '--diff', diffPath], {
+    const args = ['dist/cli.js', '--diff', diffPath];
+    if (testCase.instructions)
+      args.push('--instructions', resolve(dirname(MANIFEST), testCase.instructions));
+    const { stdout } = await run(process.execPath, args, {
       cwd: ROOT,
       maxBuffer: 8 * 1024 * 1024,
       timeout: 15 * 60 * 1000,
@@ -71,6 +74,10 @@ function grade(testCase, review) {
   if (review.blocked !== testCase.blocked) {
     failures.push(`expected blocked=${testCase.blocked}, got ${review.blocked}`);
   }
+  if (testCase.maxFindings !== undefined && review.findings.length > testCase.maxFindings)
+    failures.push(
+      `expected at most ${testCase.maxFindings} findings, got ${review.findings.length}`,
+    );
   for (const expected of testCase.expect ?? []) {
     const hit = review.findings.find(
       (finding) => finding.file === expected.file && finding.line === expected.line,
@@ -82,6 +89,10 @@ function grade(testCase, review) {
         `severity at ${expected.file}:${expected.line} was ${hit.severity}, expected ${expected.severity}`,
       );
     }
+    if (hit && expected.category && hit.category !== expected.category)
+      failures.push(
+        `category at ${expected.file}:${expected.line} was ${hit.category}, expected ${expected.category}`,
+      );
   }
   return failures;
 }
@@ -171,7 +182,7 @@ async function main() {
       {
         schema_version: RESULTS_SCHEMA_VERSION,
         set: options.set,
-        model: process.env.REVIEW_AGENT_MODEL ?? null,
+        model: 'reviewer',
         started_at: stamp,
         records,
       },

@@ -11,7 +11,7 @@ import {
   sameRevision,
 } from './client.js';
 
-const REVIEW_POLICY_VERSION = '3';
+export const REVIEW_POLICY_VERSION = '4';
 const BINDING_MARKER = /^<!-- pr-review-agent binding:(\{.*\}) -->$/;
 
 export type ReviewOutcome = 'reviewed' | 'reconciled' | 'changed' | 'closed' | 'failed';

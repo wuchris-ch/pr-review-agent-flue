@@ -1,0 +1,12 @@
+diff --git a/batch.mjs b/batch.mjs
+--- a/batch.mjs
++++ b/batch.mjs
+@@ -1,7 +1,3 @@
+ export async function loadBatch(ids, load) {
+-  const results = [];
+-  for (let offset = 0; offset < ids.length; offset += 20) {
+-    results.push(...await Promise.all(ids.slice(offset, offset + 20).map(load)));
+-  }
+-  return results;
++  return Promise.all(ids.map(load));
+ }

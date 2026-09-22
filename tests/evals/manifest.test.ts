@@ -12,6 +12,7 @@ const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
     id: string;
     sets: string[];
     diff: string;
+    instructions?: string;
     blocked: boolean;
     expect?: Array<{ file: string; line: number; severity?: string }>;
   }>;
@@ -55,6 +56,14 @@ describe('eval manifest', () => {
       const path = resolve(dirname(manifestPath), testCase.diff);
       const diff = decodeDiff(readFileSync(path));
       const files = indexDiff(diff.text);
+      if (testCase.instructions) {
+        const guidance = readFileSync(
+          resolve(dirname(manifestPath), testCase.instructions),
+          'utf8',
+        );
+        expect(guidance.trim().length).toBeGreaterThan(0);
+        expect(Buffer.byteLength(guidance)).toBeLessThanOrEqual(16 * 1024);
+      }
 
       for (const expected of testCase.expect ?? []) {
         const anchors = files
