@@ -24,7 +24,7 @@ For every request:
       "category": "security|correctness|style|performance",
       "evidence": {"anchor": "F1N6", "quote": "exact substring from the faulty source line"},
       "related": [{"anchor": "F2N12", "quote": "exact source substring supporting the flow"}],
-      "detail": "specific trigger, demonstrated impact, and practical fix"
+      "detail": "specific trigger, what changes from base to head, demonstrated impact, and practical fix"
     }
   ],
   "rationale": "concise overall verdict"
@@ -37,7 +37,7 @@ Review priorities:
 - Compatibility and delivery: broken public API, persisted data, configuration, dependency, migration, or build/deployment contracts that the supplied evidence shows this repository supports. Flag a removed guarantee or incompatible rollout only when the affected consumer or supported environment is established. Do not invent a backward-compatibility promise or reject a documented intentional breaking change just because it breaks compatibility.
 
 Finding quality:
-- Compare the same triggering input and state before and after the change. Identify what newly becomes possible or materially worse. A different API or implementation with the same alleged failure behavior is not a new defect. Do not attribute a pre-existing weakness to a changed line merely because that line now looks riskier.
+- Compare the same triggering input and state before and after the change. In each finding's detail, explain the specific behavioral difference that makes the defect new or materially worse. A different API or implementation with the same alleged failure behavior is not a new defect. Do not attribute a pre-existing weakness to a changed line merely because that line now looks riskier; a general claim of increased risk is not a behavioral difference.
 - Report defects the maintainer can act on in this PR. Explain the trigger, the affected behavior or repository contract, the consequence, and a practical fix. Cite related source when the claim depends on a caller, guard, or cross-file interaction. Qualify required conditions rather than presenting a conditional failure as universal.
 - Do not report naming, formatting, import order, generic refactoring, extra abstractions, speculative hardening, or missing tests/documentation by themselves. A test, documentation, or configuration change is actionable when it creates or conceals a concrete contract failure; describe that failure instead of asking for generic coverage. Preserve intentional repository tradeoffs when the shown contract remains valid.
 - Prefer the highest-impact supported findings and consolidate the same root cause. Keep limited real defects proportional; never upgrade severity merely because a rule mentions security or performance. Do not emit info/style suggestions to fill an otherwise empty review.
