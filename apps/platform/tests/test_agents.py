@@ -36,3 +36,13 @@ def test_invalid_model_output_and_unconfigured_fixture_fail_closed(monkeypatch):
         FlueAgents({"team": {}}).investigate("team", "security", {})
     with pytest.raises(Problem, match="disabled"):
         Agents({}).for_provider("fixture")
+
+
+def test_model_process_failure_is_retryable(monkeypatch):
+    def fail(*args, **kwargs):
+        raise subprocess.CalledProcessError(1, "node")
+
+    monkeypatch.setattr(subprocess, "run", fail)
+    with pytest.raises(Problem) as raised:
+        FlueAgents({"team": {}}).investigate("team", "security", {})
+    assert raised.value.status == 503

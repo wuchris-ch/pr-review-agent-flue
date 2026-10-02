@@ -1,10 +1,21 @@
 # PR Review Agent
 
-Review pull requests from your terminal, a GitHub Action, or a self-hosted GitHub App. Findings cite exact changed lines, use related repository context, and pass a separate evidence check before publication.
+AI code review that cites exact lines, and for small Python repositories proves a suspected bug with a failing test before proposing a fix.
 
-Bring your own streaming OpenAI-compatible model endpoint. Each installation uses its own credentials and repository permissions. The CLI and Action run without a database or hosted service.
+Review pull requests from your terminal, a GitHub Action, or a self-hosted GitHub App. Findings cite exact changed lines, use related repository context, and pass a separate evidence check before publication. The optional review platform goes further: it reproduces a suspected regression with a test that passes on the base commit and fails on the PR, has an independent agent judge intent, and offers a fix that must pass that test and the existing suite before a developer can approve it.
 
-[GitHub Action setup](docs/guides/github-action.md) · [CLI and configuration](docs/guides/configuration.md) · [Examples](examples/README.md) · [How it works](docs/architecture.md) · [Evaluation](evals/README.md)
+Bring your own OpenAI-compatible model endpoint. Each installation uses its own credentials and repository permissions. The CLI and Action run without a database or hosted service.
+
+![Review platform console showing a live-model review: finding, source references, reproduction, independent intent check and a validated fix awaiting approval](docs/platform/console.png)
+
+## Results
+
+- **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the reviewer reports issues at 52.4% precision, 7th of 18 reviewers including 17 commercial tools scored by the same judge, and finds 30% of human-verified issues (F1 38.2%, up from 34.6% at baseline). Recall is its weakness.
+- **Live regression platform:** 9 of 9 seeded multi-file regressions reproduced with failing tests, 9 of 9 proposed fixes passed withheld contract tests, and 0 of 9 valid changes flagged.
+
+[Full results, method and limitations](docs/results.md)
+
+[GitHub Action setup](docs/guides/github-action.md) · [CLI and configuration](docs/guides/configuration.md) · [Review platform](docs/platform/quickstart.md) · [Examples](examples/README.md) · [How it works](docs/architecture.md) · [Evaluation](evals/README.md)
 
 ## Start with one PR
 
@@ -36,7 +47,7 @@ For a globally available command, run `npm link`. Then use `pr-review init` in y
 Save the [ready-to-copy workflow](examples/github-actions/review.yml) as `.github/workflows/review.yml` in a repository you want reviewed. Configure its three model secrets. It supports automatic reviews of same-repository PRs, a **Run workflow** button, and a maintainer's `/review` comment, including on fork PRs.
 
 ```yaml
-- uses: wuchris-ch/pr-review-agent-flue@v0.2.1
+- uses: wuchris-ch/pr-review-agent-flue@v0.3.0
   with:
     model-key: ${{ secrets.MODEL_GATEWAY_API_KEY }}
     model-url: ${{ secrets.MODEL_GATEWAY_BASE_URL }}
@@ -54,7 +65,7 @@ The Action fetches the diff and source as data through GitHub's API. It does not
 - **Publish against the reviewed revision.** Bind the result to base, merge base, head and diff digest. Recheck before posting and reconcile saved receipts after a lost response.
 - **Measure changes.** Record per-stage attempts, latency, input size and numeric usage when available. Compare the full pipeline to a single model pass on the same cases and model.
 
-Evidence validation is source-based. For executable proof, the optional [review platform](docs/platform/quickstart.md) runs the same frozen regression test on base and PR commits, checks intent, tests a repair and records developer approval. Its console can publish reproduced evidence back to the PR. It currently supports small UTF-8 Python repositories and one candidate per review.
+Evidence validation is source-based. For executable proof, the optional [review platform](docs/platform/quickstart.md) runs the same frozen regression test on base and PR commits, checks intent, tests a repair and records developer approval. Its console can publish reproduced evidence back to the PR. It currently supports small UTF-8 Python repositories and one candidate per review. [Live-model results](docs/results.md#regression-platform-with-a-live-model).
 
 ## Find your way around
 

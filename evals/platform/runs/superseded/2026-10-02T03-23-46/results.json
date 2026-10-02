@@ -1,0 +1,85 @@
+{
+  "provider": "live-sol",
+  "completed_at": "2026-10-02T03:23:46.210423+00:00",
+  "regressions_reproduced": 2,
+  "regressions_reaching_approval": 2,
+  "fixes_passing_withheld_contract": 2,
+  "regressions": 3,
+  "valid_changes_flagged_for_approval": 1,
+  "valid_changes_reproduced": 1,
+  "valid_changes": 3,
+  "reviews": [
+    {
+      "scenario": "cursor-pagination",
+      "variant": "regression",
+      "state": "inconclusive",
+      "minutes": 0.7,
+      "reproduced": false,
+      "intent_accepted": null,
+      "fix_passed_platform_checks": null,
+      "fix_passes_withheld_contract": null,
+      "candidates": 2,
+      "rejected_candidates": 0
+    },
+    {
+      "scenario": "cursor-pagination",
+      "variant": "safe",
+      "state": "no_finding",
+      "minutes": 0.4,
+      "reproduced": null,
+      "intent_accepted": null,
+      "fix_passed_platform_checks": null,
+      "fix_passes_withheld_contract": null,
+      "candidates": 0,
+      "rejected_candidates": 0
+    },
+    {
+      "scenario": "tenant-cache",
+      "variant": "regression",
+      "state": "awaiting_approval",
+      "minutes": 1.5,
+      "reproduced": true,
+      "intent_accepted": true,
+      "fix_passed_platform_checks": true,
+      "fix_passes_withheld_contract": true,
+      "candidates": 3,
+      "rejected_candidates": 0
+    },
+    {
+      "scenario": "tenant-cache",
+      "variant": "safe",
+      "state": "awaiting_approval",
+      "minutes": 1.5,
+      "reproduced": true,
+      "intent_accepted": true,
+      "fix_passed_platform_checks": true,
+      "fix_passes_withheld_contract": true,
+      "candidates": 3,
+      "rejected_candidates": 0
+    },
+    {
+      "scenario": "webhook-idempotency",
+      "variant": "regression",
+      "state": "awaiting_approval",
+      "minutes": 1.5,
+      "reproduced": true,
+      "intent_accepted": true,
+      "fix_passed_platform_checks": true,
+      "fix_passes_withheld_contract": true,
+      "candidates": 3,
+      "rejected_candidates": 0
+    },
+    {
+      "scenario": "webhook-idempotency",
+      "variant": "safe",
+      "state": "no_finding",
+      "minutes": 0.4,
+      "reproduced": null,
+      "intent_accepted": null,
+      "fix_passed_platform_checks": null,
+      "fix_passes_withheld_contract": null,
+      "candidates": 0,
+      "rejected_candidates": 0
+    }
+  ]
+}

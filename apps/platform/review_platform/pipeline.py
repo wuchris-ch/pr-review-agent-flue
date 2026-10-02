@@ -5,8 +5,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .agents import ROLES
 from .contracts import Candidate, State, digest
+from .execution import demonstrates_regression
 from .service import Problem, encoded
-from .source import ground
+from .source import grounded
 
 
 class Pipeline:
@@ -51,11 +52,24 @@ class Pipeline:
             if cached:
                 return cached
             result = agents.investigate(review.provider, role, snapshot)
+            accepted, rejected = [], []
             for candidate in result.findings:
                 if candidate.category != role:
-                    raise Problem(422, "specialist category mismatch")
-                ground(candidate.references, snapshot["head"])
-            return self.store.record(review_id, f"agent_{role}", result.model_dump())
+                    rejected.append({"title": candidate.title, "reason": "category mismatch"})
+                    continue
+                references = grounded(candidate.references, snapshot["head"])
+                if references is None:
+                    rejected.append(
+                        {"title": candidate.title, "reason": "reference not found in head source"}
+                    )
+                    continue
+                accepted.append(candidate.model_copy(update={"references": references}))
+            # Ungrounded candidates are dropped with a reason instead of failing the review.
+            content = {
+                "findings": [candidate.model_dump() for candidate in accepted],
+                "rejected": rejected,
+            }
+            return self.store.record(review_id, f"agent_{role}", content)
 
         with ThreadPoolExecutor(max_workers=3) as pool:
             results = list(pool.map(run, ROLES))
@@ -86,12 +100,12 @@ class Pipeline:
         head = self.executor.run(
             snapshot["head"], test, snapshot["suite"], image=snapshot["runner_image"]
         )
-        # Require a real assertion failure; syntax/import/infrastructure failures are inconclusive.
+        # Require a behavioral failure on the PR: an assertion, or an exception raised inside
+        # the reviewed source. Test bugs and infrastructure failures stay inconclusive.
         confirmed = (
             base.outcome == "passed"
             and head.outcome == "failed"
-            and "AssertionError" in head.log
-            and "FAILED (" in head.log
+            and demonstrates_regression(head.log)
         )
         content = {
             "confirmed": confirmed,
@@ -122,11 +136,19 @@ class Pipeline:
         result = agents.validate(
             review.provider, candidate, snapshot, self.store.artifact(review, "reproduction")
         )
-        ground(result.references, snapshot["head"])
-        self.store.record(review_id, "intent", result.model_dump(), State.REPAIRING)
-        if not result.accepted:
+        references = grounded(result.references, snapshot["head"])
+        if references is None:
+            intent = {
+                "accepted": False,
+                "reason": "Validator references could not be located in the head source.",
+                "references": [],
+            }
+        else:
+            intent = result.model_copy(update={"references": references}).model_dump()
+        self.store.record(review_id, "intent", intent, State.REPAIRING)
+        if not intent["accepted"]:
             self.store.finish(review_id, State.INCONCLUSIVE)
-        return result.accepted
+        return intent["accepted"]
 
     def repair(self, review_id):
         review, _ = self.active(review_id)

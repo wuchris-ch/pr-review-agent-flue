@@ -446,6 +446,7 @@ header select {
 .check-icon {
   width: 22px;
   height: 22px;
+  flex-shrink: 0;
   border-radius: 50%;
   display: grid;
   place-items: center;

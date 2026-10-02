@@ -7,7 +7,7 @@ class OrderService:
         self.cache = {}
 
     def get(self, tenant_id, order_id):
-        key = (str(tenant_id), str(order_id))
-        if key not in self.cache:
-            self.cache[key] = self.store.get(tenant_id, order_id)
-        return self.cache[key]
+        tenant_cache = self.cache.setdefault(tenant_id, {})
+        if order_id not in tenant_cache:
+            tenant_cache[order_id] = self.store.get(tenant_id, order_id)
+        return tenant_cache[order_id]

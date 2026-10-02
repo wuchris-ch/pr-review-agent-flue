@@ -106,11 +106,24 @@ describe('model review stage', () => {
       ...JSON.parse(validOutput),
       input_sha256: 'f'.repeat(64),
     });
-    await expect(
-      reviewDiff(diff, {
-        stages: modelOnly(() => ({ status: 0, stdout: wrongDigest, stderr: '' })),
-      }),
-    ).rejects.toThrow(/does not match/);
+    const execute = vi.fn(() => ({ status: 0, stdout: wrongDigest, stderr: '' }));
+    await expect(reviewDiff(diff, { stages: modelOnly(execute) })).rejects.toThrow(
+      /does not match/,
+    );
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
+
+  it('recovers when a digest copying error is corrected', async () => {
+    const wrongDigest = JSON.stringify({
+      ...JSON.parse(validOutput),
+      input_sha256: 'f'.repeat(64),
+    });
+    const execute = vi
+      .fn()
+      .mockReturnValueOnce({ status: 0, stdout: wrongDigest, stderr: '' })
+      .mockReturnValueOnce({ status: 0, stdout: validOutput, stderr: '' });
+    const review = await reviewDiff(diff, { stages: modelOnly(execute) });
+    expect(review.blocked).toBe(true);
   });
 
   it('rejects a finding for a file outside the reviewed diff', async () => {

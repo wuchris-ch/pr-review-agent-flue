@@ -12,6 +12,7 @@ import {
 } from './core/repository-config.js';
 import type { Review } from './core/schema.js';
 import { createModelStage } from './stages/model-stage.js';
+import { createParallelStage } from './stages/parallel-stage.js';
 import { type PipelineResult, runPipeline } from './stages/pipeline.js';
 import { availableDiffBytes } from './stages/review-message.js';
 import { createStaticStage } from './stages/static-stage.js';
@@ -44,6 +45,53 @@ const VERIFY_TASK = [
   'and what the shown callers do with those values. Report a finding only when the supplied source',
   'demonstrates it. Returning an empty findings array is the correct answer for a sound diff.',
 ].join(' ');
+
+/**
+ * Recall-oriented passes that always run beside the main review.
+ *
+ * Benchmarking showed the main pass reports one or two issues per PR and stops,
+ * missing ordinary concrete bugs, while evidence validation rejects few drafts.
+ * Each focused pass narrows attention to one class of defect; the independent
+ * validation stage is what protects precision.
+ */
+const HUNT_PREAMBLE = [
+  'Hunt for concrete defects introduced by this diff in the focus area below. An independent pass',
+  'verifies every finding against the source, so report each distinct source-supported defect in',
+  'this area, including medium and low severity ones, rather than only the most serious issue.',
+  'Examine every changed hunk.',
+].join(' ');
+const HUNT_RULES =
+  'Cite the exact changed line for each finding and state its trigger and consequence. Do not report style preferences or speculative risks without a concrete trigger.';
+
+export const HUNT_FOCUS = {
+  logic: [
+    'Focus: logic and data flow. Look for wrong variable, parameter, key, field or route names;',
+    'calls to the wrong function, object or delegate, including accidental recursion into the same',
+    'method or layer; inverted, missing or misplaced conditions and early returns; off-by-one and',
+    'boundary errors; unchecked null, missing-key or empty-collection access; and computing a value',
+    'but returning or using a different one.',
+  ].join(' '),
+  state: [
+    'Focus: state, asynchrony and failure handling. Look for asynchronous work that is not awaited',
+    'or whose errors are dropped, including async callbacks passed to forEach; check-then-act races',
+    'and non-atomic updates; caches or state changed before a call that can fail and never restored;',
+    'records, subscriptions or resources that are no longer cleaned up; and errors that are swallowed',
+    'or turned into success-like results.',
+  ].join(' '),
+  contracts: [
+    'Focus: contracts and consistency. Look for callers and callees that now disagree on arguments,',
+    'return shapes, routes or parameters; behavior that now differs between parallel implementations',
+    'or call sites; configuration, documentation, translations or user-visible text that is wrong for',
+    'its context; and tests that assert the wrong thing or no longer exercise the changed behavior.',
+  ].join(' '),
+} as const;
+
+export const HUNT_TASKS = Object.fromEntries(
+  Object.entries(HUNT_FOCUS).map(([name, focus]) => [
+    name,
+    `${HUNT_PREAMBLE} ${focus} ${HUNT_RULES}`,
+  ]),
+) as Record<keyof typeof HUNT_FOCUS, string>;
 
 /**
  * The gated second opinion.
@@ -80,6 +128,23 @@ export function createDefaultStages(
   return [
     createStaticStage(),
     createModelStage({ name: 'model-review', ...shared }),
+    ...(config.huntEnabled
+      ? [
+          createParallelStage(
+            'model-hunt',
+            (Object.keys(HUNT_TASKS) as (keyof typeof HUNT_TASKS)[]).map((focus) =>
+              createModelStage({
+                name: `model-hunt-${focus}`,
+                task: HUNT_TASKS[focus],
+                noteWhenEmpty: `The ${focus} defect hunt found no additional concrete defects.`,
+                // Optional: a failed hunt leaves the main review intact and is reported.
+                optional: true,
+                ...shared,
+              }),
+            ),
+          ),
+        ]
+      : []),
     createModelStage({
       name: 'model-verify',
       task: VERIFY_TASK,
@@ -115,14 +180,20 @@ export function buildReviewContext(diff: DiffInput, options: ReviewOptions = {})
   const target = availableDiffBytes(diff, framing, config.partitionBytes);
 
   const files = indexDiff(diff.text).filter((file) => !excluded(file.path, repository));
-  const contextBytes = options.repositoryContext
-    ? Math.min(12 * 1024, Math.max(0, Math.floor(target / 3)))
-    : 0;
-  const packets = evidencePackets(files, budget - contextBytes, target - contextBytes);
+  // Diff packing is unchanged by context. Each packet then receives repository context
+  // up to the room left under the hard message ceiling, so context never makes a
+  // reviewable file unreviewable.
+  const packets = evidencePackets(files, budget, target);
   return {
     diff,
     packets: options.repositoryContext
-      ? packets.map((packet) => enrichPacket(packet, options.repositoryContext!, contextBytes))
+      ? packets.map((packet) =>
+          enrichPacket(
+            packet,
+            options.repositoryContext!,
+            Math.min(config.contextBytes, Math.max(0, budget - Buffer.byteLength(packet.text))),
+          ),
+        )
       : packets,
     deadline: Deadline.in(config.deadlineMs),
     ...(options.instructions === undefined ? {} : { instructions: options.instructions }),

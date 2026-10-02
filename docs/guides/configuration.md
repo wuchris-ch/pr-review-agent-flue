@@ -1,6 +1,6 @@
 # CLI and repository configuration
 
-`pr-review --help` lists all commands. Run `npm link` from a built checkout to install the command locally, or install a release tarball with `npm install -g ./wuchris-ch-pr-review-agent-flue-0.2.1.tgz`. Export model settings before invoking an installed binary. `npm run cli -- ...` loads the project's local `.env` explicitly.
+`pr-review --help` lists all commands. Run `npm link` from a built checkout to install the command locally, or install a release tarball with `npm install -g ./wuchris-ch-pr-review-agent-flue-0.3.0.tgz`. Export model settings before invoking an installed binary. `npm run cli -- ...` loads the project's local `.env` explicitly.
 
 | Command | Purpose |
 | --- | --- |
@@ -31,7 +31,9 @@ The endpoint must support streaming chat completions, JSON object mode, the conf
 | `REVIEW_DEADLINE_SECONDS` | 900 seconds for the full review |
 | `REVIEW_CONCURRENCY` | 6 model partitions at once |
 | `REVIEW_PARTITION_KIB` | 48 KiB preferred message size |
+| `REVIEW_CONTEXT_KIB` | 40 KiB of repository context per partition: whole changed files first, then related excerpts. It never displaces diff text |
 | `REVIEW_VERIFY_STAGE` | `true`; optional clean-change second opinion |
+| `REVIEW_HUNT_STAGES` | `false`; three focused defect-hunting passes. Off by default because they doubled false positives in [benchmarking](../results.md) |
 | `REVIEW_RUN_LOG_DIR` | Opt-in private directory for JSONL run records |
 
 Raw records include source-derived findings. Keep them private. Numeric token usage is recorded only when the endpoint reports it. Dollar cost is unknown without billing evidence, rather than inferred from the transport's zero-valued price placeholders.

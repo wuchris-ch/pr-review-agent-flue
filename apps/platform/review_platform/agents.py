@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .contracts import Candidate, IntentCheck, Investigation, Reference, Repair, Replacement
 from .service import Problem
+from .source import numbered
 
 ROLES = ("cross_file", "security", "api_compatibility")
 TASKS = {
@@ -24,6 +25,19 @@ TASKS = {
     "Do not special-case the test harness or suppress errors globally.",
 }
 ROOT = Path(__file__).resolve().parents[3]
+LINE_NOTE = (
+    "Source files under base and head are shown with each line prefixed by its 1-based line "
+    "number and '| '. Cite head line numbers, and quote excerpts without that prefix."
+)
+
+
+def readable(snapshot):
+    """Evidence view for reasoning agents: same snapshot, with numbered source lines."""
+    return {
+        **snapshot,
+        **{key: numbered(snapshot[key]) for key in ("base", "head") if key in snapshot},
+        "line_numbers": LINE_NOTE,
+    }
 
 
 class FlueAgents:
@@ -56,14 +70,18 @@ class FlueAgents:
                 timeout=210,
                 check=True,
             )
+        except (subprocess.SubprocessError, OSError):
+            # Model outages and timeouts are transient: let Temporal retry this activity.
+            raise Problem(503, "specialist model is temporarily unavailable") from None
+        try:
             if len(result.stdout) > 128_000:
                 raise ValueError("response too large")
             return schema.model_validate_json(result.stdout)
-        except (subprocess.SubprocessError, ValueError, OSError):
+        except ValueError:
             raise Problem(422, "specialist returned an invalid or unavailable result") from None
 
     def investigate(self, provider, role, snapshot):
-        return self.request(provider, role, Investigation, snapshot)
+        return self.request(provider, role, Investigation, readable(snapshot))
 
     def validate(self, provider, candidate, snapshot, reproduction):
         return self.request(
@@ -72,7 +90,7 @@ class FlueAgents:
             IntentCheck,
             {
                 "candidate": candidate.model_dump(),
-                "snapshot": snapshot,
+                "snapshot": readable(snapshot),
                 "reproduction": reproduction,
             },
         )

@@ -1,0 +1,16 @@
+{
+  "excluded_tools": [
+    "claude-code",
+    "cubic-v2",
+    "greptile-v5",
+    "kodus-v2",
+    "sourcery"
+  ],
+  "reason": "Martian publishes extracted candidates for these tools on at most one PR; raw-comment fallback is not comparable.",
+  "tools": 17,
+  "decisions": 2941,
+  "agreement": 0.9554573274396464,
+  "cohens_kappa": 0.9090656756683397,
+  "only_this_judge": 77,
+  "only_gpt52": 54
+}

@@ -26,3 +26,4 @@ apps/console/test-results/
 .pr-review/
 evals/external/
 *.tgz
+evals/martian/runs/

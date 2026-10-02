@@ -1,0 +1,107 @@
+{
+  "judge": {
+    "model": "gpt-5.5",
+    "effort": "medium"
+  },
+  "cases": 30,
+  "scores": {
+    "all/core": {
+      "pr-review-agent (final)": {
+        "tp": 33,
+        "fp": 30,
+        "fn": 77,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5238095238095238,
+        "recall": 0.3,
+        "f1": 0.38150289017341044
+      },
+      "pr-review-agent (baseline)": {
+        "tp": 28,
+        "fp": 24,
+        "fn": 82,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5384615384615384,
+        "recall": 0.2545454545454545,
+        "f1": 0.345679012345679
+      }
+    },
+    "all/strict": {
+      "pr-review-agent (final)": {
+        "tp": 32,
+        "fp": 30,
+        "fn": 71,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5161290322580645,
+        "recall": 0.3106796116504854,
+        "f1": 0.3878787878787878
+      },
+      "pr-review-agent (baseline)": {
+        "tp": 26,
+        "fp": 24,
+        "fn": 77,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.52,
+        "recall": 0.2524271844660194,
+        "f1": 0.33986928104575165
+      }
+    },
+    "dev/core": {},
+    "dev/strict": {},
+    "heldout/core": {
+      "pr-review-agent (final)": {
+        "tp": 33,
+        "fp": 30,
+        "fn": 77,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5238095238095238,
+        "recall": 0.3,
+        "f1": 0.38150289017341044
+      },
+      "pr-review-agent (baseline)": {
+        "tp": 28,
+        "fp": 24,
+        "fn": 82,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5384615384615384,
+        "recall": 0.2545454545454545,
+        "f1": 0.345679012345679
+      }
+    },
+    "heldout/strict": {
+      "pr-review-agent (final)": {
+        "tp": 32,
+        "fp": 30,
+        "fn": 71,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5161290322580645,
+        "recall": 0.3106796116504854,
+        "f1": 0.3878787878787878
+      },
+      "pr-review-agent (baseline)": {
+        "tp": 26,
+        "fp": 24,
+        "fn": 77,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.52,
+        "recall": 0.2524271844660194,
+        "f1": 0.33986928104575165
+      }
+    }
+  },
+  "reference_gpt52": {
+    "all/core": {},
+    "all/strict": {},
+    "dev/core": {},
+    "dev/strict": {},
+    "heldout/core": {},
+    "heldout/strict": {}
+  }
+}

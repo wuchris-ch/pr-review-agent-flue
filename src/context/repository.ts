@@ -92,6 +92,19 @@ export async function retrieveContext(
   };
 }
 
+/** Line numbers to show: every line of a whole file, or windows around shared identifiers. */
+function selectLines(lines: readonly string[], wanted: Set<string>, whole: boolean): number[] {
+  if (whole) return [...lines.keys()];
+  const selected = new Set<number>();
+  for (const [line, text] of lines.entries()) {
+    if ([...identifiers(text)].some((word) => wanted.has(word))) {
+      for (let n = Math.max(0, line - 3); n <= Math.min(lines.length - 1, line + 5); n++)
+        selected.add(n);
+    }
+  }
+  return [...selected].sort((a, b) => a - b).slice(0, 100);
+}
+
 /** Add exact, read-only line anchors. Existing diff targets remain the only blame locations. */
 export function enrichPacket(
   packet: EvidencePacket,
@@ -100,21 +113,24 @@ export function enrichPacket(
 ): EvidencePacket {
   const anchors = new Map(packet.anchors);
   const wanted = identifiers(packet.text);
+  // Files changed in this packet come first and, when they fit, appear whole: a defect
+  // such as a call that re-enters the same class is only visible with the class in view.
+  const changed = new Set(
+    [...packet.targets].map((id) => packet.anchors.get(id)?.file).filter(Boolean),
+  );
+  const ordered = [...context.files.entries()].sort(
+    ([, left], [, right]) => Number(changed.has(right.path)) - Number(changed.has(left.path)),
+  );
   const sections: string[] = [];
   let used = 0;
-  for (const [index, file] of context.files.entries()) {
+  for (const [index, file] of ordered) {
     const lines = file.content.split('\n');
-    const selected = new Set<number>();
-    for (const [line, text] of lines.entries()) {
-      if ([...identifiers(text)].some((word) => wanted.has(word))) {
-        for (let n = Math.max(0, line - 3); n <= Math.min(lines.length - 1, line + 5); n++)
-          selected.add(n);
-      }
-    }
+    const whole =
+      changed.has(file.path) && Buffer.byteLength(file.content) + 16 * lines.length < budget - used;
     const header = `Repository context ${JSON.stringify(file.path)} at ${context.revision} (read-only):\n`;
     const source: SourceAnchor[] = [];
     const rendered: string[] = [];
-    for (const line of [...selected].sort((a, b) => a - b).slice(0, 100)) {
+    for (const line of selectLines(lines, wanted, whole)) {
       const anchor: SourceAnchor = {
         id: `R${index + 1}N${line + 1}`,
         file: file.path,
