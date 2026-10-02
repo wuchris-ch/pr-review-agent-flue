@@ -76,7 +76,7 @@ const out = [];
 out.push(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-labelledby="title desc">`,
   '<title id="title">Precision and recall on 30 held-out PRs</title>',
-  `<desc id="desc">This reviewer at ${pct(final.precision)} precision and ${pct(final.recall)} recall, up from ${pct(baseline.recall)} recall at baseline, compared with 17 commercial reviewers scored by the same judge.</desc>`,
+  `<desc id="desc">PR Review at ${pct(final.precision)} precision and ${pct(final.recall)} recall, up from ${pct(baseline.recall)} recall before the changes, compared with 17 commercial reviewers scored by the same judge.</desc>`,
   `<rect width="${W}" height="${H}" fill="#fbfaf7"/>`,
   `<g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="${muted}">`,
 );
@@ -116,10 +116,10 @@ for (const F of [0.2, 0.3, 0.4, 0.5, 0.6]) {
 }
 
 out.push(
-  `<text x="${m.left + pw / 2}" y="${H - 18}" text-anchor="middle" fill="${ink}">Recall: share of human-verified issues found</text>`,
+  `<text x="${m.left + pw / 2}" y="${H - 18}" text-anchor="middle" fill="${ink}">Recall: share of the known issues each tool found</text>`,
 );
 out.push(
-  `<text transform="translate(20 ${m.top + ph / 2}) rotate(-90)" text-anchor="middle" fill="${ink}">Precision: share of comments that were real issues</text>`,
+  `<text transform="translate(20 ${m.top + ph / 2}) rotate(-90)" text-anchor="middle" fill="${ink}">Precision: share of each tool's comments that were real issues</text>`,
 );
 
 for (const t of tools) {
@@ -144,29 +144,29 @@ out.push(
   `<line x1="${f(bx + 7)}" y1="${f(by + 1)}" x2="${f(fx - 10)}" y2="${f(fy - 1)}" stroke="${accent}" stroke-width="2" marker-end="url(#arrow)"/>`,
 );
 out.push(
-  `<circle cx="${f(bx)}" cy="${f(by)}" r="6" fill="#fbfaf7" stroke="${accent}" stroke-width="2"><title>Baseline: ${pct(baseline.precision)} precision, ${pct(baseline.recall)} recall</title></circle>`,
+  `<circle cx="${f(bx)}" cy="${f(by)}" r="6" fill="#fbfaf7" stroke="${accent}" stroke-width="2"><title>PR Review before the changes: ${pct(baseline.precision)} precision, ${pct(baseline.recall)} recall</title></circle>`,
 );
 out.push(
-  `<circle cx="${f(fx)}" cy="${f(fy)}" r="7.5" fill="${accent}"><title>This reviewer: ${pct(final.precision)} precision, ${pct(final.recall)} recall</title></circle>`,
+  `<circle cx="${f(fx)}" cy="${f(fy)}" r="7.5" fill="${accent}"><title>PR Review: ${pct(final.precision)} precision, ${pct(final.recall)} recall</title></circle>`,
 );
 out.push(
-  `<text x="${f(fx - 2)}" y="${f(fy + 26)}" text-anchor="middle" font-size="13" font-weight="600" fill="${accent}">This reviewer</text>`,
+  `<text x="${f(fx - 2)}" y="${f(fy + 26)}" text-anchor="middle" font-size="13" font-weight="600" fill="${accent}">PR Review</text>`,
 );
 out.push(
   `<text x="${f(fx - 2)}" y="${f(fy + 42)}" text-anchor="middle" font-size="11" fill="${accent}">${pct(final.precision)} precision, ${pct(final.recall)} recall</text>`,
 );
 out.push(
-  `<text x="${f(bx - 12)}" y="${f(by - 12)}" text-anchor="end" font-size="11" fill="${accent}">baseline</text>`,
+  `<text x="${f(bx - 12)}" y="${f(by - 12)}" text-anchor="end" font-size="11" fill="${accent}">before</text>`,
 );
 
 // Legend in the empty upper-right corner.
-const lx = W - m.right - 190;
+const lx = W - m.right - 214;
 const ly = m.top + 14;
 out.push(
-  `<rect x="${lx - 14}" y="${ly - 14}" width="190" height="76" rx="6" fill="#fbfaf7" stroke="${grid}"/>`,
-  `<circle cx="${lx}" cy="${ly}" r="5.5" fill="${tool}"/><text x="${lx + 14}" y="${ly + 4}">Commercial reviewer (${tools.length})</text>`,
-  `<circle cx="${lx}" cy="${ly + 24}" r="6.5" fill="${accent}"/><text x="${lx + 14}" y="${ly + 28}">This reviewer, final</text>`,
-  `<circle cx="${lx}" cy="${ly + 48}" r="5.5" fill="#fbfaf7" stroke="${accent}" stroke-width="2"/><text x="${lx + 14}" y="${ly + 52}">This reviewer, baseline</text>`,
+  `<rect x="${lx - 14}" y="${ly - 14}" width="214" height="76" rx="6" fill="#fbfaf7" stroke="${grid}"/>`,
+  `<circle cx="${lx}" cy="${ly}" r="5.5" fill="${tool}"/><text x="${lx + 14}" y="${ly + 4}">Commercial tools (${tools.length})</text>`,
+  `<circle cx="${lx}" cy="${ly + 24}" r="6.5" fill="${accent}"/><text x="${lx + 14}" y="${ly + 28}">PR Review</text>`,
+  `<circle cx="${lx}" cy="${ly + 48}" r="5.5" fill="#fbfaf7" stroke="${accent}" stroke-width="2"/><text x="${lx + 14}" y="${ly + 52}">PR Review, before the changes</text>`,
 );
 
 out.push('</g>', '</svg>', '');
