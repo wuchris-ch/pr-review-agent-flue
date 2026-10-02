@@ -1,5 +1,9 @@
 # PR Review Agent
 
+[![CI](https://github.com/wuchris-ch/pr-review-agent-flue/actions/workflows/ci.yml/badge.svg)](https://github.com/wuchris-ch/pr-review-agent-flue/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/wuchris-ch/pr-review-agent-flue?color=2f6b4f)](https://github.com/wuchris-ch/pr-review-agent-flue/releases/latest)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-2f6b4f)](LICENSE)
+
 AI code review that cites exact lines, and for small Python repositories proves a suspected bug with a failing test before proposing a fix.
 
 Review pull requests from your terminal, a GitHub Action, or a self-hosted GitHub App. Findings cite exact changed lines, use related repository context, and pass a separate evidence check before publication. The optional review platform goes further: it reproduces a suspected regression with a test that passes on the base commit and fails on the PR, has an independent agent judge intent, and offers a fix that must pass that test and the existing suite before a developer can approve it.
@@ -11,7 +15,9 @@ Bring your own OpenAI-compatible model endpoint. Each installation uses its own 
 - **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the reviewer reports issues at 52.4% precision, 7th of 18 reviewers including 17 commercial tools scored by the same judge, and finds 30% of human-verified issues (F1 38.2%, up from 34.6% at baseline). Recall is its weakness. Optional repository exploration, where the model searches and reads the codebase before reviewing, finds 32.7% at 49.3% precision.
 - **Live regression platform:** 9 of 9 seeded multi-file regressions reproduced with failing tests, 9 of 9 proposed fixes passed withheld contract tests, and 0 of 9 valid changes flagged.
 
-[Full results, method and limitations](docs/results.md)
+[![Precision and recall on 30 held-out PRs, compared with 17 commercial reviewers scored by the same judge](docs/assets/benchmark.svg)](docs/results.md)
+
+[Project site](https://wuchris-ch.github.io/pr-review-agent-flue/) · [Full results, method and limitations](docs/results.md)
 
 [GitHub Action setup](docs/guides/github-action.md) · [CLI and configuration](docs/guides/configuration.md) · [Review platform](docs/platform/quickstart.md) · [Examples](examples/README.md) · [How it works](docs/architecture.md) · [Evaluation](evals/README.md)
 

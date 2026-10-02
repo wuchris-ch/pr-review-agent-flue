@@ -20,6 +20,8 @@ Measured October 1, 2026 (America/Vancouver). Every number below comes from file
 
 ### Held-out results (30 PRs, core profile)
 
+![Precision and recall on 30 held-out PRs, compared with 17 commercial reviewers scored by the same judge](assets/benchmark.svg)
+
 | Rank | Reviewer | F1 | Precision | Recall |
 |---:|---|---:|---:|---:|
 | 1 | Qodo (extended) | 66.0% | 68.6% | 63.6% |
