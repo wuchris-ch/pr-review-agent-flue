@@ -1,4 +1,5 @@
 import { retrieveContext } from '../context/repository.js';
+import { reviewConfig } from '../core/config.js';
 import { DEFAULT_REPOSITORY_CONFIG } from '../core/repository-config.js';
 import type { Review } from '../core/schema.js';
 import type { DiffSource } from '../sources/types.js';
@@ -19,6 +20,10 @@ export async function reviewFromSource(source: DiffSource): Promise<Review> {
       ? await retrieveContext(request.diff.text, request.repository, configuration)
       : undefined;
   const instructions = [request.instructions, ...configuration.rules].filter(Boolean).join('\n\n');
+  const explorationReader =
+    request.repository && configuration.context && reviewConfig().exploreEnabled
+      ? request.repository
+      : undefined;
   return reviewAndRecord(
     request.diff,
     { label: request.label, source: source.name },
@@ -26,6 +31,7 @@ export async function reviewFromSource(source: DiffSource): Promise<Review> {
       instructions,
       repositoryConfig: configuration,
       ...(repositoryContext ? { repositoryContext } : {}),
+      ...(explorationReader ? { explorationReader } : {}),
     },
   );
 }

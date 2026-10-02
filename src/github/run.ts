@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { retrieveContext } from '../context/repository.js';
+import { reviewConfig } from '../core/config.js';
 import { parseRepositoryConfig } from '../core/repository-config.js';
 import type { Review } from '../core/schema.js';
 import { reviewAndRecord } from '../telemetry/recorded-review.js';
@@ -56,13 +57,13 @@ export async function runGitHubReview(
     async (diff) => {
       if (!sameRevision(snapshot, await client.getPullRequest(options.repository, options.number)))
         throw new Error('PR revision changed before context retrieval');
+      const reader = client.repositoryReader(options.repository, snapshot.head.sha);
       const repositoryContext = config.context
-        ? await retrieveContext(
-            diff.text,
-            client.repositoryReader(options.repository, snapshot.head.sha),
-            config,
-          )
+        ? await retrieveContext(diff.text, reader, config)
         : undefined;
+      // The hosting API cannot search a frozen revision, so exploration here reads only.
+      const explorationReader =
+        config.context && reviewConfig().exploreEnabled ? reader : undefined;
       review = await reviewAndRecord(
         diff,
         { label: `${options.repository}#${options.number}`, source: 'github' },
@@ -70,6 +71,7 @@ export async function runGitHubReview(
           instructions,
           repositoryConfig: config,
           ...(repositoryContext ? { repositoryContext } : {}),
+          ...(explorationReader ? { explorationReader } : {}),
         },
       );
       return review;

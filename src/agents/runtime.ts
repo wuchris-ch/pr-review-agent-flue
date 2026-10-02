@@ -1,5 +1,6 @@
 import { init } from '@flue/runtime';
 import { start } from '@flue/runtime/node';
+import { ExploreAgent } from './explorer.js';
 import {
   createModelGateway,
   describeGatewayStatus,
@@ -21,6 +22,9 @@ import { ReviewAgent } from './reviewer.js';
 const READ_TIMEOUT_MS = 200_000;
 const MAX_REPLY_BYTES = 1024 * 1024;
 
+/** Which agent answers the request. The review contract is the default. */
+export type AgentMode = 'review' | 'platform' | 'explore';
+
 /**
  * The gateway refused the request in a way a retry cannot fix, such as an
  * incomplete configuration, a bad credential, or an unknown model. The
@@ -37,7 +41,7 @@ export class GatewayRejectedError extends Error {
 /** One isolated, process-lifetime conversation per partition and format attempt. */
 export async function runFlueReview(
   input: string,
-  mode: 'review' | 'platform' = 'review',
+  mode: AgentMode = 'review',
   onUsage?: (usage: GatewayStatus['usage']) => void,
 ): Promise<string> {
   const status: GatewayStatus = { rejected: false };
@@ -49,7 +53,8 @@ export async function runFlueReview(
     throw new GatewayRejectedError();
   }
 
-  const definition = mode === 'platform' ? PlatformAgent : ReviewAgent;
+  const definition =
+    mode === 'platform' ? PlatformAgent : mode === 'explore' ? ExploreAgent : ReviewAgent;
   const runtime = await start({ agents: [definition], providers: [provider], env: {} });
   const agent = init(definition);
 

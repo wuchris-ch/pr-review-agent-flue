@@ -8,14 +8,38 @@ export interface RepositoryReader {
   /** Reads must refer to this frozen source revision, never a moving branch. */
   revision: string;
   paths(): Promise<string[]>;
-  read(path: string): Promise<string | undefined>;
+  /** Files larger than `maxBytes` (default 32 KiB) read as undefined. */
+  read(path: string, maxBytes?: number): Promise<string | undefined>;
+  /**
+   * Fixed-string search across the revision. Optional: readers backed by a
+   * hosting API cannot search a frozen revision, so exploration then reads only.
+   */
+  search?(text: string, pathPrefix: string | undefined, limit: number): Promise<SearchMatch[]>;
+}
+
+export interface SearchMatch {
+  path: string;
+  /** One-based line number. */
+  line: number;
+  text: string;
 }
 
 export interface RepositoryContext {
   revision: string;
-  files: Array<{ path: string; content: string; sha256: string }>;
+  files: ContextFile[];
   scanned: number;
   limited: boolean;
+}
+
+export interface ContextFile {
+  path: string;
+  content: string;
+  sha256: string;
+  /**
+   * Zero-based lines an exploration lookup asked to see. When present, the
+   * packet shows windows around these lines instead of identifier matches.
+   */
+  focus?: number[];
 }
 
 const SOURCE = /\.(?:[cm]?[jt]sx?|py|go|rs|java|kt|rb|php|cs|sql|md|json|ya?ml|toml)$/i;
@@ -92,10 +116,29 @@ export async function retrieveContext(
   };
 }
 
-/** Line numbers to show: every line of a whole file, or windows around shared identifiers. */
-function selectLines(lines: readonly string[], wanted: Set<string>, whole: boolean): number[] {
+/** Lines shown around each explored focus line. */
+const FOCUS_BEFORE = 6;
+const FOCUS_AFTER = 30;
+
+/**
+ * Line numbers to show: every line of a whole file, windows around lines an
+ * exploration lookup asked for, or windows around shared identifiers.
+ */
+function selectLines(
+  lines: readonly string[],
+  wanted: Set<string>,
+  whole: boolean,
+  focus?: readonly number[],
+): number[] {
   if (whole) return [...lines.keys()];
   const selected = new Set<number>();
+  if (focus?.length) {
+    for (const center of focus) {
+      const last = Math.min(lines.length - 1, center + FOCUS_AFTER);
+      for (let n = Math.max(0, center - FOCUS_BEFORE); n <= last; n++) selected.add(n);
+    }
+    return [...selected].sort((a, b) => a - b).slice(0, 160);
+  }
   for (const [line, text] of lines.entries()) {
     if ([...identifiers(text)].some((word) => wanted.has(word))) {
       for (let n = Math.max(0, line - 3); n <= Math.min(lines.length - 1, line + 5); n++)
@@ -118,8 +161,11 @@ export function enrichPacket(
   const changed = new Set(
     [...packet.targets].map((id) => packet.anchors.get(id)?.file).filter(Boolean),
   );
+  // Then excerpts the reviewer explicitly looked up, then lexical matches.
+  const rank = (file: ContextFile): number =>
+    changed.has(file.path) ? 2 : file.focus?.length ? 1 : 0;
   const ordered = [...context.files.entries()].sort(
-    ([, left], [, right]) => Number(changed.has(right.path)) - Number(changed.has(left.path)),
+    ([, left], [, right]) => rank(right) - rank(left),
   );
   const sections: string[] = [];
   let used = 0;
@@ -130,7 +176,7 @@ export function enrichPacket(
     const header = `Repository context ${JSON.stringify(file.path)} at ${context.revision} (read-only):\n`;
     const source: SourceAnchor[] = [];
     const rendered: string[] = [];
-    for (const line of selectLines(lines, wanted, whole)) {
+    for (const line of selectLines(lines, wanted, whole, file.focus)) {
       const anchor: SourceAnchor = {
         id: `R${index + 1}N${line + 1}`,
         file: file.path,
@@ -156,7 +202,7 @@ export function enrichPacket(
 export function gitReader(root: string, revision: string): RepositoryReader {
   if (!/^[a-f0-9]{40,64}$/.test(revision))
     throw new Error('context requires an immutable Git revision');
-  const run = (args: string[], maxBuffer: number): Buffer | undefined => {
+  const run = (args: string[], maxBuffer: number, allowNoMatch = false): Buffer | undefined => {
     const result = spawnSync(
       'git',
       ['--no-replace-objects', '-c', 'core.hooksPath=/dev/null', ...args],
@@ -167,7 +213,11 @@ export function gitReader(root: string, revision: string): RepositoryReader {
         maxBuffer,
       },
     );
-    return result.status === 0 && !result.error ? result.stdout : undefined;
+    // A search that overflows its buffer or time still returns the matches it found.
+    if (result.error) return allowNoMatch && result.stdout?.length ? result.stdout : undefined;
+    // git grep exits 1 when nothing matches, which is an answer rather than a failure.
+    if (result.status === 0 || (allowNoMatch && result.status === 1)) return result.stdout;
+    return undefined;
   };
   return {
     revision,
@@ -180,9 +230,9 @@ export function gitReader(root: string, revision: string): RepositoryReader {
         .filter((line) => /^100(?:644|755) blob /.test(line))
         .map((line) => line.slice(line.indexOf('\t') + 1));
     },
-    async read(path) {
+    async read(path, maxBytes = 32 * 1024) {
       if (!safeSourcePath(path)) return undefined;
-      const content = run(['show', `${revision}:${path}`], 32 * 1024 + 1);
+      const content = run(['show', `${revision}:${path}`], maxBytes + 1);
       if (!content) return undefined;
       try {
         return new TextDecoder('utf-8', { fatal: true }).decode(content);
@@ -190,5 +240,40 @@ export function gitReader(root: string, revision: string): RepositoryReader {
         return undefined;
       }
     },
+    async search(text, pathPrefix, limit) {
+      if (!text || text.length > 200 || /[\0\r\n]/.test(text)) return [];
+      if (pathPrefix !== undefined && !safeSourcePath(pathPrefix.replace(/\/+$/, ''))) return [];
+      const output = run(
+        [
+          'grep',
+          '-n',
+          '-I',
+          '--fixed-strings',
+          '--no-color',
+          '--max-count=3',
+          '-e',
+          text,
+          revision,
+          '--',
+          ...(pathPrefix ? [pathPrefix] : []),
+        ],
+        4 * 1024 * 1024,
+        true,
+      );
+      return output ? parseGrepOutput(output.toString('utf8'), revision, limit) : [];
+    },
   };
+}
+
+/** Parse `git grep -n <revision>` rows, formatted `<revision>:<path>:<line>:<text>`. */
+export function parseGrepOutput(output: string, revision: string, limit: number): SearchMatch[] {
+  const matches: SearchMatch[] = [];
+  for (const row of output.split('\n')) {
+    if (!row.startsWith(`${revision}:`)) continue;
+    const parsed = /^(.*?):(\d+):(.*)$/.exec(row.slice(revision.length + 1));
+    if (!parsed || !safeSourcePath(parsed[1]!)) continue;
+    matches.push({ path: parsed[1]!, line: Number(parsed[2]), text: parsed[3]!.slice(0, 240) });
+    if (matches.length >= limit) break;
+  }
+  return matches;
 }

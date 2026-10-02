@@ -7,7 +7,7 @@ flowchart LR
   CLI[CLI request] --> Source[Immutable diff and source]
   Action[GitHub Action event] --> Source
   App[Signed App webhook] --> Source
-  Source --> Context[Bounded repository retrieval]
+  Source --> Context[Bounded retrieval and optional exploration]
   Context --> Checks[Static checks and model review]
   Checks --> Second[Optional clean-change second opinion]
   Second --> Validate[Validate actual candidate findings]
@@ -23,11 +23,13 @@ flowchart LR
 
 The parser assigns deterministic source anchors. Model findings must cite an eligible changed line and quote its exact source. Unchanged repository context gets separate read-only anchors and cannot become a blame location. The input digest is checked independently of the model's verdict.
 
-Retrieval scans at most 40 candidate paths and 256 KiB, reads at most 32 KiB per file, retains 12 ranked files, and contributes at most 12 KiB to a partition. Ranking uses changed paths, identifiers and test/contract filenames. It is bounded lexical retrieval, not a whole-repository call graph. GitHub tree truncation fails explicitly. Secret-file patterns, dependency/build directories and Git symlinks are excluded from context.
+Retrieval scans at most 40 candidate paths and 256 KiB, reads at most 32 KiB per file, retains 12 ranked files, and contributes at most 40 KiB to a partition, with changed files shown whole when they fit. Ranking uses changed paths, identifiers and test/contract filenames. It is bounded lexical retrieval, not a whole-repository call graph. GitHub tree truncation fails explicitly. Secret-file patterns, dependency/build directories and Git symlinks are excluded from context.
+
+Optional exploration (`REVIEW_EXPLORE`) lets the model ask for the code a change depends on: up to three rounds of at most eight lookups, each a case-sensitive fixed-string search or a file read centered on a symbol or line. The controller answers from the frozen head revision with read-only `git grep` and `git show`; the model never runs commands, and every path passes the same safety and exclusion checks as retrieval. Excerpts it read join the partition's context with their own read-only anchors. The GitHub App's API reader cannot search a frozen revision, so exploration there reads only. A failed or malformed exploration reply ends exploration, not the review.
 
 Each model partition runs in a fresh Flue child with an environment allowlist. Children receive model settings but no GitHub credential, repository shell tool or arbitrary network tool. The parent limits message/output bytes, concurrency, retries and deadlines. Required model review or candidate validation failure fails the review. An unavailable optional second opinion is reported as incomplete.
 
-Candidate validation examines each draft against the same grounded evidence, checks callers, guards and intended behavior, and can discard unsupported allegations. It cannot invent a new location/category or raise severity. Draft findings and their rationale are replaced only after successful validation. Static findings remain. This is an additional evidence check using a fresh conversation, not a statistical independence guarantee.
+Candidate validation examines each draft against the same grounded evidence, checks callers, guards and intended behavior, and can discard unsupported allegations. It cannot invent a new location/category or raise severity: anything it reports other than the candidate under review is discarded and noted. Draft findings and their rationale are replaced only after successful validation. Static findings remain. This is an additional evidence check using a fresh conversation, not a statistical independence guarantee.
 
 ## GitHub lifecycle
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { retrieveContext } from '../dist/context/repository.js';
+import { gitReader, retrieveContext } from '../dist/context/repository.js';
 import { decodeDiff } from '../dist/core/input.js';
 import { parseRepositoryConfig } from '../dist/core/repository-config.js';
 import { reviewDiffDetailed } from '../dist/review-service.js';
@@ -18,12 +18,14 @@ const options = {
   concurrency: 1,
   cases: '',
   label: '',
+  // Bare repositories from scripts/fetch-benchmark-sources.py; required by context-explored.
+  sources: '',
 };
 for (let n = 2; n < process.argv.length; n += 2) {
   const key = process.argv[n].replace(/^--/, '');
   if (!(key in options) || !process.argv[n + 1])
     throw new Error(
-      'usage: compare-pipeline.mjs --dataset scenarios|external --limit N --repeats N --arms single-pass,diff-pipeline,context-pipeline,context-validated [--concurrency N] [--cases id,id|@file] [--label name]',
+      'usage: compare-pipeline.mjs --dataset scenarios|external --limit N --repeats N --arms single-pass,diff-pipeline,context-pipeline,context-validated,context-explored [--concurrency N] [--cases id,id|@file] [--label name] [--sources dir]',
     );
   options[key] = ['limit', 'repeats', 'concurrency'].includes(key)
     ? Number(process.argv[n + 1])
@@ -44,12 +46,17 @@ if (
 )
   throw new Error('invalid comparison bounds');
 const arms = options.arms.split(',');
+const ARMS = [
+  'single-pass',
+  'diff-pipeline',
+  'context-pipeline',
+  'context-validated',
+  'context-explored',
+];
 if (
   new Set(arms).size !== arms.length ||
-  arms.some(
-    (arm) =>
-      !['single-pass', 'diff-pipeline', 'context-pipeline', 'context-validated'].includes(arm),
-  )
+  arms.some((arm) => !ARMS.includes(arm)) ||
+  (arms.includes('context-explored') && (options.dataset !== 'external' || !options.sources))
 )
   throw new Error('invalid comparison arms');
 const directory = resolve(
@@ -125,6 +132,15 @@ async function loadCase(item) {
   if (!fixture) context.limited = true; // Imported context is a frozen, bounded repository subset.
   return { fixture, diff, context };
 }
+/** Exploration reads the PR's exact head revision from a local bare repository. */
+function explorationReaderFor(item, arm) {
+  if (arm !== 'context-explored') return undefined;
+  const project = item.id.slice(0, item.id.lastIndexOf('-'));
+  const repository = resolve(options.sources, `${project}.git`);
+  if (!existsSync(repository))
+    throw new Error('benchmark source repository is missing; run fetch-benchmark-sources.py');
+  return gitReader(repository, item.head);
+}
 const tasks = [];
 for (const item of cases)
   for (let repetition = 1; repetition <= options.repeats; repetition++)
@@ -140,13 +156,15 @@ async function worker() {
       const attempts = [];
       const name = `${item.id}-${arm}-${repetition}`;
       try {
+        const explorationReader = explorationReaderFor(item, arm);
         const result = await reviewDiffDetailed(diff, {
           onAttempt: (attempt) => attempts.push(attempt),
           repositoryConfig: {
             ...config,
-            validateFindings: arm === 'context-validated',
+            validateFindings: arm === 'context-validated' || arm === 'context-explored',
           },
           ...(arm.startsWith('context-') ? { repositoryContext: context } : {}),
+          ...(explorationReader ? { explorationReader } : {}),
           ...(arm === 'single-pass' ? { stages: [createModelStage()] } : {}),
         });
         writeFileSync(resolve(directory, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`, {

@@ -10,7 +10,7 @@ Bring your own OpenAI-compatible model endpoint. Each installation uses its own 
 
 ## Results
 
-- **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the reviewer reports issues at 52.4% precision, 7th of 18 reviewers including 17 commercial tools scored by the same judge, and finds 30% of human-verified issues (F1 38.2%, up from 34.6% at baseline). Recall is its weakness.
+- **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the reviewer reports issues at 52.4% precision, 7th of 18 reviewers including 17 commercial tools scored by the same judge, and finds 30% of human-verified issues (F1 38.2%, up from 34.6% at baseline). Recall is its weakness. Optional repository exploration, where the model searches and reads the codebase before reviewing, finds 32.7% at 49.3% precision.
 - **Live regression platform:** 9 of 9 seeded multi-file regressions reproduced with failing tests, 9 of 9 proposed fixes passed withheld contract tests, and 0 of 9 valid changes flagged.
 
 [Full results, method and limitations](docs/results.md)

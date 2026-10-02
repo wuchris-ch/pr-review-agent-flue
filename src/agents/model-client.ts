@@ -26,6 +26,8 @@ function startTelemetry(): NodeSDK | undefined {
 }
 
 async function main(): Promise<void> {
+  // The parent selects the agent by argument; anything else keeps the review contract.
+  const mode = process.argv[2] === 'explore' ? 'explore' : 'review';
   const bytes = readFileSync(0);
   if (!bytes.length || bytes.length > MAX_INPUT_BYTES) {
     throw new Error('review input is empty or exceeds the safe byte limit');
@@ -41,9 +43,10 @@ async function main(): Promise<void> {
           'review.input_bytes': bytes.length,
           'review.framework': 'flue',
           'gen_ai.request.model': 'reviewer',
+          'review.agent_mode': mode,
         });
         try {
-          const result = await runFlueReview(input, 'review', (usage) => {
+          const result = await runFlueReview(input, mode, (usage) => {
             if (usage) process.stderr.write(`REVIEW_USAGE ${JSON.stringify(usage)}\n`);
           });
           span.setStatus({ code: SpanStatusCode.OK });

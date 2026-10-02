@@ -105,6 +105,17 @@ describe('portable review policy and evidence', () => {
     expect(result.review.rationale).not.toContain('Draft allegation');
     expect(result.review.rationale).toContain('retained 0 of 1');
   });
+  it('discards, and never adds, allegations the validator was not asked about', async () => {
+    const unrelated = { ...allegation, category: 'correctness', detail: 'A different defect.' };
+    const execute = vi
+      .fn()
+      .mockResolvedValueOnce({ status: 0, stdout: proposal([allegation]), stderr: '' })
+      .mockResolvedValue({ status: 0, stdout: proposal([unrelated]), stderr: '' });
+    const result = await reviewDiffDetailed(diff, { execute, config: { huntEnabled: false } });
+    expect(result.review.findings).toEqual([]);
+    expect(result.review.rationale).toContain('discarded 1 allegation(s)');
+    expect(result.review.rationale).toContain('retained 0 of 1');
+  });
   it('fails the run when required evidence validation fails', async () => {
     const execute = vi
       .fn()
