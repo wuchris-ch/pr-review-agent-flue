@@ -3,6 +3,7 @@
 import io
 import json
 import os
+import re
 import subprocess
 import tarfile
 import tempfile
@@ -11,6 +12,43 @@ from uuid import uuid4
 
 from .contracts import RunResult, safe_path
 from .service import Problem
+
+SOURCE_ROOT = "/input/workspace/"
+FRAME = re.compile(r'^\s*File "([^"]+)", line \d+', re.MULTILINE)
+# These usually mean a broken or mismatched test, not changed behavior.
+SETUP_ERRORS = {
+    "SyntaxError",
+    "IndentationError",
+    "ImportError",
+    "ModuleNotFoundError",
+    "NameError",
+}
+
+
+def demonstrates_regression(log: str) -> bool:
+    """True when a failing unittest run shows changed behavior of the reviewed code.
+
+    Accepts an assertion failure, or an exception raised inside the reviewed source
+    (for example a guard that raises on the regression). Exceptions thrown by the test
+    itself, and syntax, import or name errors, stay inconclusive.
+    """
+    if "FAILED (" not in log:
+        return False
+    if "AssertionError" in log:
+        return True
+    for block in log.split("Traceback (most recent call last):")[1:]:
+        frames = FRAME.findall(block)
+        exception = next(
+            (
+                line.split(":", 1)[0].strip().rsplit(".", 1)[-1]
+                for line in block.splitlines()
+                if line and not line[0].isspace() and not line.startswith(("-", "="))
+            ),
+            None,
+        )
+        if frames and frames[-1].startswith(SOURCE_ROOT) and exception not in SETUP_ERRORS:
+            return True
+    return False
 
 
 class DockerExecutor:

@@ -41,6 +41,8 @@ const config = {
   deadlineMs: 30_000,
   verifyEnabled: true,
   verifyMaxPartitions: 4,
+  // Gating tests count calls; the hunt passes have their own tests below.
+  huntEnabled: false,
 };
 
 describe('stage gating', () => {
@@ -90,6 +92,47 @@ describe('stage gating', () => {
       execute: execute as never,
     });
     expect(execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs focused defect hunts beside the main review', async () => {
+    const execute = vi.fn(() => ({ status: 0, stdout: clean, stderr: '' }));
+    const { stages } = await reviewDiffDetailed(diff, {
+      config: { ...config, huntEnabled: true },
+      execute: execute as never,
+    });
+    expect(stages.map((stage) => `${stage.stage}:${stage.status}`)).toEqual([
+      'static-checks:ran',
+      'model-review:ran',
+      'model-hunt:ran',
+      'model-verify:ran',
+      'validate-findings:skipped',
+    ]);
+    const messages = execute.mock.calls.map((call) => String((call as unknown[])[0]));
+    expect(execute).toHaveBeenCalledTimes(5);
+    for (const focus of ['logic and data flow', 'state, asynchrony', 'contracts and consistency'])
+      expect(messages.filter((message) => message.includes(`Focus: ${focus}`))).toHaveLength(1);
+  });
+
+  it('drops a hunt allegation that independent validation rejects', async () => {
+    const execute = vi.fn((message: string) => ({
+      status: 0,
+      stdout:
+        message.includes('Focus: state') && !message.includes('Challenge these draft findings')
+          ? blocking
+          : clean,
+      stderr: '',
+    }));
+    const { review, stages } = await reviewDiffDetailed(diff, {
+      config: { ...config, huntEnabled: true },
+      execute: execute as never,
+    });
+    expect(stages.find((stage) => stage.stage === 'model-hunt')?.findings).toHaveLength(1);
+    expect(stages.find((stage) => stage.stage === 'validate-findings')).toMatchObject({
+      status: 'ran',
+      findings: [],
+    });
+    expect(review.findings).toEqual([]);
+    expect(review.blocked).toBe(false);
   });
 
   it('merges findings from every stage and derives one verdict', async () => {

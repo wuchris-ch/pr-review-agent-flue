@@ -99,8 +99,57 @@ class GitSource:
         return files
 
 
-def ground(references: list[Reference], files: dict[str, str]):
+# Models quote code reliably but miscount lines. A cited excerpt may start this many
+# lines away from its stated line; the stored reference is corrected to the real line.
+LINE_WINDOW = 3
+
+
+def _normalized(text: str) -> str:
+    return " ".join(text.split())
+
+
+def locate(reference: Reference, files: dict[str, str]) -> int | None:
+    """Return the 1-based line where the excerpt starts in the frozen file, if found nearby.
+
+    Whitespace is normalized and multi-line excerpts must match consecutive non-blank lines.
+    """
+    if reference.file not in files:
+        return None
+    lines = files[reference.file].splitlines()
+    wanted = [_normalized(line) for line in reference.excerpt.splitlines() if line.strip()]
+    if not wanted:
+        return None
+    low, high = max(1, reference.line - LINE_WINDOW), min(len(lines), reference.line + LINE_WINDOW)
+    for start in sorted(range(low, high + 1), key=lambda n: (abs(n - reference.line), n)):
+        following = [_normalized(line) for line in lines[start - 1 :] if line.strip()]
+        if not lines[start - 1].strip() or len(following) < len(wanted):
+            continue
+        if all(part in source for part, source in zip(wanted, following)):
+            return start
+    return None
+
+
+def grounded(references: list[Reference], files: dict[str, str]) -> list[Reference] | None:
+    """Return references with verified line numbers, or None when any cannot be located."""
+    verified = []
     for reference in references:
-        lines = files.get(reference.file, "").splitlines()
-        if reference.line > len(lines) or reference.excerpt not in lines[reference.line - 1]:
-            raise Problem(422, "agent source reference does not match the frozen revision")
+        line = locate(reference, files)
+        if line is None:
+            return None
+        verified.append(reference.model_copy(update={"line": line}))
+    return verified
+
+
+def ground(references: list[Reference], files: dict[str, str]) -> list[Reference]:
+    verified = grounded(references, files)
+    if verified is None:
+        raise Problem(422, "agent source reference does not match the frozen revision")
+    return verified
+
+
+def numbered(files: dict[str, str]) -> dict[str, str]:
+    """Prefix each line with its 1-based number so agents can cite exact locations."""
+    return {
+        path: "\n".join(f"{n}| {line}" for n, line in enumerate(text.splitlines(), 1))
+        for path, text in files.items()
+    }

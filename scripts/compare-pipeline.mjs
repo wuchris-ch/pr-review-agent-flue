@@ -15,14 +15,17 @@ const options = {
   limit: 50,
   repeats: 1,
   arms: 'single-pass,diff-pipeline,context-pipeline,context-validated',
+  concurrency: 1,
+  cases: '',
+  label: '',
 };
 for (let n = 2; n < process.argv.length; n += 2) {
   const key = process.argv[n].replace(/^--/, '');
   if (!(key in options) || !process.argv[n + 1])
     throw new Error(
-      'usage: compare-reviewers.mjs --dataset scenarios|external --limit N --repeats N --arms single-pass,diff-pipeline,context-pipeline,context-validated',
+      'usage: compare-pipeline.mjs --dataset scenarios|external --limit N --repeats N --arms single-pass,diff-pipeline,context-pipeline,context-validated [--concurrency N] [--cases id,id|@file] [--label name]',
     );
-  options[key] = ['limit', 'repeats'].includes(key)
+  options[key] = ['limit', 'repeats', 'concurrency'].includes(key)
     ? Number(process.argv[n + 1])
     : process.argv[n + 1];
 }
@@ -33,7 +36,11 @@ if (
   options.limit > 50 ||
   !Number.isInteger(options.repeats) ||
   options.repeats < 1 ||
-  options.repeats > 5
+  options.repeats > 5 ||
+  !Number.isInteger(options.concurrency) ||
+  options.concurrency < 1 ||
+  options.concurrency > 16 ||
+  !/^[\w.-]*$/.test(options.label)
 )
   throw new Error('invalid comparison bounds');
 const arms = options.arms.split(',');
@@ -45,8 +52,16 @@ if (
   )
 )
   throw new Error('invalid comparison arms');
-const directory = resolve(root, 'evals/results', `comparison-${Date.now()}`);
+const directory = resolve(
+  root,
+  'evals/results',
+  `comparison-${Date.now()}${options.label ? `-${options.label}` : ''}`,
+);
 mkdirSync(directory, { recursive: true, mode: 0o700 });
+const selected = options.cases.startsWith('@')
+  ? readFileSync(resolve(options.cases.slice(1)), 'utf8').split(/[\s,]+/)
+  : options.cases.split(',');
+const wanted = new Set(selected.map((id) => id.trim()).filter(Boolean));
 const cases = JSON.parse(
   readFileSync(
     resolve(
@@ -57,10 +72,29 @@ const cases = JSON.parse(
     ),
     'utf8',
   ),
-).slice(0, options.limit);
+)
+  .filter((item) => wanted.size === 0 || wanted.has(item.id))
+  .slice(0, options.limit);
+if (wanted.size > 0 && cases.length !== Math.min(wanted.size, options.limit))
+  throw new Error('some selected cases are not in the manifest');
 const config = parseRepositoryConfig(undefined);
 const rows = [];
-for (const item of cases) {
+const environment = {
+  model: process.env.REVIEW_AGENT_MODEL ?? null,
+  reasoningEffort: process.env.REVIEW_REASONING_EFFORT ?? null,
+};
+const writeSummary = () =>
+  writeFileSync(
+    resolve(directory, 'summary.json'),
+    `${JSON.stringify({ version: 1, dataset: options.dataset, model: 'reviewer', environment, options, rows }, null, 2)}\n`,
+    { mode: 0o600 },
+  );
+const prepared = new Map();
+const prepare = (item) => {
+  if (!prepared.has(item.id)) prepared.set(item.id, loadCase(item));
+  return prepared.get(item.id);
+};
+async function loadCase(item) {
   const fixture = options.dataset === 'scenarios';
   const base = resolve(
     root,
@@ -81,20 +115,37 @@ for (const item of cases) {
     : item.head;
   const context = await retrieveContext(
     diff.text,
-    { revision, paths: async () => Object.keys(files), read: async (path) => files[path] },
+    {
+      revision,
+      paths: async () => Object.keys(files),
+      read: async (path) => files[path],
+    },
     config,
   );
   if (!fixture) context.limited = true; // Imported context is a frozen, bounded repository subset.
-  // Gold annotations and expected locations never enter the review request.
+  return { fixture, diff, context };
+}
+const tasks = [];
+for (const item of cases)
   for (let repetition = 1; repetition <= options.repeats; repetition++)
-    for (const arm of arms) {
+    for (const arm of arms) tasks.push({ item, repetition, arm });
+let next = 0;
+async function worker() {
+  while (next < tasks.length) {
+    const { item, repetition, arm } = tasks[next++];
+    const { fixture, diff, context } = await prepare(item);
+    // Gold annotations and expected locations never enter the review request.
+    {
       const started = Date.now();
       const attempts = [];
       const name = `${item.id}-${arm}-${repetition}`;
       try {
         const result = await reviewDiffDetailed(diff, {
           onAttempt: (attempt) => attempts.push(attempt),
-          repositoryConfig: { ...config, validateFindings: arm === 'context-validated' },
+          repositoryConfig: {
+            ...config,
+            validateFindings: arm === 'context-validated',
+          },
           ...(arm.startsWith('context-') ? { repositoryContext: context } : {}),
           ...(arm === 'single-pass' ? { stages: [createModelStage()] } : {}),
         });
@@ -131,7 +182,7 @@ for (const item of cases) {
               }
             : { adjudication: 'pending' }),
         });
-      } catch {
+      } catch (error) {
         rows.push({
           case: item.id,
           arm,
@@ -139,16 +190,15 @@ for (const item of cases) {
           status: 'failed',
           latencyMs: Date.now() - started,
           modelCalls: attempts.length,
+          error: String(error?.message ?? error).slice(0, 300),
         });
       }
       // Write after every case so a stopped experiment remains inspectable.
-      writeFileSync(
-        resolve(directory, 'summary.json'),
-        `${JSON.stringify({ version: 1, dataset: options.dataset, model: 'reviewer', options, rows }, null, 2)}\n`,
-        { mode: 0o600 },
-      );
+      writeSummary();
       console.log(`${name}: ${rows.at(-1).status}`);
     }
+  }
 }
+await Promise.all(Array.from({ length: options.concurrency }, worker));
 console.log(`Comparison records: ${directory}`);
 if (rows.some((row) => row.status !== 'completed')) process.exitCode = 1;

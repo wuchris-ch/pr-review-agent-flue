@@ -1,0 +1,77 @@
+{
+  "judge": {
+    "model": "gpt-5.5",
+    "effort": "medium"
+  },
+  "cases": 20,
+  "scores": {
+    "all/core": {
+      "baseline": {
+        "tp": 7,
+        "fp": 11,
+        "fn": 41,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.3888888888888889,
+        "recall": 0.14583333333333334,
+        "f1": 0.21212121212121213
+      },
+      "one-hunt": {
+        "tp": 9,
+        "fp": 23,
+        "fn": 39,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.28125,
+        "recall": 0.1875,
+        "f1": 0.225
+      },
+      "full-file-context": {
+        "tp": 10,
+        "fp": 18,
+        "fn": 38,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.35714285714285715,
+        "recall": 0.20833333333333334,
+        "f1": 0.2631578947368421
+      }
+    },
+    "all/strict": {
+      "baseline": {
+        "tp": 7,
+        "fp": 11,
+        "fn": 29,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.3888888888888889,
+        "recall": 0.19444444444444445,
+        "f1": 0.25925925925925924
+      },
+      "one-hunt": {
+        "tp": 8,
+        "fp": 23,
+        "fn": 28,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.25806451612903225,
+        "recall": 0.2222222222222222,
+        "f1": 0.2388059701492537
+      },
+      "full-file-context": {
+        "tp": 10,
+        "fp": 18,
+        "fn": 26,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.35714285714285715,
+        "recall": 0.2777777777777778,
+        "f1": 0.31250000000000006
+      }
+    }
+  },
+  "reference_gpt52": {
+    "all/core": {},
+    "all/strict": {}
+  }
+}

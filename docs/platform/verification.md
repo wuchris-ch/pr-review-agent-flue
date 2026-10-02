@@ -40,3 +40,9 @@ For a production installation, supply production Temporal infrastructure, TLS, b
 ## Reproduce the evidence
 
 Follow [quickstart.md](quickstart.md). The regular Python command skips three service-dependent tests; set `RUN_DOCKER_TESTS=1`, `RUN_TEMPORAL_TESTS=1` and `TEST_POSTGRES_URL` to run them. Browser tests require running API, worker and console processes and a fresh fixture from `scripts/prepare-console-demo.py`.
+
+## Live-model verification, October 1, 2026
+
+The platform ran end to end with gpt-6.1-sol (high reasoning effort) through an OpenAI-compatible endpoint, with real PostgreSQL, Temporal and Docker execution. `scripts/platform-live-eval.py` ran three rounds over the three multi-file scenarios, each with a regression PR and a valid alternative PR, and checked every proposed fix against the scenario's contract test, which the platform never sees. All 9 regressions were reproduced and reached approval with fixes that passed the withheld contract tests; none of the 9 valid changes was flagged. Records are in [`evals/platform/runs/`](../../evals/platform/runs). The live runs exposed four defects that fixtures had hidden (citation line numbers, retry classification, reproduction evidence and a mislabeled control), each fixed with tests; see [results](../results.md#regression-platform-with-a-live-model).
+
+Checks after these changes: 59 Python tests including Docker, Temporal and PostgreSQL integration, 182 TypeScript tests, three console browser scenarios, Ruff, Biome, typecheck, scenario contracts and regression examples.

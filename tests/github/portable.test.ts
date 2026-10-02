@@ -76,12 +76,30 @@ describe('portable review policy and evidence', () => {
     expect(safeSourcePath('a\0.ts')).toBe(false);
     expect(safeSourcePath('a/node_modules/x.ts')).toBe(false);
   });
+  it('shows a changed file whole, ahead of identifier excerpts, when it fits', () => {
+    const revision = 'a'.repeat(40);
+    const changed = Array.from({ length: 150 }, (_, n) => `const line${n} = ${n};`).join('\n');
+    const repository = {
+      revision,
+      limited: true,
+      files: [
+        { path: 'other.ts', content: 'export function authorize(user) { return user.admin; }' },
+        { path: 'auth.ts', content: changed },
+      ],
+    };
+    const original = buildReviewContext(diff).packets[0]!;
+    const enriched = enrichPacket(original, repository, 12 * 1024);
+    expect(enriched.text.indexOf('"auth.ts"')).toBeLessThan(enriched.text.indexOf('"other.ts"'));
+    expect(enriched.text).toContain('[R2N150] const line149 = 149;');
+    const tight = enrichPacket(original, repository, 1024);
+    expect(tight.text).not.toContain('const line149');
+  });
   it('replaces rejected model allegations and their rationale', async () => {
     const execute = vi
       .fn()
       .mockResolvedValueOnce({ status: 0, stdout: proposal([allegation]), stderr: '' })
       .mockResolvedValue({ status: 0, stdout: proposal([]), stderr: '' });
-    const result = await reviewDiffDetailed(diff, { execute });
+    const result = await reviewDiffDetailed(diff, { execute, config: { huntEnabled: false } });
     expect(execute).toHaveBeenCalledTimes(2);
     expect(result.review.blocked).toBe(false);
     expect(result.review.rationale).not.toContain('Draft allegation');

@@ -1,0 +1,149 @@
+{
+  "judge": {
+    "model": "gpt-5.5",
+    "effort": "medium"
+  },
+  "cases": 50,
+  "scores": {
+    "all/core": {
+      "single-pass": {
+        "tp": 32,
+        "fp": 35,
+        "fn": 126,
+        "prs": 50,
+        "errors": 0,
+        "precision": 0.47761194029850745,
+        "recall": 0.20253164556962025,
+        "f1": 0.2844444444444444
+      },
+      "pr-review-agent": {
+        "tp": 35,
+        "fp": 35,
+        "fn": 123,
+        "prs": 50,
+        "errors": 0,
+        "precision": 0.5,
+        "recall": 0.22151898734177214,
+        "f1": 0.30701754385964913
+      }
+    },
+    "all/strict": {
+      "single-pass": {
+        "tp": 30,
+        "fp": 35,
+        "fn": 109,
+        "prs": 50,
+        "errors": 0,
+        "precision": 0.46153846153846156,
+        "recall": 0.2158273381294964,
+        "f1": 0.29411764705882354
+      },
+      "pr-review-agent": {
+        "tp": 33,
+        "fp": 35,
+        "fn": 106,
+        "prs": 50,
+        "errors": 0,
+        "precision": 0.4852941176470588,
+        "recall": 0.23741007194244604,
+        "f1": 0.3188405797101449
+      }
+    },
+    "dev/core": {
+      "single-pass": {
+        "tp": 7,
+        "fp": 14,
+        "fn": 41,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.3333333333333333,
+        "recall": 0.14583333333333334,
+        "f1": 0.2028985507246377
+      },
+      "pr-review-agent": {
+        "tp": 7,
+        "fp": 11,
+        "fn": 41,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.3888888888888889,
+        "recall": 0.14583333333333334,
+        "f1": 0.21212121212121213
+      }
+    },
+    "dev/strict": {
+      "single-pass": {
+        "tp": 7,
+        "fp": 14,
+        "fn": 29,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.3333333333333333,
+        "recall": 0.19444444444444445,
+        "f1": 0.24561403508771928
+      },
+      "pr-review-agent": {
+        "tp": 7,
+        "fp": 11,
+        "fn": 29,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.3888888888888889,
+        "recall": 0.19444444444444445,
+        "f1": 0.25925925925925924
+      }
+    },
+    "heldout/core": {
+      "single-pass": {
+        "tp": 25,
+        "fp": 21,
+        "fn": 85,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5434782608695652,
+        "recall": 0.22727272727272727,
+        "f1": 0.3205128205128205
+      },
+      "pr-review-agent": {
+        "tp": 28,
+        "fp": 24,
+        "fn": 82,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5384615384615384,
+        "recall": 0.2545454545454545,
+        "f1": 0.345679012345679
+      }
+    },
+    "heldout/strict": {
+      "single-pass": {
+        "tp": 23,
+        "fp": 21,
+        "fn": 80,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.5227272727272727,
+        "recall": 0.22330097087378642,
+        "f1": 0.3129251700680272
+      },
+      "pr-review-agent": {
+        "tp": 26,
+        "fp": 24,
+        "fn": 77,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.52,
+        "recall": 0.2524271844660194,
+        "f1": 0.33986928104575165
+      }
+    }
+  },
+  "reference_gpt52": {
+    "all/core": {},
+    "all/strict": {},
+    "dev/core": {},
+    "dev/strict": {},
+    "heldout/core": {},
+    "heldout/strict": {}
+  }
+}

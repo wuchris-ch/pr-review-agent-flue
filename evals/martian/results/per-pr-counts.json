@@ -1,0 +1,1482 @@
+{
+ "note": "Per-PR counts across all golden categories (Martian \"all\" profile, before core/strict filtering). Raw review comments are kept private per the evaluation guide.",
+ "arms": {
+  "baseline-single-pass": {
+   "cal_dot_com-10600": {
+    "findings": 3,
+    "tp": 1,
+    "fp": 2,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-10967": {
+    "findings": 6,
+    "tp": 2,
+    "fp": 4,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-11059": {
+    "findings": 3,
+    "tp": 4,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "cal_dot_com-14740": {
+    "findings": 4,
+    "tp": 2,
+    "fp": 2,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-14943": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-22345": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-22532": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-7232": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-8087": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "cal_dot_com-8330": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "discourse-10": {
+    "findings": 3,
+    "tp": 2,
+    "fp": 1,
+    "fn": 5,
+    "review_failed": false
+   },
+   "discourse-2": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-3": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-4": {
+    "findings": 5,
+    "tp": 2,
+    "fp": 3,
+    "fn": 6,
+    "review_failed": false
+   },
+   "discourse-5": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "discourse-6": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-7": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "discourse-8": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 5,
+    "review_failed": false
+   },
+   "discourse-9": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-103633": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-106778": {
+    "findings": 3,
+    "tp": 0,
+    "fp": 3,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-107534": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-76186": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "grafana-79265": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "grafana-80329": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-90045": {
+    "findings": 3,
+    "tp": 0,
+    "fp": 3,
+    "fn": 3,
+    "review_failed": false
+   },
+   "grafana-90939": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-94942": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-97529": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-32918": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-33832": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-36880": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "keycloak-36882": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-37038": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-37429": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-37634": {
+    "findings": 2,
+    "tp": 2,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-38446": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-40940": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "sentry-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-2": {
+    "findings": 3,
+    "tp": 1,
+    "fp": 2,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-3": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-5": {
+    "findings": 4,
+    "tp": 1,
+    "fp": 3,
+    "fn": 5,
+    "review_failed": false
+   },
+   "sentry-67876": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-77754": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-80168": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-80528": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-93824": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-95633": {
+    "findings": 4,
+    "tp": 0,
+    "fp": 4,
+    "fn": 2,
+    "review_failed": false
+   }
+  },
+  "baseline-pipeline": {
+   "cal_dot_com-10600": {
+    "findings": 4,
+    "tp": 1,
+    "fp": 3,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-10967": {
+    "findings": 3,
+    "tp": 2,
+    "fp": 1,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-11059": {
+    "findings": 4,
+    "tp": 5,
+    "fp": 1,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-14740": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 5,
+    "review_failed": false
+   },
+   "cal_dot_com-14943": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-22345": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-22532": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-7232": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "cal_dot_com-8087": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-8330": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-1": {
+    "findings": 2,
+    "tp": 2,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-10": {
+    "findings": 4,
+    "tp": 3,
+    "fp": 1,
+    "fn": 4,
+    "review_failed": false
+   },
+   "discourse-2": {
+    "findings": 3,
+    "tp": 1,
+    "fp": 2,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-3": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "discourse-4": {
+    "findings": 5,
+    "tp": 2,
+    "fp": 3,
+    "fn": 6,
+    "review_failed": false
+   },
+   "discourse-5": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "discourse-6": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "discourse-7": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "discourse-8": {
+    "findings": 1,
+    "tp": 2,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "discourse-9": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-103633": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "grafana-106778": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-107534": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-76186": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-79265": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "grafana-80329": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": true
+   },
+   "grafana-90045": {
+    "findings": 4,
+    "tp": 0,
+    "fp": 4,
+    "fn": 3,
+    "review_failed": false
+   },
+   "grafana-90939": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-94942": {
+    "findings": 1,
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "grafana-97529": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-32918": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-33832": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-36880": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "keycloak-36882": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-37038": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-37429": {
+    "findings": 3,
+    "tp": 1,
+    "fp": 2,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-37634": {
+    "findings": 2,
+    "tp": 2,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-38446": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-40940": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "sentry-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-2": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-3": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-5": {
+    "findings": 5,
+    "tp": 1,
+    "fp": 4,
+    "fn": 5,
+    "review_failed": false
+   },
+   "sentry-67876": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-77754": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-80168": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-80528": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-93824": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-95633": {
+    "findings": 4,
+    "tp": 0,
+    "fp": 4,
+    "fn": 2,
+    "review_failed": false
+   }
+  },
+  "development-one-hunt": {
+   "cal_dot_com-10600": {
+    "findings": 6,
+    "tp": 1,
+    "fp": 5,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-22345": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-7232": {
+    "findings": 2,
+    "tp": 0,
+    "fp": 2,
+    "fn": 3,
+    "review_failed": false
+   },
+   "cal_dot_com-8087": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-2": {
+    "findings": 4,
+    "tp": 1,
+    "fp": 3,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-6": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "discourse-8": {
+    "findings": 5,
+    "tp": 2,
+    "fp": 4,
+    "fn": 4,
+    "review_failed": false
+   },
+   "discourse-9": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-106778": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-107534": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-79265": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 5,
+    "review_failed": false
+   },
+   "grafana-80329": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-32918": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-33832": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-38446": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-67876": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-80528": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-93824": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-95633": {
+    "findings": 4,
+    "tp": 0,
+    "fp": 4,
+    "fn": 2,
+    "review_failed": false
+   }
+  },
+  "development-full-file-context": {
+   "cal_dot_com-10600": {
+    "findings": 5,
+    "tp": 1,
+    "fp": 4,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-22345": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-7232": {
+    "findings": 2,
+    "tp": 0,
+    "fp": 2,
+    "fn": 3,
+    "review_failed": false
+   },
+   "cal_dot_com-8087": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-2": {
+    "findings": 2,
+    "tp": 0,
+    "fp": 2,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-6": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "discourse-8": {
+    "findings": 3,
+    "tp": 2,
+    "fp": 2,
+    "fn": 4,
+    "review_failed": false
+   },
+   "discourse-9": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-106778": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-107534": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-79265": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "grafana-80329": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-1": {
+    "findings": 2,
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "keycloak-32918": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-33832": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-38446": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-67876": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-80528": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-93824": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-95633": {
+    "findings": 4,
+    "tp": 0,
+    "fp": 4,
+    "fn": 2,
+    "review_failed": false
+   }
+  },
+  "development-three-hunts": {
+   "cal_dot_com-10600": {
+    "findings": 7,
+    "tp": 1,
+    "fp": 6,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-22345": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-7232": {
+    "findings": 5,
+    "tp": 1,
+    "fp": 4,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-8087": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-2": {
+    "findings": 3,
+    "tp": 1,
+    "fp": 2,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-6": {
+    "findings": 2,
+    "tp": 0,
+    "fp": 2,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-8": {
+    "findings": 11,
+    "tp": 3,
+    "fp": 9,
+    "fn": 3,
+    "review_failed": false
+   },
+   "discourse-9": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-106778": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-107534": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-79265": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "grafana-80329": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-1": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-32918": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-33832": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-67876": {
+    "findings": 3,
+    "tp": 0,
+    "fp": 3,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-80528": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-93824": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-95633": {
+    "findings": 10,
+    "tp": 0,
+    "fp": 10,
+    "fn": 2,
+    "review_failed": false
+   }
+  },
+  "development-final": {
+   "cal_dot_com-10600": {
+    "findings": 5,
+    "tp": 1,
+    "fp": 4,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-22345": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-7232": {
+    "findings": 3,
+    "tp": 1,
+    "fp": 2,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-8087": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "discourse-2": {
+    "findings": 3,
+    "tp": 0,
+    "fp": 3,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-6": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "discourse-8": {
+    "findings": 3,
+    "tp": 2,
+    "fp": 2,
+    "fn": 4,
+    "review_failed": false
+   },
+   "discourse-9": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-106778": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-107534": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-79265": {
+    "findings": 2,
+    "tp": 2,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "grafana-80329": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-1": {
+    "findings": 2,
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "keycloak-32918": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-33832": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-38446": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-67876": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-80528": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "sentry-93824": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-95633": {
+    "findings": 4,
+    "tp": 0,
+    "fp": 4,
+    "fn": 2,
+    "review_failed": false
+   }
+  },
+  "heldout-final": {
+   "cal_dot_com-10967": {
+    "findings": 7,
+    "tp": 2,
+    "fp": 5,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-11059": {
+    "findings": 6,
+    "tp": 5,
+    "fp": 2,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-14740": {
+    "findings": 2,
+    "tp": 2,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-14943": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "cal_dot_com-22532": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 4,
+    "review_failed": false
+   },
+   "cal_dot_com-8330": {
+    "findings": 3,
+    "tp": 0,
+    "fp": 3,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "discourse-10": {
+    "findings": 3,
+    "tp": 3,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "discourse-3": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   },
+   "discourse-4": {
+    "findings": 5,
+    "tp": 2,
+    "fp": 3,
+    "fn": 6,
+    "review_failed": false
+   },
+   "discourse-5": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "discourse-7": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "review_failed": false
+   },
+   "grafana-103633": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-76186": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-90045": {
+    "findings": 4,
+    "tp": 2,
+    "fp": 3,
+    "fn": 1,
+    "review_failed": false
+   },
+   "grafana-90939": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "grafana-94942": {
+    "findings": 1,
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "review_failed": false
+   },
+   "grafana-97529": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-36880": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-36882": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 2,
+    "review_failed": false
+   },
+   "keycloak-37038": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "review_failed": false
+   },
+   "keycloak-37429": {
+    "findings": 3,
+    "tp": 1,
+    "fp": 2,
+    "fn": 4,
+    "review_failed": false
+   },
+   "keycloak-37634": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "keycloak-40940": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 1,
+    "review_failed": false
+   },
+   "sentry-1": {
+    "findings": 1,
+    "tp": 1,
+    "fp": 0,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-2": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-3": {
+    "findings": 1,
+    "tp": 0,
+    "fp": 1,
+    "fn": 3,
+    "review_failed": false
+   },
+   "sentry-5": {
+    "findings": 6,
+    "tp": 2,
+    "fp": 4,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-77754": {
+    "findings": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 4,
+    "review_failed": false
+   },
+   "sentry-80168": {
+    "findings": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 2,
+    "review_failed": false
+   }
+  }
+ }
+}

@@ -106,8 +106,10 @@ async function review(testMode: typeof mode) {
         MODEL_GATEWAY_API_KEY: 'test-only-key',
         REVIEW_AGENT_MODEL: 'test-wire-model',
         // Wire-level assertions count requests, so pin the optional second
-        // opinion off here. Its gating is covered in tests/stages/pipeline.test.ts.
+        // opinion and defect hunts off here. Their gating is covered in
+        // tests/stages/pipeline.test.ts.
         REVIEW_VERIFY_STAGE: 'off',
+        REVIEW_HUNT_STAGES: 'off',
         GITHUB_TOKEN: 'github-token-must-not-reach-model',
       },
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -187,7 +189,9 @@ describe('compiled CLI through real Flue and Pi against loopback SSE', () => {
     expect(result.code).toBe(1);
     expect(result.stdout).toBe('');
     expect(result.stderr).toContain('does not match');
-    expect(requests).toHaveLength(1);
+    // One correction allows for a copying slip; a repeated mismatch fails closed.
+    expect(requests).toHaveLength(2);
+    expect(JSON.stringify(requests[1]?.messages)).toContain('Protocol correction');
   });
 
   it('preserves blocked verdicts as valid JSON with exit zero', async () => {

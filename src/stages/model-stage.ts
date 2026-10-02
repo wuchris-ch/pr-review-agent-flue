@@ -177,8 +177,10 @@ async function reviewPartition(
       return { findings: review.findings, rationale: review.rationale.trim() };
     } catch (error) {
       if (error instanceof DigestValidationError) {
+        // A persistent mismatch still fails closed; one correction allows for a copying slip.
         record('digest', result.stdout, startedAt);
-        throw error;
+        if (attempt === ATTEMPTS_PER_PARTITION - 1) throw error;
+        continue;
       }
       record('invalid', result.stdout, startedAt);
     }
