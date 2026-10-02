@@ -6,8 +6,6 @@ Review pull requests from your terminal, a GitHub Action, or a self-hosted GitHu
 
 Bring your own OpenAI-compatible model endpoint. Each installation uses its own credentials and repository permissions. The CLI and Action run without a database or hosted service.
 
-![Review platform console showing a live-model review: finding, source references, reproduction, independent intent check and a validated fix awaiting approval](docs/platform/console.png)
-
 ## Results
 
 - **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the reviewer reports issues at 52.4% precision, 7th of 18 reviewers including 17 commercial tools scored by the same judge, and finds 30% of human-verified issues (F1 38.2%, up from 34.6% at baseline). Recall is its weakness.
