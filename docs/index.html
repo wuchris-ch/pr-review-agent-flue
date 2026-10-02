@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR Review &amp; Regression Testing Platform</title>
+<meta name="description" content="AI code review that cites exact changed lines, and a self-hosted platform that proves suspected regressions with failing tests before proposing fixes.">
+<meta property="og:title" content="PR Review &amp; Regression Testing Platform">
+<meta property="og:description" content="Every finding cites a line. Every bug gets a test. Measured against 17 commercial AI reviewers on 50 public pull requests.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2322382f'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='30' fill='white' text-anchor='middle'%3Epr%3C/text%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f4f3ef;
+  --paper: #fbfaf7;
+  --card: #ffffff;
+  --ink: #22382f;
+  --text: #33473f;
+  --muted: #66766e;
+  --faint: #8d9a93;
+  --line: #dcdcd4;
+  --accent: #2f6b4f;
+  --accent-soft: #e5efe8;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+
+header.top { background: var(--paper); border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 88px; }
+.brand { display: flex; align-items: center; gap: 13px; color: var(--ink); }
+.brand:hover { text-decoration: none; }
+.mark { width: 40px; height: 40px; border-radius: 9px; background: var(--ink); color: #fff; display: grid; place-items: center; font: 22px/1 var(--serif); padding-bottom: 3px; }
+.brand b { display: block; font-size: 17px; line-height: 1.2; }
+.brand small { display: block; font-size: 12.5px; color: var(--muted); letter-spacing: 0.01em; }
+nav a { color: var(--text); font-size: 14.5px; margin-left: 30px; }
+
+.eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
+.eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+.hero { padding: 76px 40px 68px; }
+.hero-row { display: grid; grid-template-columns: 1.25fr 1fr; gap: 64px; align-items: start; }
+h1 { font: 400 68px/1.04 var(--serif); letter-spacing: -0.025em; color: var(--ink); margin: 0 0 26px; }
+.lede { font-size: 18.5px; line-height: 1.6; color: var(--muted); max-width: 600px; margin: 6px 0 32px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 8px; font-size: 15px; font-weight: 600; border: 1px solid var(--ink); }
+.btn.primary { background: var(--ink); color: #fff; }
+.btn.secondary { color: var(--ink); background: transparent; }
+.btn:hover { text-decoration: none; opacity: 0.9; }
+.stack { margin-top: 30px; font: 12.5px/1.6 var(--mono); color: var(--faint); }
+
+.stats { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px 28px; box-shadow: 0 1px 2px rgba(34,56,47,0.04), 0 12px 32px -18px rgba(34,56,47,0.25); }
+.stat { padding: 18px 0; border-bottom: 1px solid #ecebe5; display: grid; grid-template-columns: 116px 1fr; gap: 18px; align-items: center; }
+.stat:last-child { border-bottom: 0; }
+.stat .num { font: 400 38px/1 var(--serif); color: var(--ink); letter-spacing: -0.02em; }
+.stat .num span { font-size: 21px; color: var(--muted); }
+.stat p { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+section { padding: 76px 0; border-top: 1px solid var(--line); }
+h2 { font: 600 32px/1.2 var(--sans); letter-spacing: -0.02em; color: var(--ink); margin: 0 0 14px; }
+.intro { max-width: 720px; color: var(--muted); font-size: 17px; margin: 0 0 40px; }
+
+.lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.lane { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 30px 32px; }
+.lane h3 { margin: 0; font-size: 19px; color: var(--ink); }
+.lane .where { font: 12.5px/1.5 var(--mono); color: var(--faint); margin: 4px 0 22px; }
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps li { counter-increment: s; position: relative; padding: 0 0 18px 46px; }
+.steps li:last-child { padding-bottom: 0; }
+.steps li::before { content: counter(s, decimal-leading-zero); position: absolute; left: 0; top: 1px; font: 12px/1 var(--mono); color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 6px 7px; }
+.steps b { display: block; color: var(--ink); font-size: 15.5px; }
+.steps span { color: var(--muted); font-size: 14.5px; }
+
+.console { display: grid; grid-template-columns: 360px 1fr; gap: 56px; align-items: start; }
+.checks { list-style: none; padding: 0; margin: 26px 0 0; }
+.checks li { position: relative; padding: 0 0 14px 32px; color: var(--text); font-size: 15.5px; }
+.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.6 2.5L13 6.5' fill='none' stroke='%232f6b4f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat; }
+.shot { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--card); box-shadow: 0 24px 48px -28px rgba(34,56,47,0.45); }
+.shot img { display: block; width: 100%; height: auto; }
+figcaption { font-size: 13.5px; color: var(--faint); margin-top: 12px; }
+
+.chart { margin: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+.chart img { display: block; width: 100%; height: auto; }
+.chart figcaption { margin: 10px 6px 2px; }
+.cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 28px; }
+.mini { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px 26px; }
+.mini .k { font-size: 11.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; }
+.mini .num { font: 400 40px/1 var(--serif); color: var(--ink); }
+.mini .num span { font-size: 22px; color: var(--muted); }
+.mini p { margin: 10px 0 0; color: var(--muted); font-size: 14.5px; }
+.more { margin-top: 26px; font-size: 15px; }
+
+.run { display: grid; grid-template-columns: 1fr 1.45fr 1fr; gap: 24px; }
+.run > .mini, .cols3 > .mini, .lanes > .lane { min-width: 0; }
+.run .mini h3 { margin: 0 0 6px; color: var(--ink); font-size: 17px; }
+.run .mini p { margin-top: 0; }
+pre { margin: 16px 0 0; background: #1e2f28; color: #dfe9e3; border-radius: 10px; padding: 16px 18px; font: 12.5px/1.65 var(--mono); overflow-x: auto; }
+pre .c { color: #8fa79a; }
+
+footer { border-top: 1px solid var(--line); padding: 30px 0 48px; font-size: 13.5px; color: var(--faint); }
+footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+footer a { margin-left: 22px; }
+
+@media (max-width: 960px) {
+  .wrap { padding: 0 22px; }
+  nav a:not(.src) { display: none; }
+  .hero-row, .console, .lanes, .cols3, .run { grid-template-columns: 1fr; }
+  .hero { padding: 52px 22px 44px; gap: 40px; }
+  h1 { font-size: 42px; }
+  .chart { overflow-x: auto; padding: 12px; }
+  .chart img { min-width: 640px; }
+  .stat { grid-template-columns: 96px 1fr; }
+  section { padding: 56px 0; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><span class="mark">pr</span><span><b>PR Review</b><small>Regression testing platform</small></span></a>
+    <nav><a href="#how">How it works</a><a href="#results">Results</a><a href="#run">Run it</a><a class="src" href="https://github.com/wuchris-ch/pr-review-agent-flue">Source &#8599;</a></nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <p class="eyebrow">Evidence-grounded code review</p>
+    <h1>Every finding cites a line.<br>Every bug gets a test.</h1>
+    <div class="hero-row">
+    <div>
+      <p class="lede">AI code review for pull requests that reports only findings tied to exact changed lines. A self-hosted platform goes further: it proves a suspected regression with a test that passes on the base commit and fails on the PR, then proposes a fix that has to pass it.</p>
+      <div class="actions">
+        <a class="btn primary" href="#results">See the results</a>
+        <a class="btn secondary" href="https://github.com/wuchris-ch/pr-review-agent-flue">View source &#8599;</a>
+      </div>
+      <div class="stack">TypeScript · Python · Flue · Temporal · PostgreSQL · FastAPI · React · Docker</div>
+    </div>
+    <div class="stats" aria-label="Key results">
+      <div class="stat"><div class="num">52.4%</div><p>Precision on 30 held-out PRs, 7th of 18 reviewers scored by the same judge</p></div>
+      <div class="stat"><div class="num">9 <span>of</span> 9</div><p>Seeded regressions reproduced with failing tests in a live run</p></div>
+      <div class="stat"><div class="num">0 <span>of</span> 9</div><p>Valid changes wrongly flagged in the same run</p></div>
+    </div>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <p class="eyebrow">How it works</p>
+      <h2>Two levels of proof.</h2>
+      <p class="intro">The reviewer checks every finding against the source it cites before anything is posted. The platform adds executable proof: a regression has to be reproduced by a test before a fix is proposed, and a developer approves the result.</p>
+      <div class="lanes">
+        <div class="lane">
+          <h3>The reviewer</h3>
+          <div class="where">CLI · GitHub Action · GitHub App</div>
+          <ol class="steps">
+            <li><b>Gather evidence</b><span>Index the diff and pull related source, callers, tests and contracts from the PR's exact head revision.</span></li>
+            <li><b>Review what matters</b><span>Prioritize security, correctness and broken repository contracts over style.</span></li>
+            <li><b>Check every finding</b><span>A separate pass keeps a finding only when the exact lines it cites support it.</span></li>
+            <li><b>Publish once</b><span>Post one inline review, bound to the revision that was reviewed.</span></li>
+          </ol>
+        </div>
+        <div class="lane">
+          <h3>The platform</h3>
+          <div class="where">Self-hosted · FastAPI · Temporal · PostgreSQL · Docker</div>
+          <ol class="steps">
+            <li><b>Freeze</b><span>Pin the base and head commits and the runner image for the whole review.</span></li>
+            <li><b>Reproduce</b><span>Write a test that passes on base and fails on the PR, run in network-isolated, read-only containers.</span></li>
+            <li><b>Validate intent</b><span>An independent agent checks the failure against the repository's documented behavior.</span></li>
+            <li><b>Repair</b><span>Propose a fix that must pass the frozen test and the existing suite.</span></li>
+            <li><b>Approve</b><span>A developer approves or rejects, and the decision is recorded against the evidence and commit.</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap console">
+      <div>
+        <p class="eyebrow">In the console</p>
+        <h2>From a suspected regression to an approved fix.</h2>
+        <p class="intro" style="margin-bottom:0">Each review runs as a resumable Temporal workflow on PostgreSQL. The React console shows the evidence behind every step, so a developer can check the reasoning before approving anything.</p>
+        <ul class="checks">
+          <li>Source references for each claim, down to the line</li>
+          <li>The same frozen test passing on base and failing on the PR</li>
+          <li>An independent check of the intended behavior</li>
+          <li>A fix that passes the regression test and the existing suite</li>
+          <li>Approval bound to the evidence digest and head commit</li>
+        </ul>
+      </div>
+      <figure class="shot">
+        <img src="assets/review-console.png" width="840" height="1078" alt="Review console showing a reproduced pricing regression: source references, base and PR test results, an independent intent check, a passing fix and an approve button.">
+      </figure>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="wrap">
+      <p class="eyebrow">Results</p>
+      <h2>Measured against 17 commercial reviewers.</h2>
+      <p class="intro">Martian's public code review benchmark has 50 pull requests from Sentry, Grafana, Keycloak, Discourse and Cal.com, with 173 human-verified issues. Before any change, the PRs were split into 20 for development and 30 held out. Every tool was re-scored by one judge, which agrees with the benchmark's own judge on 95.5% of decisions.</p>
+      <figure class="chart">
+        <img src="assets/benchmark.svg" width="880" height="540" alt="Scatter chart of precision against recall on 30 held-out PRs. This reviewer sits at 52.4% precision and 30.0% recall, up from 25.5% recall at baseline, among 17 commercial reviewers.">
+        <figcaption>Held-out PRs, core issue profile. Dashed curves mark equal F1. Measured changes raised recall from 25.5% to 30.0% while precision held near 52%.</figcaption>
+      </figure>
+      <div class="cols3">
+        <div class="mini"><div class="k">Held-out recall</div><div class="num">+4.5 <span>points</span></div><p>From 25.5% to 30.0%, using changes chosen on the 20 development PRs only.</p></div>
+        <div class="mini"><div class="k">Judge agreement</div><div class="num">95.5%</div><p>Agreement with the benchmark's published judge across 2,941 decisions.</p></div>
+        <div class="mini"><div class="k">Live fixes</div><div class="num">9 <span>of</span> 9</div><p>Proposed fixes passed contract tests the agents never saw.</p></div>
+      </div>
+      <p class="more"><a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/results.md">Full results, method and every experiment &#8599;</a></p>
+    </div>
+  </section>
+
+  <section id="run">
+    <div class="wrap">
+      <p class="eyebrow">Run it</p>
+      <h2>Runs where you review.</h2>
+      <p class="intro">Bring any OpenAI-compatible model endpoint. Each installation uses its own credentials and repository permissions, and the CLI and Action need no database or hosted service.</p>
+      <div class="run">
+        <div class="mini">
+          <h3>Terminal</h3>
+          <p>Review a pull request or your local changes.</p>
+<pre>npm ci &amp;&amp; npm run build
+npm run cli -- doctor
+npm run cli -- pr PR_URL</pre>
+        </div>
+        <div class="mini">
+          <h3>GitHub Action</h3>
+          <p>Automatic reviews, a Run workflow button and a <code>/review</code> comment.</p>
+<pre>- uses: wuchris-ch/pr-review-agent-flue@v0.3.0
+  with:
+    model-key: ${{ secrets.MODEL_GATEWAY_API_KEY }}
+    model-url: ${{ secrets.MODEL_GATEWAY_BASE_URL }}
+    model: ${{ secrets.REVIEW_AGENT_MODEL }}</pre>
+        </div>
+        <div class="mini">
+          <h3>Review platform</h3>
+          <p>A self-hosted GitHub App with the approval console, repository roles, quotas and an audit log.</p>
+          <p class="more" style="margin-top:14px"><a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/platform/quickstart.md">Platform quickstart &#8599;</a></p>
+        </div>
+      </div>
+      <p class="more"><a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/guides/github-action.md">GitHub Action setup &#8599;</a> &nbsp;·&nbsp; <a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/guides/configuration.md">CLI and configuration &#8599;</a> &nbsp;·&nbsp; <a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/architecture.md">Architecture &#8599;</a></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>PR Review &amp; Regression Testing Platform · Apache-2.0</span>
+    <span><a href="https://github.com/wuchris-ch/pr-review-agent-flue">Source &#8599;</a><a href="https://github.com/wuchris-ch/pr-review-agent-flue/releases/latest">Releases &#8599;</a><a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/results.md">Results &#8599;</a></span>
+  </div>
+</footer>
+</body>
+</html>
