@@ -1,0 +1,89 @@
+{
+  "judge": {
+    "model": "gpt-5.5",
+    "effort": "medium"
+  },
+  "cases": 50,
+  "scores": {
+    "all/core": {
+      "explore-v2-logic": {
+        "tp": 16,
+        "fp": 30,
+        "fn": 142,
+        "prs": 50,
+        "errors": 0,
+        "precision": 0.34782608695652173,
+        "recall": 0.10126582278481013,
+        "f1": 0.1568627450980392
+      }
+    },
+    "all/strict": {
+      "explore-v2-logic": {
+        "tp": 15,
+        "fp": 30,
+        "fn": 124,
+        "prs": 50,
+        "errors": 0,
+        "precision": 0.3333333333333333,
+        "recall": 0.1079136690647482,
+        "f1": 0.16304347826086957
+      }
+    },
+    "dev/core": {
+      "explore-v2-logic": {
+        "tp": 16,
+        "fp": 30,
+        "fn": 32,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.34782608695652173,
+        "recall": 0.3333333333333333,
+        "f1": 0.3404255319148936
+      }
+    },
+    "dev/strict": {
+      "explore-v2-logic": {
+        "tp": 15,
+        "fp": 30,
+        "fn": 21,
+        "prs": 20,
+        "errors": 0,
+        "precision": 0.3333333333333333,
+        "recall": 0.4166666666666667,
+        "f1": 0.3703703703703704
+      }
+    },
+    "heldout/core": {
+      "explore-v2-logic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 110,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    },
+    "heldout/strict": {
+      "explore-v2-logic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 103,
+        "prs": 30,
+        "errors": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    }
+  },
+  "reference_gpt52": {
+    "all/core": {},
+    "all/strict": {},
+    "dev/core": {},
+    "dev/strict": {},
+    "heldout/core": {},
+    "heldout/strict": {}
+  }
+}

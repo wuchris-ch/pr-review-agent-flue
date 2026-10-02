@@ -1,5 +1,10 @@
-import type { AgentExecutor } from './agents/executor.js';
-import { enrichPacket, type RepositoryContext } from './context/repository.js';
+import { type AgentExecutor, runModelChild } from './agents/executor.js';
+import { exploreRepository, withExploredFiles } from './context/explore.js';
+import {
+  enrichPacket,
+  type RepositoryContext,
+  type RepositoryReader,
+} from './context/repository.js';
 import { type ReviewConfig, reviewConfig } from './core/config.js';
 import { Deadline } from './core/deadline.js';
 import { evidencePackets } from './core/diff/packets.js';
@@ -26,6 +31,13 @@ import { createFindingValidation } from './stages/validate-findings.js';
 
 export interface ReviewOptions {
   repositoryContext?: RepositoryContext;
+  /**
+   * Head-revision source the model may search and read before the review.
+   * Callers pass it only when exploration is enabled.
+   */
+  explorationReader?: RepositoryReader;
+  /** Replaces the exploration model transport. Used by tests. */
+  exploreExecute?: AgentExecutor;
   repositoryConfig?: RepositoryConfig;
   instructions?: string;
   feedback?: string;
@@ -132,7 +144,7 @@ export function createDefaultStages(
       ? [
           createParallelStage(
             'model-hunt',
-            (Object.keys(HUNT_TASKS) as (keyof typeof HUNT_TASKS)[]).map((focus) =>
+            config.huntFocus.map((focus) =>
               createModelStage({
                 name: `model-hunt-${focus}`,
                 task: HUNT_TASKS[focus],
@@ -208,7 +220,36 @@ export async function reviewDiffDetailed(
   options: ReviewOptions = {},
 ): Promise<PipelineResult> {
   const config = { ...reviewConfig(), ...options.config };
-  const context = buildReviewContext(diff, options);
+  let effective = options;
+  let explorationNote = '';
+  if (options.explorationReader) {
+    const reader = options.explorationReader;
+    const exploration = await exploreRepository({
+      diff: diff.text,
+      diffSha256: diff.sha256,
+      reader,
+      config: options.repositoryConfig ?? DEFAULT_REPOSITORY_CONFIG,
+      ask:
+        options.exploreExecute ??
+        ((message, timeoutMs) => runModelChild(message, timeoutMs, 'explore')),
+      // Exploration may use at most a third of the review's time.
+      deadline: Deadline.in(Math.floor(config.deadlineMs / 3)),
+      callTimeoutMs: config.partitionTimeoutMs,
+      limits: { rounds: config.exploreRounds },
+      ...(options.onAttempt ? { onAttempt: options.onAttempt } : {}),
+    });
+    effective = {
+      ...options,
+      repositoryContext: withExploredFiles(
+        reader.revision,
+        options.repositoryContext,
+        exploration.files,
+      ),
+      config: { ...options.config, contextBytes: config.contextBytes + config.exploreContextBytes },
+    };
+    explorationNote = `Exploration: ${exploration.searches} searches and ${exploration.reads} reads over ${exploration.rounds} rounds added ${exploration.files.length} files (${exploration.stopped}).`;
+  }
+  const context = buildReviewContext(diff, effective);
   const stages =
     options.stages ??
     createDefaultStages(
@@ -228,9 +269,10 @@ export async function reviewDiffDetailed(
     excludedCount > 0
       ? `${excludedCount} changed files had no reviewed source targets (excluded or metadata-only).`
       : '',
-    options.repositoryContext
-      ? `Repository context: ${options.repositoryContext.files.length} selected files at ${options.repositoryContext.revision}; ${options.repositoryContext.limited ? 'bounded selection' : 'all candidate paths scanned'}.`
+    effective.repositoryContext
+      ? `Repository context: ${effective.repositoryContext.files.length} selected files at ${effective.repositoryContext.revision}; ${effective.repositoryContext.limited ? 'bounded selection' : 'all candidate paths scanned'}.`
       : 'Context was limited to the supplied diff.',
+    explorationNote,
   ]
     .filter(Boolean)
     .join(' ');

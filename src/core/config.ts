@@ -21,8 +21,16 @@ export interface ReviewConfig {
   verifyMaxPartitions: number;
   /** Run the focused defect-hunting passes beside the main review. */
   huntEnabled: boolean;
+  /** Which focused hunts run when hunting is enabled. */
+  huntFocus: readonly HuntFocus[];
   /** Upper bound on repository context added to each partition. */
   contextBytes: number;
+  /** Let the model search and read head-revision source before reviewing. */
+  exploreEnabled: boolean;
+  /** Exploration round trips, each with several lookups. */
+  exploreRounds: number;
+  /** Extra context room per partition for explored excerpts. */
+  exploreContextBytes: number;
   /** Directory for JSONL run records, or undefined to keep them in memory. */
   runLogDir?: string;
 }
@@ -59,6 +67,18 @@ function flag(env: NodeJS.ProcessEnv, name: string, fallback: boolean): boolean 
   throw new Error(`${name} must be on or off`);
 }
 
+export type HuntFocus = 'logic' | 'state' | 'contracts';
+const HUNT_FOCI: readonly HuntFocus[] = ['logic', 'state', 'contracts'];
+
+function huntFocus(env: NodeJS.ProcessEnv): readonly HuntFocus[] {
+  const raw = env.REVIEW_HUNT_FOCUS?.trim();
+  if (!raw) return HUNT_FOCI;
+  const selected = raw.split(',').map((value) => value.trim());
+  if (!selected.every((value): value is HuntFocus => HUNT_FOCI.includes(value as HuntFocus)))
+    throw new Error('REVIEW_HUNT_FOCUS must list logic, state or contracts');
+  return [...new Set(selected as HuntFocus[])];
+}
+
 export function reviewConfig(env: NodeJS.ProcessEnv = process.env): ReviewConfig {
   const runLogDir = env.REVIEW_RUN_LOG_DIR?.trim();
   return {
@@ -70,8 +90,13 @@ export function reviewConfig(env: NodeJS.ProcessEnv = process.env): ReviewConfig
     verifyMaxPartitions: integer(env, 'REVIEW_VERIFY_MAX_PARTITIONS', 4, 1, 24),
     // Off by default: on the development split the hunts doubled false positives.
     huntEnabled: flag(env, 'REVIEW_HUNT_STAGES', false),
+    huntFocus: huntFocus(env),
     // Whole changed files plus related excerpts; 40 KiB raised development F1 from 22% to 30%.
     contextBytes: integer(env, 'REVIEW_CONTEXT_KIB', 40, 4, 64) * 1024,
+    exploreEnabled: flag(env, 'REVIEW_EXPLORE', false),
+    // Bounded so the last round's diff plus earlier results stay under the 128 KiB child input.
+    exploreRounds: integer(env, 'REVIEW_EXPLORE_ROUNDS', 3, 1, 4),
+    exploreContextBytes: integer(env, 'REVIEW_EXPLORE_CONTEXT_KIB', 24, 4, 48) * 1024,
     ...(runLogDir ? { runLogDir } : {}),
   };
 }

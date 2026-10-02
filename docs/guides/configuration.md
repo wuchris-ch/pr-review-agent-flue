@@ -32,8 +32,12 @@ The endpoint must support streaming chat completions, JSON object mode, the conf
 | `REVIEW_CONCURRENCY` | 6 model partitions at once |
 | `REVIEW_PARTITION_KIB` | 48 KiB preferred message size |
 | `REVIEW_CONTEXT_KIB` | 40 KiB of repository context per partition: whole changed files first, then related excerpts. It never displaces diff text |
+| `REVIEW_EXPLORE` | `false`; before reviewing, the model searches and reads source at the PR's head revision, and the excerpts it read join the repository context. See [results](../results.md) |
+| `REVIEW_EXPLORE_ROUNDS` | 3 exploration round trips (1 to 4), each with at most 8 lookups |
+| `REVIEW_EXPLORE_CONTEXT_KIB` | 24 KiB of extra context room per partition for explored excerpts |
 | `REVIEW_VERIFY_STAGE` | `true`; optional clean-change second opinion |
-| `REVIEW_HUNT_STAGES` | `false`; three focused defect-hunting passes. Off by default because they doubled false positives in [benchmarking](../results.md) |
+| `REVIEW_HUNT_STAGES` | `false`; focused defect-hunting passes. Off by default because they doubled false positives in [benchmarking](../results.md) |
+| `REVIEW_HUNT_FOCUS` | `logic,state,contracts`; which hunts run when hunting is on |
 | `REVIEW_RUN_LOG_DIR` | Opt-in private directory for JSONL run records |
 
 Raw records include source-derived findings. Keep them private. Numeric token usage is recorded only when the endpoint reports it. Dollar cost is unknown without billing evidence, rather than inferred from the transport's zero-valued price placeholders.

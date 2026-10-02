@@ -79,12 +79,18 @@ function collect(
  * Asynchronous by design: the pipeline runs several partitions at once,
  * which the previous `spawnSync` implementation made impossible.
  */
-export function runModelChild(message: string, timeoutMs: number): Promise<AgentProcess> {
+export function runModelChild(
+  message: string,
+  timeoutMs: number,
+  mode: 'review' | 'explore' = 'review',
+): Promise<AgentProcess> {
   const packageRoot = fileURLToPath(new URL('../..', import.meta.url));
   const agent = join(packageRoot, 'dist', 'agents', 'model-client.js');
 
   return new Promise<AgentProcess>((resolve) => {
-    const child = spawn(process.execPath, [agent], {
+    // Only the agent path and a fixed mode name are arguments; the message travels over stdin.
+    const args = mode === 'explore' ? [agent, 'explore'] : [agent];
+    const child = spawn(process.execPath, args, {
       cwd: packageRoot,
       env: childEnvironment(),
       stdio: ['pipe', 'pipe', 'pipe'],

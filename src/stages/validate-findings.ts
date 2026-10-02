@@ -70,13 +70,28 @@ export function createFindingValidation(
           concurrency: 1,
         });
         const result = await stage.run({ ...context, packets: [packet] }, []);
-        const kept = result.findings.map((finding) => {
-          const original = byLocation.get(identity(finding));
-          if (!original || identity(finding) !== identity(candidate))
-            throw new Error('finding validator introduced an unrelated allegation');
-          return { ...finding, severity: original.severity };
-        });
-        return { kept, notes: result.notes.map((note) => `Validation: ${note}`) };
+        // The validator may only keep or discard the candidate. Anything else it reports,
+        // including the same defect moved to another location, is discarded, never added.
+        const related = result.findings.filter(
+          (finding) =>
+            identity(finding) === identity(candidate) && byLocation.has(identity(finding)),
+        );
+        const kept = related.map((finding) => ({
+          ...finding,
+          severity: byLocation.get(identity(finding))!.severity,
+        }));
+        const discarded = result.findings.length - related.length;
+        return {
+          kept,
+          notes: [
+            ...result.notes.map((note) => `Validation: ${note}`),
+            ...(discarded
+              ? [
+                  `Validation discarded ${discarded} allegation(s) that were not the candidate under review.`,
+                ]
+              : []),
+          ],
+        };
       });
       const validated = outcomes.flatMap((outcome) => outcome.kept);
       const decisions = outcomes.flatMap((outcome) => outcome.notes);

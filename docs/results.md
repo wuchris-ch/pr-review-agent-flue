@@ -6,6 +6,7 @@ Measured October 1, 2026 (America/Vancouver). Every number below comes from file
 
 - **Public benchmark.** On the 30 held-out pull requests of a 50-PR public benchmark, the final reviewer found 33 of 110 human-verified issues at 52.4% precision (F1 38.2%), up from 28 issues at 53.8% precision (F1 34.6%) for the baseline with the same model. Among 18 reviewers scored by the same judge (17 published commercial tools plus this one), it ranks 7th on precision and 15th on F1: it is precise, and its recall remains well below the leaders.
 - **Regression platform with a live model.** Across three runs over three seeded multi-file regressions and three valid alternative changes, it reproduced 9 of 9 regressions with failing tests, every proposed fix passed contract tests the agents never saw (9 of 9), and it flagged 0 of 9 valid changes.
+- **Repository exploration (opt-in).** Letting the model search and read the repository before reviewing raised held-out recall to 32.7% at 49.3% precision (F1 39.3%), within run-to-run noise and at about 70% more review time, so it is off by default.
 
 ## Public benchmark: 50 real pull requests
 
@@ -60,6 +61,24 @@ The baseline reviewer was precise but quiet. It reported about one finding per P
 1. **Whole changed files in context.** Many misses needed the rest of the file: for example, a Keycloak cache method that calls back into the same caching layer instead of its delegate. The reviewer previously saw diff hunks plus at most 12 KiB of identifier-matched excerpts. Changed files now come first and appear whole when they fit, within a 40 KiB context budget that never displaces diff text.
 2. **Edited defective code is in scope.** The reviewer deliberately ignored weaknesses that existed before the PR. For Cal.com, a PR made deletion callbacks `async` inside `forEach`, so their promises were still never awaited; the reviewer dismissed it because the base also discarded those promises. When a PR edits the defective expression itself, the reviewer and validator now report the concrete defect and say that the edited code carries it. Untouched pre-existing code stays out of scope.
 
+### Repository exploration (opt-in, October 2)
+
+The analysis above showed the reviewer never proposes most issues. One explanation was that it lacks the code a change depends on: the delegate a cache method should call, the route that names a parameter, the callers of a function whose return value changed. Leading tools explore the codebase, so `REVIEW_EXPLORE` adds an exploration step. Before the review, the model gets up to three rounds of at most eight lookups, each a case-sensitive fixed-string search or a file read centered on a symbol or line, answered from the PR's exact head revision with read-only `git grep` and `git show`. Excerpts it read join the review context as read-only, citable source. [`scripts/fetch-benchmark-sources.py`](../scripts/fetch-benchmark-sources.py) fetches only each benchmark PR's head commit (534 MB for all 50). The configuration was frozen on the development split, then run once on the held-out split.
+
+| Version | Split | Precision | Recall | F1 | Model calls per review | Median review time |
+|---|---|---:|---:|---:|---:|---:|
+| Final (default) | Development (20 PRs) | 42.4% | 29.2% | 34.6% | 3.7 | 123 s |
+| Exploration | Development | 41.7% | 31.2% | 35.7% | 6.7 | 220 s |
+| Exploration plus logic hunt | Development | 34.8% | 33.3% | 34.0% | 9.2 | 379 s |
+| Final (default) | Held-out (30 PRs) | 52.4% | 30.0% | 38.2% | 4.3 | 136 s |
+| Exploration | Held-out | 49.3% | 32.7% | 39.3% | 7.7 | 231 s |
+
+- Exploration found more issues on both splits (36 of 110 held-out issues against 33) at about three points lower held-out precision. F1 rose about one point on each split, which is within the run-to-run noise noted under Limitations. It stays off by default because it adds about 3.4 model calls and 95 seconds per review for a gain this experiment cannot separate from noise. It would rank 15th of 18 on held-out F1, the same place as the default.
+- Adding the logic hunt found one more development issue and nine more false positives, repeating the earlier hunt result.
+- Evidence validation kept 36 of 38 development drafts, so precision filtering is not what limits recall. The reviewer proposes about 1.8 findings per PR where the golden set averages 2.4, and it favors detailed edge cases over simple slips the golden set records, such as a function returning the unmodified config or a handler reading `params[:group_id]` when the route defines `:id`. Low-severity issues, which the review contract tells the model to skip, are 19 of the 33 development misses.
+- The live runs exposed one defect. With more source in view, the validator once reported a defect other than the candidate it was checking, and the whole review failed. Validation now discards and notes anything other than its candidate, which keeps the rule that validation can never add a finding.
+- One held-out review (discourse-4) hit a transient model failure and was rerun with the same configuration.
+
 ## Regression platform with a live model
 
 The [platform](platform/quickstart.md) investigates a PR with three specialist agents, writes a regression test, runs it on the base and PR commits in a network-isolated container, has an independent agent judge intent, and proposes a fix that must pass the frozen test and the existing suite. `scripts/platform-live-eval.py` turns each [multi-file scenario](../examples/scenarios) into a Git mirror with a regression PR and a valid alternative PR, withholds the scenario's contract test from the platform, and uses it afterwards to check every proposed fix.
@@ -98,6 +117,10 @@ node scripts/compare-pipeline.mjs --dataset external --cases "$(python3 -c 'impo
 JUDGE_BASE_URL=... JUDGE_API_KEY=... python3 evals/martian/judge.py --benchmark <martian>/offline \
   --reviews evals/results/comparison-<id> --arm context-validated --name pr-review-agent --tools bugbot,coderabbit --out evals/martian/runs/mine
 python3 evals/martian/summarize.py --published evals/martian/runs/published-tools/report.json --ours evals/martian/runs/mine/report.json --subset heldout
+# Exploration arm: fetch each PR's head commit once, then compare.
+python3 scripts/fetch-benchmark-sources.py --into ~/.cache/pr-review-benchmark-sources
+node scripts/compare-pipeline.mjs --dataset external --cases <ids> --arms context-explored --concurrency 10 \
+  --sources ~/.cache/pr-review-benchmark-sources
 ```
 
 Platform: start the services from [the quickstart](platform/quickstart.md) with a live provider, then run `uv run --project apps/platform python scripts/platform-live-eval.py --provider <alias>`.

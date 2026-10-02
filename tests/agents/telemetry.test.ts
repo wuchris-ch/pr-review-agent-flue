@@ -30,7 +30,8 @@ describe('model telemetry privacy policy', () => {
 
     // The diff travels over stdin so it never lands in the process table.
     expect(source).toContain('child.stdin.end(message');
-    expect(source).toContain('spawn(process.execPath, [agent]');
+    expect(source).toContain("const args = mode === 'explore' ? [agent, 'explore'] : [agent];");
+    expect(source).toContain('spawn(process.execPath, args');
     expect(source).not.toContain("'--message'");
   });
 });
