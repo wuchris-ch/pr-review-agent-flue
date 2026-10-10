@@ -40,6 +40,23 @@ The endpoint must support streaming chat completions, JSON object mode, the conf
 | `REVIEW_HUNT_FOCUS` | `logic,state,contracts`; which hunts run when hunting is on |
 | `REVIEW_RUN_LOG_DIR` | Opt-in private directory for JSONL run records |
 
+## Agent reviewer
+
+With a local checkout, a coding agent can do the bug finding. Set `REVIEW_AGENT_CLI=claude` (Claude Code) or `REVIEW_AGENT_CLI=codex` (Codex CLI) and run `pr-review review --base main`. The agent reads the change and the surrounding repository on its own, with read-only tools: it can search and read files and run read-only `git` commands, and it cannot edit files, run project code or use the network. Its findings then go through the same engine as model findings: each one is kept only when it cites a line the change edits, duplicates are merged, and the verdict and GitHub publication rules apply unchanged. The CLI must be installed and signed in. The model passes, exploration and the clean-change second opinion do not run in this mode.
+
+With Claude Opus 5.5, the agent reviewer found 56% of the known issues on 30 held-out benchmark PRs at 49% precision, against 29% at 51% for the model pipeline ([results](../results.md#agent-reviewer-october-9)).
+
+| Environment variable | Default / purpose |
+| --- | --- |
+| `REVIEW_AGENT_CLI` | Unset; `claude` or `codex` turns on the agent reviewer for local checkouts |
+| `REVIEW_AGENT_CLI_MODEL` | The CLI's own default; for example `claude-opus-5-5` or `gpt-6.1-sol` |
+| `REVIEW_AGENT_CLI_EFFORT` | `high` |
+| `REVIEW_AGENT_CLI_TIMEOUT_SECONDS` | 1200 seconds for one agent review |
+| `REVIEW_AGENT_LINE_TOLERANCE` | 0; how many lines a finding may sit from the changed line it is tied to |
+| `REVIEW_AGENT_VALIDATE` | `false`; also run evidence validation over the agent's findings. Off because on the development split it removed 8 of 19 real issues along with 19 of 35 false ones and lowered F1 ([results](../results.md#development-decisions-20-prs-48-issues)) |
+
+The GitHub Action and App read pull requests through the API without a checkout, so they keep the model passes. [ReviewBench](../../integrations/reviewbench/README.md) shows the agent reviewer packaged as a container.
+
 Raw records include source-derived findings. Keep them private. Numeric token usage is recorded only when the endpoint reports it. Dollar cost is unknown without billing evidence, rather than inferred from the transport's zero-valued price placeholders.
 
 ## `.pr-review.json`

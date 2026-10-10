@@ -16,6 +16,7 @@ import {
   type RepositoryConfig,
 } from './core/repository-config.js';
 import type { Review } from './core/schema.js';
+import { createAgentStage, type Grounding } from './stages/agent-stage.js';
 import { createModelStage } from './stages/model-stage.js';
 import { createParallelStage } from './stages/parallel-stage.js';
 import { type PipelineResult, runPipeline } from './stages/pipeline.js';
@@ -32,6 +33,12 @@ import { createFindingValidation } from './stages/validate-findings.js';
 export interface ReviewOptions {
   repositoryContext?: RepositoryContext;
   /**
+   * A coding agent that reviews a local checkout itself. When present it
+   * replaces the model review passes and exploration; its proposals are tied
+   * to changed lines and then go through the same validation and merging.
+   */
+  agentReview?: AgentReview;
+  /**
    * Head-revision source the model may search and read before the review.
    * Callers pass it only when exploration is enabled.
    */
@@ -47,6 +54,17 @@ export interface ReviewOptions {
   execute?: AgentExecutor;
   config?: Partial<ReviewConfig>;
   onAttempt?: (attempt: StageAttempt) => void;
+}
+
+export interface AgentReview {
+  /** Runs the agent and returns its findings text. */
+  run(): Promise<string>;
+  /** Checkout root, stripped from absolute paths in the agent's answer. */
+  root?: string;
+  grounding?: Grounding;
+  tolerance?: number;
+  /** Overrides REVIEW_AGENT_VALIDATE for this review. */
+  validate?: boolean;
 }
 
 const VERIFY_TASK = [
@@ -131,12 +149,25 @@ export function createDefaultStages(
   config: ReviewConfig,
   execute?: AgentExecutor,
   validateFindings = true,
+  agent?: AgentReview,
 ): ReviewStage[] {
   const shared = {
     concurrency: config.concurrency,
     partitionTimeoutMs: config.partitionTimeoutMs,
     ...(execute ? { execute } : {}),
   };
+  if (agent) {
+    return [
+      createStaticStage(),
+      createAgentStage({
+        review: () => agent.run(),
+        grounding: agent.grounding ?? 'near',
+        tolerance: agent.tolerance ?? config.agentLineTolerance,
+        ...(agent.root === undefined ? {} : { root: agent.root }),
+      }),
+      ...(validateFindings ? [createFindingValidation(execute)] : []),
+    ];
+  }
   return [
     createStaticStage(),
     createModelStage({ name: 'model-review', ...shared }),
@@ -222,7 +253,8 @@ export async function reviewDiffDetailed(
   const config = { ...reviewConfig(), ...options.config };
   let effective = options;
   let explorationNote = '';
-  if (options.explorationReader) {
+  // An agent reviewer explores the checkout itself, so the bounded exploration step is skipped.
+  if (options.explorationReader && !options.agentReview) {
     const reader = options.explorationReader;
     const exploration = await exploreRepository({
       diff: diff.text,
@@ -250,13 +282,11 @@ export async function reviewDiffDetailed(
     explorationNote = `Exploration: ${exploration.searches} searches and ${exploration.reads} reads over ${exploration.rounds} rounds added ${exploration.files.length} files (${exploration.stopped}).`;
   }
   const context = buildReviewContext(diff, effective);
+  const validate =
+    (options.repositoryConfig?.validateFindings ?? true) &&
+    (options.agentReview ? (options.agentReview.validate ?? config.agentValidate) : true);
   const stages =
-    options.stages ??
-    createDefaultStages(
-      config,
-      options.execute,
-      options.repositoryConfig?.validateFindings ?? true,
-    );
+    options.stages ?? createDefaultStages(config, options.execute, validate, options.agentReview);
   const result = await runPipeline(context, stages);
   const excludedCount =
     indexDiff(diff.text).length -

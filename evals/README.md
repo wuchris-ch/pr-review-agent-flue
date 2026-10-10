@@ -22,6 +22,14 @@ The comparison freezes inputs and uses the same configured model for every arm:
 | `context-pipeline` | Adds unchanged repository context |
 | `context-validated` | Adds a fresh validation of actual proposed findings |
 
+Agent arms need a checkout of each case with `main` and `pr` branches (`--workspaces <dir>`; [`prepare-benchmark-workspaces.py`](../scripts/prepare-benchmark-workspaces.py) builds them for the external benchmark) and `REVIEW_AGENT_CLI`. Every agent arm in a repetition reuses one agent answer, and `--agentCache <dir>` saves answers for rescoring.
+
+| Arm | Difference |
+| --- | --- |
+| `agent-raw` | Coding-agent findings at the agent's own locations |
+| `agent` | Keeps only findings on changed lines (the default agent reviewer) |
+| `agent-validated` | Adds evidence validation over the kept findings |
+
 Results land in ignored `evals/results/comparison-*/`. Each case has the complete review and stage record. `summary.json` records required-stage failures, latency, model calls, input bytes, provider-reported token usage, expected-location recall and false alarms on valid controls. Missing usage and dollar cost are `null`. Exact file/line hits are a reproducible development signal, not a semantic precision score. Compare arms per case and retain failed runs in the denominator.
 
 ## External PR benchmark

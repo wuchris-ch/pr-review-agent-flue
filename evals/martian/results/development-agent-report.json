@@ -1,0 +1,116 @@
+{
+  "measured": "2026-10-09",
+  "subset": "dev/core",
+  "cases": 20,
+  "golden_issues": 48,
+  "judge": {
+    "model": "gpt-5.5",
+    "effort": "medium"
+  },
+  "notes": [
+    "Agent runs used Claude Code 2.1.296 with claude-opus-5-5 at high effort and read-only tools.",
+    "The Opus pipeline failed 3 of 20 reviews (cal_dot_com-10600, sentry-95633, grafana-106778) with output that stayed invalid after one format or evidence correction; they count as reviews with no findings."
+  ],
+  "scores": {
+    "pipeline, gpt-6.1-sol (October 1 final)": {
+      "tp": 14,
+      "fp": 19,
+      "fn": 34,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.424242,
+      "recall": 0.291667,
+      "f1": 0.345679
+    },
+    "pipeline, claude-opus-5-5": {
+      "tp": 13,
+      "fp": 8,
+      "fn": 35,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.619048,
+      "recall": 0.270833,
+      "f1": 0.376812
+    },
+    "pipeline with exploration, claude-opus-5-5": {
+      "tp": 14,
+      "fp": 23,
+      "fn": 34,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.378378,
+      "recall": 0.291667,
+      "f1": 0.329412
+    },
+    "agent, agent locations": {
+      "tp": 22,
+      "fp": 49,
+      "fn": 26,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.309859,
+      "recall": 0.458333,
+      "f1": 0.369748
+    },
+    "agent, exact changed lines (default)": {
+      "tp": 19,
+      "fp": 35,
+      "fn": 29,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.351852,
+      "recall": 0.395833,
+      "f1": 0.372549
+    },
+    "agent, within 3 lines of a change": {
+      "tp": 19,
+      "fp": 38,
+      "fn": 29,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.333333,
+      "recall": 0.395833,
+      "f1": 0.361905
+    },
+    "agent, within 10 lines of a change": {
+      "tp": 19,
+      "fp": 39,
+      "fn": 29,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.327586,
+      "recall": 0.395833,
+      "f1": 0.358491
+    },
+    "agent plus evidence validation": {
+      "tp": 11,
+      "fp": 16,
+      "fn": 37,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.407407,
+      "recall": 0.229167,
+      "f1": 0.293333
+    },
+    "agent (exact) plus Opus pipeline": {
+      "tp": 22,
+      "fp": 51,
+      "fn": 26,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.30137,
+      "recall": 0.458333,
+      "f1": 0.363636
+    },
+    "agent (agent locations) plus Opus pipeline": {
+      "tp": 23,
+      "fp": 67,
+      "fn": 25,
+      "prs": 20,
+      "errors": 0,
+      "precision": 0.255556,
+      "recall": 0.479167,
+      "f1": 0.333333
+    }
+  }
+}
