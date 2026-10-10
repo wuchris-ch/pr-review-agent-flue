@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { claudeResult, parseAgentFindings } from '../../src/agents/agent-reviewer.js';
+import {
+  agentFailureReason,
+  claudeResult,
+  parseAgentFindings,
+} from '../../src/agents/agent-reviewer.js';
 import { decodeDiff } from '../../src/core/input.js';
 import { reviewDiffDetailed } from '../../src/review-service.js';
 
@@ -95,5 +99,23 @@ describe('agent reviewer findings', () => {
       },
     });
     expect(result.review.findings).toEqual([]);
+  });
+});
+
+describe('agent reviewer failures', () => {
+  it("reports Claude Code's error result", () => {
+    const stdout = JSON.stringify({
+      type: 'result',
+      is_error: true,
+      result: 'Not logged in · Please run /login',
+    });
+    expect(agentFailureReason(stdout, 'ignored')).toBe('Not logged in · Please run /login');
+  });
+
+  it('falls back to the last stderr line', () => {
+    expect(agentFailureReason('', 'warming up\nerror: missing OPENAI_API_KEY\n\n')).toBe(
+      'error: missing OPENAI_API_KEY',
+    );
+    expect(agentFailureReason('', '')).toBe('');
   });
 });

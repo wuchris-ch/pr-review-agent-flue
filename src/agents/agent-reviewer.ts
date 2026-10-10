@@ -8,6 +8,7 @@ export const AGENT_CLIS = ['claude', 'codex'] as const;
 export type AgentCli = (typeof AGENT_CLIS)[number];
 
 const MAX_AGENT_STDOUT_BYTES = 16 * 1024 * 1024;
+const FAILURE_TAIL_CHARS = 4096;
 
 export interface AgentReviewerOptions {
   readonly cli: AgentCli;
@@ -122,6 +123,22 @@ export function claudeResult(stdout: string): string {
   return result.result;
 }
 
+/** A short reason for a failed agent run: Claude Code's result message, else the last stderr line. */
+export function agentFailureReason(stdout: string, stderr: string): string {
+  try {
+    const parsed: unknown = JSON.parse(stdout);
+    for (const event of (Array.isArray(parsed) ? parsed : [parsed]).reverse()) {
+      const { type, result } = (event ?? {}) as { type?: unknown; result?: unknown };
+      if (type === 'result' && typeof result === 'string' && result.trim())
+        return result.trim().slice(0, 200);
+    }
+  } catch {
+    // Not JSON output; fall back to stderr.
+  }
+  const lines = stderr.split(/\r?\n/).filter((line) => line.trim());
+  return (lines.at(-1) ?? '').trim().slice(0, 200);
+}
+
 /** Run one read-only agent review of a checkout and return its findings text. */
 export async function runAgentReviewer(options: AgentReviewerOptions): Promise<string> {
   const scratch = mkdtempSync(join(tmpdir(), 'pr-review-agent-'));
@@ -133,6 +150,7 @@ export async function runAgentReviewer(options: AgentReviewerOptions): Promise<s
       const child = spawn(command, args, { cwd: options.cwd, stdio: ['pipe', 'pipe', 'pipe'] });
       const chunks: Buffer[] = [];
       let size = 0;
+      let stderrTail = '';
       let settled = false;
       const finish = (error?: Error, value?: string): void => {
         if (settled) return;
@@ -154,13 +172,24 @@ export async function runAgentReviewer(options: AgentReviewerOptions): Promise<s
         }
         chunks.push(chunk);
       });
-      child.stderr.resume();
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrTail = (stderrTail + chunk.toString('utf8')).slice(-FAILURE_TAIL_CHARS);
+      });
       child.on('error', (error) =>
         finish(new Error(`unable to start ${command}: ${error.message}`)),
       );
       child.on('close', (code) => {
-        if (code !== 0) finish(new Error(`the agent reviewer exited with status ${String(code)}`));
-        else finish(undefined, Buffer.concat(chunks).toString('utf8'));
+        const output = Buffer.concat(chunks).toString('utf8');
+        if (code === 0) {
+          finish(undefined, output);
+          return;
+        }
+        const reason = agentFailureReason(output, stderrTail);
+        finish(
+          new Error(
+            `the agent reviewer exited with status ${String(code)}${reason ? `: ${reason}` : ''}`,
+          ),
+        );
       });
       child.stdin.end(stdin ?? '');
     });
