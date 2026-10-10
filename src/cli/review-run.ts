@@ -1,3 +1,4 @@
+import { runAgentReviewer } from '../agents/agent-reviewer.js';
 import { retrieveContext } from '../context/repository.js';
 import { reviewConfig } from '../core/config.js';
 import { DEFAULT_REPOSITORY_CONFIG } from '../core/repository-config.js';
@@ -24,6 +25,25 @@ export async function reviewFromSource(source: DiffSource): Promise<Review> {
     request.repository && configuration.context && reviewConfig().exploreEnabled
       ? request.repository
       : undefined;
+  const config = reviewConfig();
+  const checkout = request.checkout;
+  const agentCli = config.agentCli;
+  const agentReview =
+    agentCli && checkout
+      ? {
+          root: checkout.root,
+          run: () =>
+            runAgentReviewer({
+              cli: agentCli,
+              cwd: checkout.root,
+              description: checkout.description,
+              diffCommand: checkout.diffCommand,
+              effort: config.agentEffort,
+              timeoutMs: config.agentTimeoutMs,
+              ...(config.agentModel ? { model: config.agentModel } : {}),
+            }),
+        }
+      : undefined;
   return reviewAndRecord(
     request.diff,
     { label: request.label, source: source.name },
@@ -32,6 +52,7 @@ export async function reviewFromSource(source: DiffSource): Promise<Review> {
       repositoryConfig: configuration,
       ...(repositoryContext ? { repositoryContext } : {}),
       ...(explorationReader ? { explorationReader } : {}),
+      ...(agentReview ? { agentReview } : {}),
     },
   );
 }

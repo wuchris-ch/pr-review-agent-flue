@@ -1,0 +1,332 @@
+{
+  "measured": "2026-10-09",
+  "subset": "heldout/core",
+  "cases": 30,
+  "golden_issues": 110,
+  "judges": {
+    "gpt-5.5": {
+      "model": "gpt-5.5",
+      "effort": "medium"
+    },
+    "claude-sonnet-5-5": {
+      "model": "claude-sonnet-5-5",
+      "effort": "medium"
+    }
+  },
+  "configurations": {
+    "agent reviewer (Claude Opus 5.5)": "REVIEW_AGENT_CLI=claude, claude-opus-5-5 at high effort, Claude Code 2.1.296, read-only tools; findings kept only on exact changed lines",
+    "agent reviewer, ungrounded": "Same agent output before line grounding",
+    "pipeline (gpt-6.1-sol)": "Model pipeline frozen on October 1 (context-validated arm), gpt-6.1-sol at high effort"
+  },
+  "notes": [
+    "Repetition 1 of the agent is the plain Claude Code review first run on held-out on October 9 as an untuned baseline; repetitions 2 and 3 are new runs of the same prompt.",
+    "Repetition 1 of the pipeline is the October 1 held-out run; repetitions 2 and 3 are new runs.",
+    "sentry-2 repetition 2 of the agent stalled and was rerun once with the same configuration."
+  ],
+  "runs": {
+    "gpt-5.5": {
+      "agent reviewer (Claude Opus 5.5)": [
+        {
+          "tp": 63,
+          "fp": 66,
+          "fn": 47,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.488372,
+          "recall": 0.572727,
+          "f1": 0.527197
+        },
+        {
+          "tp": 60,
+          "fp": 62,
+          "fn": 50,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.491803,
+          "recall": 0.545455,
+          "f1": 0.517241
+        },
+        {
+          "tp": 62,
+          "fp": 63,
+          "fn": 48,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.496,
+          "recall": 0.563636,
+          "f1": 0.52766
+        }
+      ],
+      "agent reviewer, ungrounded": [
+        {
+          "tp": 72,
+          "fp": 74,
+          "fn": 38,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.493151,
+          "recall": 0.654545,
+          "f1": 0.5625
+        },
+        {
+          "tp": 70,
+          "fp": 74,
+          "fn": 40,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.486111,
+          "recall": 0.636364,
+          "f1": 0.551181
+        },
+        {
+          "tp": 65,
+          "fp": 74,
+          "fn": 45,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.467626,
+          "recall": 0.590909,
+          "f1": 0.522088
+        }
+      ],
+      "pipeline (gpt-6.1-sol)": [
+        {
+          "tp": 33,
+          "fp": 30,
+          "fn": 77,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.52381,
+          "recall": 0.3,
+          "f1": 0.381503
+        },
+        {
+          "tp": 32,
+          "fp": 31,
+          "fn": 78,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.507937,
+          "recall": 0.290909,
+          "f1": 0.369942
+        },
+        {
+          "tp": 31,
+          "fp": 32,
+          "fn": 79,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.492063,
+          "recall": 0.281818,
+          "f1": 0.358382
+        }
+      ]
+    },
+    "claude-sonnet-5-5": {
+      "agent reviewer (Claude Opus 5.5)": [
+        {
+          "tp": 63,
+          "fp": 65,
+          "fn": 47,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.492188,
+          "recall": 0.572727,
+          "f1": 0.529412
+        },
+        {
+          "tp": 60,
+          "fp": 62,
+          "fn": 50,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.491803,
+          "recall": 0.545455,
+          "f1": 0.517241
+        },
+        {
+          "tp": 64,
+          "fp": 61,
+          "fn": 46,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.512,
+          "recall": 0.581818,
+          "f1": 0.544681
+        }
+      ],
+      "agent reviewer, ungrounded": [
+        {
+          "tp": 72,
+          "fp": 73,
+          "fn": 38,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.496552,
+          "recall": 0.654545,
+          "f1": 0.564706
+        },
+        {
+          "tp": 69,
+          "fp": 74,
+          "fn": 41,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.482517,
+          "recall": 0.627273,
+          "f1": 0.545455
+        },
+        {
+          "tp": 67,
+          "fp": 72,
+          "fn": 43,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.482014,
+          "recall": 0.609091,
+          "f1": 0.538153
+        }
+      ],
+      "pipeline (gpt-6.1-sol)": [
+        {
+          "tp": 35,
+          "fp": 27,
+          "fn": 75,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.564516,
+          "recall": 0.318182,
+          "f1": 0.406977
+        },
+        {
+          "tp": 33,
+          "fp": 30,
+          "fn": 77,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.52381,
+          "recall": 0.3,
+          "f1": 0.381503
+        },
+        {
+          "tp": 33,
+          "fp": 30,
+          "fn": 77,
+          "prs": 30,
+          "errors": 0,
+          "precision": 0.52381,
+          "recall": 0.3,
+          "f1": 0.381503
+        }
+      ]
+    }
+  },
+  "summary": {
+    "gpt-5.5": {
+      "agent reviewer (Claude Opus 5.5)": {
+        "precision": {
+          "mean": 0.492058,
+          "min": 0.488372,
+          "max": 0.496
+        },
+        "recall": {
+          "mean": 0.560606,
+          "min": 0.545455,
+          "max": 0.572727
+        },
+        "f1": {
+          "mean": 0.524033,
+          "min": 0.517241,
+          "max": 0.52766
+        }
+      },
+      "agent reviewer, ungrounded": {
+        "precision": {
+          "mean": 0.482296,
+          "min": 0.467626,
+          "max": 0.493151
+        },
+        "recall": {
+          "mean": 0.627273,
+          "min": 0.590909,
+          "max": 0.654545
+        },
+        "f1": {
+          "mean": 0.545256,
+          "min": 0.522088,
+          "max": 0.5625
+        }
+      },
+      "pipeline (gpt-6.1-sol)": {
+        "precision": {
+          "mean": 0.507937,
+          "min": 0.492063,
+          "max": 0.52381
+        },
+        "recall": {
+          "mean": 0.290909,
+          "min": 0.281818,
+          "max": 0.3
+        },
+        "f1": {
+          "mean": 0.369942,
+          "min": 0.358382,
+          "max": 0.381503
+        }
+      }
+    },
+    "claude-sonnet-5-5": {
+      "agent reviewer (Claude Opus 5.5)": {
+        "precision": {
+          "mean": 0.498664,
+          "min": 0.491803,
+          "max": 0.512
+        },
+        "recall": {
+          "mean": 0.566667,
+          "min": 0.545455,
+          "max": 0.581818
+        },
+        "f1": {
+          "mean": 0.530445,
+          "min": 0.517241,
+          "max": 0.544681
+        }
+      },
+      "agent reviewer, ungrounded": {
+        "precision": {
+          "mean": 0.487028,
+          "min": 0.482014,
+          "max": 0.496552
+        },
+        "recall": {
+          "mean": 0.630303,
+          "min": 0.609091,
+          "max": 0.654545
+        },
+        "f1": {
+          "mean": 0.549438,
+          "min": 0.538153,
+          "max": 0.564706
+        }
+      },
+      "pipeline (gpt-6.1-sol)": {
+        "precision": {
+          "mean": 0.537378,
+          "min": 0.52381,
+          "max": 0.564516
+        },
+        "recall": {
+          "mean": 0.306061,
+          "min": 0.3,
+          "max": 0.318182
+        },
+        "f1": {
+          "mean": 0.389994,
+          "min": 0.381503,
+          "max": 0.406977
+        }
+      }
+    }
+  }
+}

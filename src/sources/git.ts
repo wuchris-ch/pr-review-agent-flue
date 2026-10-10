@@ -105,6 +105,11 @@ export function gitSource(options: GitSourceOptions): DiffSource {
           paths: async () => (await reader.paths()).filter((path) => !changed.has(path)),
         },
         label: `${base}...HEAD`,
+        checkout: {
+          root,
+          description: `The working tree holds the change, including uncommitted edits to tracked files; it is compared with its merge base with \`${base}\`.`,
+          diffCommand: `git diff ${mergeBase}`,
+        },
         ...(instructions === undefined ? {} : { instructions }),
       };
     },

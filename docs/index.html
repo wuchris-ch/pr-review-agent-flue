@@ -134,17 +134,18 @@ footer nav { gap: 22px; }
   <div class="wrap">
     <figure class="frame chart" style="margin:0">
       <div class="frame-bar"><b>Precision and recall on 30 held-out pull requests</b><span>PR Review vs. 17 commercial tools, same judge</span></div>
-      <div class="scroll"><img src="assets/benchmark.svg" width="880" height="540" alt="Scatter chart. PR Review sits at 52.4% precision and 30.0% recall, up from 25.5% recall before the changes, among 17 commercial code review tools."></div>
+      <div class="scroll"><img src="assets/benchmark.svg" width="880" height="540" alt="Scatter chart. PR Review's agent reviewer sits at 49.2% precision and 56.1% recall, the mean of three runs, up from 29.1% recall for its earlier model pipeline, among 17 commercial code review tools."></div>
     </figure>
-    <p class="caption">Each dot is a code review tool scored on the same pull requests. Higher means fewer false alarms. Further right means it catches more of the real issues. Points on the same dashed curve have the same F1 score.</p>
+    <p class="caption">Each dot is a code review tool scored on the same pull requests. Higher means fewer false alarms. Further right means it catches more of the real issues. Points on the same dashed curve have the same F1 score. PR Review's points are the mean of three runs, and the small bars show the range.</p>
   </div>
 
   <section id="results">
     <div class="wrap"><div class="text">
       <h2>How well it works</h2>
-      <p>I tested it on <a href="https://github.com/withmartian/code-review-benchmark">Martian's public code review benchmark</a>: 50 real pull requests from Sentry, Grafana, Keycloak, Discourse and Cal.com, with 173 issues that people had already confirmed. Before changing anything, I set 30 of those PRs aside and tuned only on the other 20. The chart shows the 30 held-out PRs, which none of the changes saw.</p>
-      <p>When PR Review leaves a comment, it's right 52% of the time, 7th best of 18 tools. Its weak spot is coverage. It finds 30% of the known issues, and the best tools find over 60%. Two changes raised recall from 25.5%: showing the model whole changed files instead of only the diff, and asking it to report concrete bugs anywhere in code the PR edits. A broader bug hunt doubled the false alarms, so I left it out.</p>
-      <p>For a fair comparison, I re-scored all 17 commercial tools with the same judge I used on mine. It agrees with the benchmark's own judge on 95.5% of 2,941 decisions. <a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/results.md">Every experiment and the full method</a> are in the repo.</p>
+      <p>I tested it on <a href="https://github.com/withmartian/code-review-benchmark">Martian's public code review benchmark</a>: 50 real pull requests from Sentry, Grafana, Keycloak, Discourse and Cal.com, with 173 issues that people had already confirmed. Before changing anything, I set 30 of those PRs aside and tuned only on the other 20. The chart shows the 30 held-out PRs.</p>
+      <p>My first version was a careful model pipeline. It was right about half the time, but it found only 30% of the known issues, and the best tools find over 60%. So I tried the simplest alternative: give a strong model inside a coding agent, Claude Opus 5.5 in Claude Code, a short review request and read-only access to the repository. It found more than twice as many issues. The same request to GPT-6.1 Sol did not, so the model mattered more than the setup around it.</p>
+      <p>Now the agent does the bug finding and PR Review does the rest. It keeps only comments on lines the PR changed, merges duplicates and posts the review. Averaged over three runs, it finds 56% of the known issues and is right 49% of the time. That puts it 4th of 18 tools by F1, up from 15th for the pipeline.</p>
+      <p>For a fair comparison, I re-scored all 17 commercial tools with the same judge I used on mine. It agrees with the benchmark's own judge on 95.5% of 2,941 decisions. Then a second judge from a different model family scored everything again. The two judges agree on 97.7% of decisions and rank the tools the same way. <a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/results.md">Every experiment and the full method</a> are in the repo.</p>
     </div></div>
   </section>
 
@@ -155,8 +156,8 @@ footer nav { gap: 22px; }
         <p>The reviewer runs from your terminal, as a GitHub Action or as a GitHub App. For each pull request it:</p>
         <ol class="steps">
           <li>Reads the diff along with the code around it, like callers, tests and the README, all from the exact commit under review.</li>
-          <li>Asks a model for findings. Security bugs, wrong behavior and broken project rules come before style.</li>
-          <li>Checks each finding against the lines it cites, in a separate pass. If the code doesn't back it up, the finding is dropped.</li>
+          <li>Asks a model for findings, or on a local checkout lets a coding agent like Claude Code search the repository and propose them. Security bugs, wrong behavior and broken project rules come before style.</li>
+          <li>Drops any finding that doesn't point at a line the PR changed. In the model pipeline, a separate pass also checks that the code backs it up.</li>
           <li>Posts what's left as one review with inline comments, tied to that commit.</li>
         </ol>
         <p>The comment on the right is based on a real finding from a bug planted in the project's demo repo.</p>
@@ -229,9 +230,10 @@ npm run cli -- pr https://github.com/owner/repo/pull/123</pre>
         </div>
       </div>
       <div class="text">
+        <p>With Claude Code or the Codex CLI signed in, run <code>REVIEW_AGENT_CLI=claude pr-review review --base main</code> in your repository to let the agent find the bugs. That's the setup behind the benchmark results.</p>
         <p>The <a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/guides/github-action.md">Action guide</a> covers permissions and pull requests from forks. The <a href="https://github.com/wuchris-ch/pr-review-agent-flue/blob/main/docs/platform/quickstart.md">platform quickstart</a> starts the self-hosted version and the console with Docker Compose.</p>
         <h2 style="margin-top:56px">Built with</h2>
-        <p>The reviewer is TypeScript on the <a href="https://flueframework.com/">Flue</a> agent framework, tested with Vitest. The platform is Python, with FastAPI, Temporal, PostgreSQL and Docker, plus a React console. It's open source under the Apache-2.0 license.</p>
+        <p>The reviewer is TypeScript on the <a href="https://flueframework.com/">Flue</a> agent framework, tested with Vitest, and can hand bug finding to Claude Code or the Codex CLI. The platform is Python, with FastAPI, Temporal, PostgreSQL and Docker, plus a React console. It's open source under the Apache-2.0 license.</p>
       </div>
     </div>
   </section>

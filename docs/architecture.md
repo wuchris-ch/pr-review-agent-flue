@@ -9,6 +9,8 @@ flowchart LR
   App[Signed App webhook] --> Source
   Source --> Context[Bounded retrieval and optional exploration]
   Context --> Checks[Static checks and model review]
+  Source --> Agent[Optional agent reviewer on a local checkout]
+  Agent --> Ground
   Checks --> Second[Optional clean-change second opinion]
   Second --> Validate[Validate actual candidate findings]
   Validate --> Ground[Exact citations and derived verdict]
@@ -26,6 +28,8 @@ The parser assigns deterministic source anchors. Model findings must cite an eli
 Retrieval scans at most 40 candidate paths and 256 KiB, reads at most 32 KiB per file, retains 12 ranked files, and contributes at most 40 KiB to a partition, with changed files shown whole when they fit. Ranking uses changed paths, identifiers and test/contract filenames. It is bounded lexical retrieval, not a whole-repository call graph. GitHub tree truncation fails explicitly. Secret-file patterns, dependency/build directories and Git symlinks are excluded from context.
 
 Optional exploration (`REVIEW_EXPLORE`) lets the model ask for the code a change depends on: up to three rounds of at most eight lookups, each a case-sensitive fixed-string search or a file read centered on a symbol or line. The controller answers from the frozen head revision with read-only `git grep` and `git show`; the model never runs commands, and every path passes the same safety and exclusion checks as retrieval. Excerpts it read join the partition's context with their own read-only anchors. The GitHub App's API reader cannot search a frozen revision, so exploration there reads only. A failed or malformed exploration reply ends exploration, not the review.
+
+The optional agent reviewer (`REVIEW_AGENT_CLI`) hands the search to a coding agent instead. Claude Code or Codex runs in the local checkout with a short review request and read-only tools: file search and reads plus read-only `git` commands, with no edits, code execution or network tools. The engine parses its findings and keeps each one only when it cites a line the change edits, so the application still owns every published location. Merging, the verdict policy and GitHub publication are unchanged. The agent sees untrusted repository text, so its tools are limited to reading; it receives no GitHub credential.
 
 Each model partition runs in a fresh Flue child with an environment allowlist. Children receive model settings but no GitHub credential, repository shell tool or arbitrary network tool. The parent limits message/output bytes, concurrency, retries and deadlines. Required model review or candidate validation failure fails the review. An unavailable optional second opinion is reported as incomplete.
 

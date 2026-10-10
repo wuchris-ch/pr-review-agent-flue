@@ -1,3 +1,5 @@
+import { AGENT_CLIS, type AgentCli } from '../agents/agent-reviewer.js';
+
 /**
  * Every environment variable the review pipeline reads, in one place.
  *
@@ -31,6 +33,18 @@ export interface ReviewConfig {
   exploreRounds: number;
   /** Extra context room per partition for explored excerpts. */
   exploreContextBytes: number;
+  /** Coding-agent CLI that explores a local checkout and proposes findings, or undefined. */
+  agentCli?: AgentCli;
+  /** Model the agent CLI should use; its own default when undefined. */
+  agentModel?: string;
+  /** Reasoning effort passed to the agent CLI. */
+  agentEffort: string;
+  /** Wall clock for one agent review. */
+  agentTimeoutMs: number;
+  /** Run evidence validation over the agent's grounded findings. */
+  agentValidate: boolean;
+  /** Lines a proposal may sit from the changed line it is tied to. */
+  agentLineTolerance: number;
   /** Directory for JSONL run records, or undefined to keep them in memory. */
   runLogDir?: string;
 }
@@ -81,6 +95,10 @@ function huntFocus(env: NodeJS.ProcessEnv): readonly HuntFocus[] {
 
 export function reviewConfig(env: NodeJS.ProcessEnv = process.env): ReviewConfig {
   const runLogDir = env.REVIEW_RUN_LOG_DIR?.trim();
+  const agentCli = env.REVIEW_AGENT_CLI?.trim();
+  if (agentCli && !AGENT_CLIS.includes(agentCli as AgentCli))
+    throw new Error('REVIEW_AGENT_CLI must be claude or codex');
+  const agentModel = env.REVIEW_AGENT_CLI_MODEL?.trim();
   return {
     concurrency: integer(env, 'REVIEW_CONCURRENCY', 6, 1, 12),
     partitionBytes: integer(env, 'REVIEW_PARTITION_KIB', 48, 8, 96) * 1024,
@@ -97,6 +115,14 @@ export function reviewConfig(env: NodeJS.ProcessEnv = process.env): ReviewConfig
     // Bounded so the last round's diff plus earlier results stay under the 128 KiB child input.
     exploreRounds: integer(env, 'REVIEW_EXPLORE_ROUNDS', 3, 1, 4),
     exploreContextBytes: integer(env, 'REVIEW_EXPLORE_CONTEXT_KIB', 24, 4, 48) * 1024,
+    ...(agentCli ? { agentCli: agentCli as AgentCli } : {}),
+    ...(agentModel ? { agentModel } : {}),
+    agentEffort: env.REVIEW_AGENT_CLI_EFFORT?.trim() || 'high',
+    agentTimeoutMs: integer(env, 'REVIEW_AGENT_CLI_TIMEOUT_SECONDS', 1200, 60, 3600) * 1000,
+    agentValidate: flag(env, 'REVIEW_AGENT_VALIDATE', false),
+    // Exact changed lines: on the development split this kept the same F1 as the
+    // agent's own locations while removing a third of its unsupported comments.
+    agentLineTolerance: integer(env, 'REVIEW_AGENT_LINE_TOLERANCE', 0, 0, 50),
     ...(runLogDir ? { runLogDir } : {}),
   };
 }

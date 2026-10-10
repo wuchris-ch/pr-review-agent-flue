@@ -37,6 +37,8 @@ export interface StageResult {
   readonly reason?: string;
   /** A successful validation stage replaces draft model findings, never static checks. */
   readonly replaces?: readonly string[];
+  /** Unparsed output from an agent stage, kept for inspection and evaluation. */
+  readonly raw?: string;
 }
 
 /**

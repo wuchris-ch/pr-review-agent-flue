@@ -23,4 +23,10 @@ export interface ReviewRequest {
   readonly instructions?: string;
   /** Human-readable description of what was reviewed, for logs. */
   readonly label: string;
+  /** A local checkout an agent reviewer may read, when the source has one. */
+  readonly checkout?: {
+    readonly root: string;
+    readonly description: string;
+    readonly diffCommand: string;
+  };
 }

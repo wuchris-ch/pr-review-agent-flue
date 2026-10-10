@@ -9,7 +9,8 @@ const read = (name) => JSON.parse(readFileSync(new URL(name, results), 'utf8'));
 const subset = 'heldout/core';
 const excluded = new Set(read('judge-agreement.json').excluded_tools);
 const published = read('published-tools-report.json').scores[subset];
-const ours = read('heldout-final-report.json').scores[subset];
+// Three held-out runs of each configuration, scored by the same judge as the published tools.
+const ours = read('heldout-agent-report.json').summary['gpt-5.5'];
 
 const names = {
   'qodo-extended-v2': 'Qodo (extended)',
@@ -51,8 +52,16 @@ const tools = Object.entries(published)
   });
 if (tools.length !== 17) throw new Error(`Expected 17 comparable tools, found ${tools.length}`);
 
-const final = ours['pr-review-agent (final)'];
-const baseline = ours['pr-review-agent (baseline)'];
+const point = (s) => ({
+  p: s.precision.mean,
+  r: s.recall.mean,
+  pMin: s.precision.min,
+  pMax: s.precision.max,
+  rMin: s.recall.min,
+  rMax: s.recall.max,
+});
+const final = point(ours['agent reviewer (Claude Opus 5.5)']);
+const baseline = point(ours['pipeline (gpt-6.1-sol)']);
 
 const W = 880;
 const H = 540;
@@ -76,7 +85,7 @@ const out = [];
 out.push(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-labelledby="title desc">`,
   '<title id="title">Precision and recall on 30 held-out PRs</title>',
-  `<desc id="desc">PR Review at ${pct(final.precision)} precision and ${pct(final.recall)} recall, up from ${pct(baseline.recall)} recall before the changes, compared with 17 commercial reviewers scored by the same judge.</desc>`,
+  `<desc id="desc">PR Review's agent reviewer averages ${pct(final.p)} precision and ${pct(final.r)} recall over three runs, up from ${pct(baseline.r)} recall for its earlier model pipeline, compared with 17 commercial reviewers scored by the same judge.</desc>`,
   `<rect width="${W}" height="${H}" fill="#fbfaf7"/>`,
   `<g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="${muted}">`,
 );
@@ -133,40 +142,62 @@ for (const t of tools) {
     );
 }
 
-const bx = x(baseline.recall);
-const by = y(baseline.precision);
-const fx = x(final.recall);
-const fy = y(final.precision);
+const bx = x(baseline.r);
+const by = y(baseline.p);
+const fx = x(final.r);
+const fy = y(final.p);
 out.push(
   `<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${accent}"/></marker></defs>`,
 );
+// Curve below the tools between the two points so the arrow does not cross them.
+const cx = (bx + fx) / 2;
+const cy = Math.max(by, fy) + 80;
 out.push(
-  `<line x1="${f(bx + 7)}" y1="${f(by + 1)}" x2="${f(fx - 10)}" y2="${f(fy - 1)}" stroke="${accent}" stroke-width="2" marker-end="url(#arrow)"/>`,
+  `<path d="M${f(bx + 4)} ${f(by + 6)} Q${f(cx)} ${f(cy)} ${f(fx - 8)} ${f(fy + 7)}" fill="none" stroke="${accent}" stroke-width="1.75" stroke-dasharray="5 4" marker-end="url(#arrow)"/>`,
+);
+// Range of the three runs on each axis.
+for (const s of [baseline, final]) {
+  const sx = x(s.r);
+  const sy = y(s.p);
+  out.push(
+    `<line x1="${f(x(s.rMin))}" x2="${f(x(s.rMax))}" y1="${f(sy)}" y2="${f(sy)}" stroke="${accent}" stroke-width="1.5"/>`,
+    `<line x1="${f(sx)}" x2="${f(sx)}" y1="${f(y(s.pMax))}" y2="${f(y(s.pMin))}" stroke="${accent}" stroke-width="1.5"/>`,
+  );
+  for (const r of [s.rMin, s.rMax])
+    out.push(
+      `<line x1="${f(x(r))}" x2="${f(x(r))}" y1="${f(sy - 4)}" y2="${f(sy + 4)}" stroke="${accent}" stroke-width="1.5"/>`,
+    );
+}
+out.push(
+  `<circle cx="${f(bx)}" cy="${f(by)}" r="6" fill="#fbfaf7" stroke="${accent}" stroke-width="2"><title>PR Review, earlier model pipeline (mean of 3 runs): ${pct(baseline.p)} precision, ${pct(baseline.r)} recall</title></circle>`,
 );
 out.push(
-  `<circle cx="${f(bx)}" cy="${f(by)}" r="6" fill="#fbfaf7" stroke="${accent}" stroke-width="2"><title>PR Review before the changes: ${pct(baseline.precision)} precision, ${pct(baseline.recall)} recall</title></circle>`,
+  `<circle cx="${f(fx)}" cy="${f(fy)}" r="7.5" fill="${accent}"><title>PR Review, agent reviewer (mean of 3 runs): ${pct(final.p)} precision, ${pct(final.r)} recall</title></circle>`,
+);
+// The area under the leaders is empty, so the label sits there with a leader line.
+const lxp = fx - 80;
+const lyp = fy + 172;
+out.push(
+  `<line x1="${f(fx - 4)}" y1="${f(fy + 9)}" x2="${f(lxp + 10)}" y2="${f(lyp - 16)}" stroke="${accent}" stroke-width="1"/>`,
+  `<text x="${f(lxp)}" y="${f(lyp)}" text-anchor="middle" font-size="13" font-weight="600" fill="${accent}">PR Review agent reviewer</text>`,
 );
 out.push(
-  `<circle cx="${f(fx)}" cy="${f(fy)}" r="7.5" fill="${accent}"><title>PR Review: ${pct(final.precision)} precision, ${pct(final.recall)} recall</title></circle>`,
+  `<text x="${f(lxp)}" y="${f(lyp + 16)}" text-anchor="middle" font-size="11" fill="${accent}">${pct(final.p)} precision, ${pct(final.r)} recall</text>`,
+  `<text x="${f(lxp)}" y="${f(lyp + 31)}" text-anchor="middle" font-size="11" fill="${muted}">Mean of 3 runs; bars show the range</text>`,
 );
 out.push(
-  `<text x="${f(fx - 2)}" y="${f(fy + 26)}" text-anchor="middle" font-size="13" font-weight="600" fill="${accent}">PR Review</text>`,
-);
-out.push(
-  `<text x="${f(fx - 2)}" y="${f(fy + 42)}" text-anchor="middle" font-size="11" fill="${accent}">${pct(final.precision)} precision, ${pct(final.recall)} recall</text>`,
-);
-out.push(
-  `<text x="${f(bx - 12)}" y="${f(by - 12)}" text-anchor="end" font-size="11" fill="${accent}">before</text>`,
+  `<text x="${f(bx - 12)}" y="${f(by - 12)}" text-anchor="end" font-size="11" fill="${accent}">earlier pipeline</text>`,
 );
 
 // Legend in the empty upper-right corner.
-const lx = W - m.right - 214;
+const lw = 232;
+const lx = W - m.right - lw;
 const ly = m.top + 14;
 out.push(
-  `<rect x="${lx - 14}" y="${ly - 14}" width="214" height="76" rx="6" fill="#fbfaf7" stroke="${grid}"/>`,
+  `<rect x="${lx - 14}" y="${ly - 14}" width="${lw}" height="76" rx="6" fill="#fbfaf7" stroke="${grid}"/>`,
   `<circle cx="${lx}" cy="${ly}" r="5.5" fill="${tool}"/><text x="${lx + 14}" y="${ly + 4}">Commercial tools (${tools.length})</text>`,
-  `<circle cx="${lx}" cy="${ly + 24}" r="6.5" fill="${accent}"/><text x="${lx + 14}" y="${ly + 28}">PR Review</text>`,
-  `<circle cx="${lx}" cy="${ly + 48}" r="5.5" fill="#fbfaf7" stroke="${accent}" stroke-width="2"/><text x="${lx + 14}" y="${ly + 52}">PR Review, before the changes</text>`,
+  `<circle cx="${lx}" cy="${ly + 24}" r="6.5" fill="${accent}"/><text x="${lx + 14}" y="${ly + 28}">PR Review, agent reviewer</text>`,
+  `<circle cx="${lx}" cy="${ly + 48}" r="5.5" fill="#fbfaf7" stroke="${accent}" stroke-width="2"/><text x="${lx + 14}" y="${ly + 52}">PR Review, earlier pipeline</text>`,
 );
 
 out.push('</g>', '</svg>', '');

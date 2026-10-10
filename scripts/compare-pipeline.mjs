@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runAgentReviewer } from '../dist/agents/agent-reviewer.js';
 import { gitReader, retrieveContext } from '../dist/context/repository.js';
 import { decodeDiff } from '../dist/core/input.js';
 import { parseRepositoryConfig } from '../dist/core/repository-config.js';
@@ -20,12 +21,17 @@ const options = {
   label: '',
   // Bare repositories from scripts/fetch-benchmark-sources.py; required by context-explored.
   sources: '',
+  // Checkouts with the base on `main` and the pull request on `pr`, one directory per case;
+  // the agent arms run a coding agent there (REVIEW_AGENT_CLI, REVIEW_AGENT_CLI_MODEL).
+  workspaces: '',
+  // Saved agent answers, `<case>-<repetition>.md`; reused when present so arms stay paired.
+  agentCache: '',
 };
 for (let n = 2; n < process.argv.length; n += 2) {
   const key = process.argv[n].replace(/^--/, '');
   if (!(key in options) || !process.argv[n + 1])
     throw new Error(
-      'usage: compare-pipeline.mjs --dataset scenarios|external --limit N --repeats N --arms single-pass,diff-pipeline,context-pipeline,context-validated,context-explored [--concurrency N] [--cases id,id|@file] [--label name] [--sources dir]',
+      'usage: compare-pipeline.mjs --dataset scenarios|external --limit N --repeats N --arms single-pass,diff-pipeline,context-pipeline,context-validated,context-explored,agent-raw,agent,agent-validated [--concurrency N] [--cases id,id|@file] [--label name] [--sources dir] [--workspaces dir] [--agentCache dir]',
     );
   options[key] = ['limit', 'repeats', 'concurrency'].includes(key)
     ? Number(process.argv[n + 1])
@@ -52,11 +58,15 @@ const ARMS = [
   'context-pipeline',
   'context-validated',
   'context-explored',
+  'agent-raw',
+  'agent',
+  'agent-validated',
 ];
 if (
   new Set(arms).size !== arms.length ||
   arms.some((arm) => !ARMS.includes(arm)) ||
-  (arms.includes('context-explored') && (options.dataset !== 'external' || !options.sources))
+  (arms.includes('context-explored') && (options.dataset !== 'external' || !options.sources)) ||
+  (arms.some((arm) => arm.startsWith('agent')) && !options.workspaces && !options.agentCache)
 )
   throw new Error('invalid comparison arms');
 const directory = resolve(
@@ -141,6 +151,37 @@ function explorationReaderFor(item, arm) {
     throw new Error('benchmark source repository is missing; run fetch-benchmark-sources.py');
   return gitReader(repository, item.head);
 }
+const agentRuns = new Map();
+/** One agent answer per case and repetition, shared by every agent arm and saved for reuse. */
+function agentAnswer(item, repetition) {
+  const key = `${item.id}-${repetition}`;
+  if (!agentRuns.has(key))
+    agentRuns.set(
+      key,
+      (async () => {
+        const saved = options.agentCache ? resolve(options.agentCache, `${key}.md`) : '';
+        if (saved && existsSync(saved)) return readFileSync(saved, 'utf8');
+        const answer = await runAgentReviewer({
+          cli: process.env.REVIEW_AGENT_CLI || 'claude',
+          cwd: resolve(options.workspaces, item.id),
+          description:
+            'The checked-out branch `pr` contains the pull request; `main` is the base branch.',
+          diffCommand: 'git diff main...pr',
+          effort: process.env.REVIEW_AGENT_CLI_EFFORT || 'high',
+          timeoutMs: 1_200_000,
+          ...(process.env.REVIEW_AGENT_CLI_MODEL
+            ? { model: process.env.REVIEW_AGENT_CLI_MODEL }
+            : {}),
+        });
+        if (saved) {
+          mkdirSync(options.agentCache, { recursive: true, mode: 0o700 });
+          writeFileSync(saved, answer, { mode: 0o600 });
+        }
+        return answer;
+      })(),
+    );
+  return agentRuns.get(key);
+}
 const tasks = [];
 for (const item of cases)
   for (let repetition = 1; repetition <= options.repeats; repetition++)
@@ -157,14 +198,26 @@ async function worker() {
       const name = `${item.id}-${arm}-${repetition}`;
       try {
         const explorationReader = explorationReaderFor(item, arm);
+        const agentReview = arm.startsWith('agent')
+          ? {
+              root: resolve(options.workspaces || root, item.id),
+              grounding: arm === 'agent-raw' ? 'off' : 'near',
+              validate: arm === 'agent-validated',
+              run: () => agentAnswer(item, repetition),
+            }
+          : undefined;
         const result = await reviewDiffDetailed(diff, {
           onAttempt: (attempt) => attempts.push(attempt),
           repositoryConfig: {
             ...config,
-            validateFindings: arm === 'context-validated' || arm === 'context-explored',
+            validateFindings:
+              arm === 'context-validated' ||
+              arm === 'context-explored' ||
+              arm === 'agent-validated',
           },
-          ...(arm.startsWith('context-') ? { repositoryContext: context } : {}),
+          ...(arm.startsWith('context-') || agentReview ? { repositoryContext: context } : {}),
           ...(explorationReader ? { explorationReader } : {}),
+          ...(agentReview ? { agentReview } : {}),
           ...(arm === 'single-pass' ? { stages: [createModelStage()] } : {}),
         });
         writeFileSync(resolve(directory, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`, {

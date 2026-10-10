@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="880" height="540" role="img" aria-labelledby="title desc">
 <title id="title">Precision and recall on 30 held-out PRs</title>
-<desc id="desc">PR Review at 52.4% precision and 30.0% recall, up from 25.5% recall before the changes, compared with 17 commercial reviewers scored by the same judge.</desc>
+<desc id="desc">PR Review's agent reviewer averages 49.2% precision and 56.1% recall over three runs, up from 29.1% recall for its earlier model pipeline, compared with 17 commercial reviewers scored by the same judge.</desc>
 <rect width="880" height="540" fill="#fbfaf7"/>
 <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7a72">
 <line x1="72" x2="852" y1="476.0" y2="476.0" stroke="#e3e2db"/>
@@ -67,15 +67,25 @@
 <circle cx="147.6" cy="54.4" r="5.5" fill="#a7b2ac"><title>Graphite: 80.0% precision, 7.3% recall</title></circle>
 <text x="157.6" y="58.4" text-anchor="start">Graphite</text>
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#2f6b4f"/></marker></defs>
-<line x1="343.7" y1="193.2" x2="374.0" y2="198.9" stroke="#2f6b4f" stroke-width="2" marker-end="url(#arrow)"/>
-<circle cx="336.7" cy="192.2" r="6" fill="#fbfaf7" stroke="#2f6b4f" stroke-width="2"><title>PR Review before the changes: 53.8% precision, 25.5% recall</title></circle>
-<circle cx="384.0" cy="199.9" r="7.5" fill="#2f6b4f"><title>PR Review: 52.4% precision, 30.0% recall</title></circle>
-<text x="382.0" y="225.9" text-anchor="middle" font-size="13" font-weight="600" fill="#2f6b4f">PR Review</text>
-<text x="382.0" y="241.9" text-anchor="middle" font-size="11" fill="#2f6b4f">52.4% precision, 30.0% recall</text>
-<text x="324.7" y="180.2" text-anchor="end" font-size="11" fill="#2f6b4f">before</text>
-<rect x="624" y="28" width="214" height="76" rx="6" fill="#fbfaf7" stroke="#e3e2db"/>
-<circle cx="638" cy="42" r="5.5" fill="#a7b2ac"/><text x="652" y="46">Commercial tools (17)</text>
-<circle cx="638" cy="66" r="6.5" fill="#2f6b4f"/><text x="652" y="70">PR Review</text>
-<circle cx="638" cy="90" r="5.5" fill="#fbfaf7" stroke="#2f6b4f" stroke-width="2"/><text x="652" y="94">PR Review, before the changes</text>
+<path d="M378.5 214.3 Q514.8 296.7 647.0 223.7" fill="none" stroke="#2f6b4f" stroke-width="1.75" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<line x1="365.1" x2="384.0" y1="208.3" y2="208.3" stroke="#2f6b4f" stroke-width="1.5"/>
+<line x1="374.5" x2="374.5" y1="199.9" y2="216.7" stroke="#2f6b4f" stroke-width="1.5"/>
+<line x1="365.1" x2="365.1" y1="204.3" y2="212.3" stroke="#2f6b4f" stroke-width="1.5"/>
+<line x1="384.0" x2="384.0" y1="204.3" y2="212.3" stroke="#2f6b4f" stroke-width="1.5"/>
+<line x1="639.3" x2="667.6" y1="216.7" y2="216.7" stroke="#2f6b4f" stroke-width="1.5"/>
+<line x1="655.0" x2="655.0" y1="214.6" y2="218.6" stroke="#2f6b4f" stroke-width="1.5"/>
+<line x1="639.3" x2="639.3" y1="212.7" y2="220.7" stroke="#2f6b4f" stroke-width="1.5"/>
+<line x1="667.6" x2="667.6" y1="212.7" y2="220.7" stroke="#2f6b4f" stroke-width="1.5"/>
+<circle cx="374.5" cy="208.3" r="6" fill="#fbfaf7" stroke="#2f6b4f" stroke-width="2"><title>PR Review, earlier model pipeline (mean of 3 runs): 50.8% precision, 29.1% recall</title></circle>
+<circle cx="655.0" cy="216.7" r="7.5" fill="#2f6b4f"><title>PR Review, agent reviewer (mean of 3 runs): 49.2% precision, 56.1% recall</title></circle>
+<line x1="651.0" y1="225.7" x2="585.0" y2="372.7" stroke="#2f6b4f" stroke-width="1"/>
+<text x="575.0" y="388.7" text-anchor="middle" font-size="13" font-weight="600" fill="#2f6b4f">PR Review agent reviewer</text>
+<text x="575.0" y="404.7" text-anchor="middle" font-size="11" fill="#2f6b4f">49.2% precision, 56.1% recall</text>
+<text x="575.0" y="419.7" text-anchor="middle" font-size="11" fill="#6b7a72">Mean of 3 runs; bars show the range</text>
+<text x="362.5" y="196.3" text-anchor="end" font-size="11" fill="#2f6b4f">earlier pipeline</text>
+<rect x="606" y="28" width="232" height="76" rx="6" fill="#fbfaf7" stroke="#e3e2db"/>
+<circle cx="620" cy="42" r="5.5" fill="#a7b2ac"/><text x="634" y="46">Commercial tools (17)</text>
+<circle cx="620" cy="66" r="6.5" fill="#2f6b4f"/><text x="634" y="70">PR Review, agent reviewer</text>
+<circle cx="620" cy="90" r="5.5" fill="#fbfaf7" stroke="#2f6b4f" stroke-width="2"/><text x="634" y="94">PR Review, earlier pipeline</text>
 </g>
 </svg>

@@ -6,13 +6,14 @@
 
 AI code review that cites exact lines, and for small Python repositories proves a suspected bug with a failing test before proposing a fix.
 
-Review pull requests from your terminal, a GitHub Action, or a self-hosted GitHub App. Findings cite exact changed lines, use related repository context, and pass a separate evidence check before publication. The optional review platform goes further: it reproduces a suspected regression with a test that passes on the base commit and fails on the PR, has an independent agent judge intent, and offers a fix that must pass that test and the existing suite before a developer can approve it.
+Review pull requests from your terminal, a GitHub Action, or a self-hosted GitHub App. Findings cite exact changed lines, use related repository context, and pass a separate evidence check before publication. On a local checkout, Claude Code or Codex can do the bug finding while this engine keeps every comment on a changed line and owns the verdict and publication. The optional review platform goes further: it reproduces a suspected regression with a test that passes on the base commit and fails on the PR, has an independent agent judge intent, and offers a fix that must pass that test and the existing suite before a developer can approve it.
 
-Bring your own OpenAI-compatible model endpoint. Each installation uses its own credentials and repository permissions. The CLI and Action run without a database or hosted service.
+Bring your own OpenAI-compatible model endpoint, or a signed-in Claude Code or Codex CLI for local agent reviews. Each installation uses its own credentials and repository permissions. The CLI and Action run without a database or hosted service.
 
 ## Results
 
-- **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the reviewer reports issues at 52.4% precision, 7th of 18 reviewers including 17 commercial tools scored by the same judge, and finds 30% of human-verified issues (F1 38.2%, up from 34.6% at baseline). Recall is its weakness. Optional repository exploration, where the model searches and reads the codebase before reviewing, finds 32.7% at 49.3% precision.
+- **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the agent reviewer (Claude Opus 5.5 in Claude Code with read-only tools, grounded by this engine) finds 56.1% of human-verified issues at 49.2% precision, averaged over three runs. Its F1 of 52.4% (runs from 51.7% to 52.8%) ranks 4th of 18 reviewers, including 17 commercial tools scored by the same judge. The earlier model pipeline found 29.1% (F1 37.0%).
+- **Two judges:** a second judge from another model family, Claude Sonnet 5.5, re-scored every reviewer and agreed with the main GPT-5.5 judge on 97.7% of 2,832 decisions. It also ranks the agent reviewer 4th.
 - **Live regression platform:** 9 of 9 seeded multi-file regressions reproduced with failing tests, 9 of 9 proposed fixes passed withheld contract tests, and 0 of 9 valid changes flagged.
 
 [![Precision and recall on 30 held-out PRs, compared with 17 commercial reviewers scored by the same judge](docs/assets/benchmark.svg)](docs/results.md)
@@ -46,6 +47,17 @@ npm run cli -- pr 123 --repo owner/repository --publish
 
 For a globally available command, run `npm link`. Then use `pr-review init` in your repository, export the three model settings in your shell, and run `pr-review review --base main`. The CLI reads tracked local changes; GitHub review reads immutable revisions from GitHub.
 
+### Let a coding agent find the bugs
+
+With Claude Code or the Codex CLI installed and signed in, a local review can hand the bug finding to the agent. It reads the repository with read-only tools, and the engine keeps only findings on lines the change edits. No model gateway settings are needed in this mode.
+
+```sh
+export REVIEW_AGENT_CLI=claude REVIEW_AGENT_CLI_MODEL=claude-opus-5-5
+pr-review review --base main
+```
+
+This is the configuration behind the benchmark results. [Agent reviewer settings](docs/guides/configuration.md#agent-reviewer).
+
 ## Add a GitHub Action
 
 Save the [ready-to-copy workflow](examples/github-actions/review.yml) as `.github/workflows/review.yml` in a repository you want reviewed. Configure its three model secrets. It supports automatic reviews of same-repository PRs, a **Run workflow** button, and a maintainer's `/review` comment, including on fork PRs.
@@ -63,6 +75,7 @@ The Action fetches the diff and source as data through GitHub's API. It does not
 ## What the reviewer does
 
 - **Find relevant evidence.** Index the diff, partition large changes, and retrieve bounded source excerpts, callers, tests and contracts from the same head revision.
+- **Or hand the search to an agent.** On a local checkout, Claude Code or Codex explores the repository with read-only tools and proposes findings, which go through the same grounding, merging and publication rules.
 - **Review what matters here.** Use repository contracts and operational limits to prioritize security, serious correctness and reliability bugs, material performance regressions, and compatibility failures. [Customize review priorities](docs/guides/review-priorities.md).
 - **Check concrete defects.** Run deterministic checks, model review, an optional second opinion on small otherwise-clean changes, and a fresh validation pass over actual candidate findings.
 - **Control noise.** Require exact source citations, consolidate overlapping findings, cap inline comments, apply a severity floor, and suppress current comments already posted by the same bot.
@@ -78,10 +91,10 @@ Evidence validation is source-based. For executable proof, the optional [review 
 | [`src/core/`](src/core) | Diff parsing, exact evidence anchors, schema, policy and budgets |
 | [`src/context/`](src/context) | Bounded retrieval from unchanged repository files |
 | [`src/stages/`](src/stages) | Static checks, model passes, finding validation and merging |
-| [`src/agents/`](src/agents) | Flue runtime, model transport and isolated child processes |
+| [`src/agents/`](src/agents) | Flue runtime, model transport, isolated child processes and the coding-agent reviewer |
 | [`src/github/`](src/github) | API client, revision binding, inline comments and App webhooks |
 | [`src/cli/`](src/cli) | CLI commands; executable entry points are in `src/bin/` |
-| [`integrations/`](integrations) | Action container and GitHub App configuration |
+| [`integrations/`](integrations) | Action container, GitHub App configuration and ReviewBench adapter |
 | [`apps/`](apps) | Optional FastAPI/Temporal platform and React console |
 | [`deploy/`](deploy) | Local platform service definitions |
 | [`examples/`](examples) | Copyable workflows and runnable multi-file scenarios |

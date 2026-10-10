@@ -1,0 +1,32 @@
+{
+  "measured": "2026-10-09",
+  "judges": [
+    "gpt-5.5 (medium)",
+    "claude-sonnet-5-5 (medium)"
+  ],
+  "definition": "A decision is whether one reviewer found one golden issue on one held-out PR. Agreement is the share of decisions where both judges match.",
+  "gpt55_vs_sonnet_single_runs": {
+    "decisions": 2832,
+    "agreement": 0.977,
+    "cohens_kappa": 0.9532,
+    "reviewers": 24,
+    "f1_rank_spearman": 0.991
+  },
+  "gpt55_vs_sonnet_three_run_experiments": {
+    "decisions": 1062,
+    "agreement": 0.9736,
+    "cohens_kappa": 0.9472
+  },
+  "with_martian_gpt52_published_tools_heldout": {
+    "gpt-5.5": {
+      "decisions": 2006,
+      "agreement": 0.9516,
+      "cohens_kappa": 0.9026
+    },
+    "claude-sonnet-5-5": {
+      "decisions": 2006,
+      "agreement": 0.9501,
+      "cohens_kappa": 0.8997
+    }
+  }
+}
