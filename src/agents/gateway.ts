@@ -19,7 +19,7 @@ export const MAX_RESPONSE_BYTES = 1024 * 1024;
  * shared budget keeps a fast failure retryable while a slow first attempt
  * simply spends the time instead of doubling it.
  */
-export const DEFAULT_NETWORK_BUDGET_MS = 180_000;
+export const DEFAULT_NETWORK_BUDGET_MS = 240_000;
 /**
  * Output tokens allowed per reply.
  *
