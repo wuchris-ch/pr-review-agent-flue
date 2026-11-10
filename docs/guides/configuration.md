@@ -27,7 +27,7 @@ The endpoint must support streaming chat completions, JSON object mode, the conf
 | `REVIEW_AGENT_MODEL` | Required wire model identifier; telemetry uses the alias `reviewer` |
 | `REVIEW_REASONING_EFFORT` | `low`; `default` omits the parameter |
 | `REVIEW_MAX_OUTPUT_TOKENS` | 32768, including provider reasoning tokens |
-| `REVIEW_GATEWAY_TIMEOUT_SECONDS` | 180 seconds shared across HTTP attempts |
+| `REVIEW_GATEWAY_TIMEOUT_SECONDS` | 240 seconds shared across HTTP attempts |
 | `REVIEW_DEADLINE_SECONDS` | 900 seconds for the full review |
 | `REVIEW_CONCURRENCY` | 6 model partitions at once |
 | `REVIEW_PARTITION_KIB` | 48 KiB preferred message size |
