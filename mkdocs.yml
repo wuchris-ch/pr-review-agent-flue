@@ -51,6 +51,7 @@ nav:
       - CLI and configuration: guides/configuration.md
       - Review priorities: guides/review-priorities.md
       - GitHub App: guides/github-app.md
+      - Docs pipeline: guides/docs-pipeline.md
   - Architecture: architecture.md
   - Review platform:
       - Quickstart: platform/quickstart.md

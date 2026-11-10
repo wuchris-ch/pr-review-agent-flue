@@ -45,3 +45,33 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  stale-docs:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Flag documentation the code change made stale
+        env:
+          MODEL_GATEWAY_API_KEY: ${{ secrets.MODEL_GATEWAY_API_KEY }}
+          MODEL_GATEWAY_BASE_URL: ${{ secrets.MODEL_GATEWAY_BASE_URL }}
+          REVIEW_AGENT_MODEL: ${{ secrets.REVIEW_AGENT_MODEL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git ls-files -z -- README.md CONTRIBUTING.md 'docs/*.md' ':(exclude)docs/results/*' \
+            examples/README.md evals/README.md integrations/github-app/README.md \
+            | xargs -0 node dist/bin/stale-docs.js --base "origin/$BASE_REF" --repo "$GITHUB_REPOSITORY" --pr "$PR_NUMBER"
