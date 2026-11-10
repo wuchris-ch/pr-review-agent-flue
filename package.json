@@ -36,7 +36,8 @@
     "cli": "node --env-file-if-exists=.env dist/bin/main.js",
     "examples:check": "python3 scripts/examples/check-scenarios.py",
     "eval:compare": "node --env-file-if-exists=.env scripts/compare-pipeline.mjs",
-    "eval:import": "node scripts/import-external-benchmark.mjs"
+    "eval:import": "node scripts/import-external-benchmark.mjs",
+    "docs:stale": "node --env-file-if-exists=.env dist/bin/stale-docs.js"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "0.83.0",

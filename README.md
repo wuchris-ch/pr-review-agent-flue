@@ -84,6 +84,10 @@ The Action fetches the diff and source as data through GitHub's API. It does not
 
 Evidence validation is source-based. For executable proof, the optional [review platform](docs/platform/quickstart.md) runs the same frozen regression test on base and PR commits, checks intent, tests a repair and records developer approval. Its console can publish reproduced evidence back to the PR. It currently supports small UTF-8 Python repositories and one candidate per review. [Live-model results](docs/results.md#regression-platform-with-a-live-model).
 
+## Documentation
+
+The [documentation site](https://wuchris-ch.github.io/pr-review-agent-flue/docs/) is built with MkDocs from this README and `docs/`. GitHub Pages publishes it on every merge to `main`. On each pull request, a stale-docs check sends the code diff and the documentation pages to the configured model. It comments with the pages the change likely made stale, the reason, and the changed code. Without model secrets, the check skips. [How the docs pipeline works](docs/guides/docs-pipeline.md).
+
 ## Find your way around
 
 | Directory | What belongs here |
