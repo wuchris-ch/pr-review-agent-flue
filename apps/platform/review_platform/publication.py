@@ -107,6 +107,7 @@ def publish_evidence(store, source, publisher, user, review_id):
         marker = f"<!-- pr-review-evidence:{review.id}:{review.evidence_digest} -->"
         # The test is an inspectable artifact, never an instruction to execute on GitHub.
         test = reproduction["test"]
+        language = "java" if "pom.xml" in artifact("snapshot")["head"] else "python"
         fence = "`" * max(3, 1 + max((len(x) for x in re.findall(r"`+", test)), default=0))
         body = "\n".join(
             [
@@ -122,7 +123,7 @@ def publish_evidence(store, source, publisher, user, review_id):
                 "",
                 "<details><summary>Frozen regression test</summary>",
                 "",
-                f"{fence}python",
+                f"{fence}{language}",
                 test,
                 fence,
                 "",

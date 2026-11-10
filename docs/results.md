@@ -175,6 +175,20 @@ The [platform](platform/quickstart.md) investigates a PR with three specialist a
 
 Raw records: [`evals/platform/runs/`](../evals/platform/runs). Earlier runs that exposed the problems below are kept in `evals/platform/runs/superseded/`.
 
+### Java with Maven and JUnit (November 10)
+
+The [retry-backoff scenario](../examples/scenarios/retry-backoff) is a Maven project with JUnit 5 tests. Its regression PR replaces a saturating backoff helper with `baseMillis << attempt`, which overflows into negative delays and wraps at attempt 64 because Java masks the shift distance. Its valid PR rewrites the helper as a saturating doubling loop. `ContractTest.java` is withheld and runs in the sandbox image against every proposed fix.
+
+| Run (gpt-6.1-sol, high) | Regression reproduced with a JUnit test (time to approval step) | Fix passing withheld contract test | Valid change flagged |
+|---|---:|---:|---:|
+| 1 | yes, 1.7 min | yes | no |
+| 2 | yes, 1.3 min | yes | no |
+| 3 | yes, 1.5 min | yes | no |
+
+In each run, the model wrote its own public JUnit class. The sandbox built it with Maven, offline and without network, and ran it on both commits. It passed on base and failed on the PR, for example with `expected: <PT30S> but was: <PT-2562047788015H-12M-55.808S>` at attempt 63. [The run transcript](results/2026-11-10-java-maven.md) has the test, the Surefire evidence, the validator's reason and the proposed patch.
+
+An earlier run on the same day flagged the "valid" PR, and the platform was right. The first version of the scenario accepted a base delay under one millisecond, such as `Duration.ofNanos(1)`, which truncates to 0 ms. The original helper still saturated to the maximum at attempt 63. The rewritten loop doubled zero forever, so it returned 0 and ran 2,147,483,647 iterations for `delayFor(Integer.MAX_VALUE)`. The scenario now rejects bases under one millisecond in every variant. That run, and three runs on a runner build with a since-fixed stack-frame filter, are kept in `evals/platform/runs/superseded/`.
+
 Running live for the first time exposed four defects that scripted fixtures had hidden, each now fixed and tested:
 
 - **Citations.** Models quote code correctly but miscount lines; one bad citation failed the whole review. Agents now receive numbered source, grounding tolerates whitespace and multi-line quotes and corrects lines that are off by up to three, and an ungroundable candidate is dropped with a reason instead of failing the review.
@@ -189,7 +203,7 @@ Running live for the first time exposed four defects that scripted fixtures had 
 - The held-out split is no longer untouched for the agent reviewer, because its plain-prompt run was scored there before the design work. A larger benchmark is the next test; [`integrations/reviewbench`](../integrations/reviewbench) packages the agent reviewer for ReviewBench.
 - The judges are models. They agree closely with each other and with Martian's published judge, but neither is a human adjudicator.
 - The agent reviewer needs a local checkout and a signed-in Claude Code or Codex CLI. The GitHub Action and App read pull requests through the API and use the model pipeline.
-- The platform scenarios are authored examples. The platform supports small UTF-8 Python repositories and progresses one candidate per review.
+- The platform scenarios are authored examples. The platform supports small UTF-8 Python repositories and Maven projects with JUnit 5, whose dependencies must be cached in the runner image, and progresses one candidate per review. The Java result covers one scenario.
 - Model pipeline runs used a ChatGPT subscription through a local OpenAI-compatible bridge to the Codex CLI. Reported token counts include that client's fixed system prompt, so no per-review dollar cost is claimed for them. Agent reviewer runs used a Claude subscription; the dollar figures above are Claude Code's API-equivalent estimates.
 
 ## Reproduce

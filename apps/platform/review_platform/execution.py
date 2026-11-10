@@ -23,15 +23,55 @@ SETUP_ERRORS = {
     "ModuleNotFoundError",
     "NameError",
 }
+# Java linkage and class-loading errors, which also point at a broken test or build.
+JAVA_SETUP_ERRORS = {
+    "ClassNotFoundException",
+    "NoClassDefFoundError",
+    "NoSuchMethodError",
+    "NoSuchFieldError",
+    "IncompatibleClassChangeError",
+    "ExceptionInInitializerError",
+    "UnsupportedClassVersionError",
+}
+JAVA_PACKAGE = re.compile(r"^\s*package\s+([\w.]+)\s*;", re.MULTILINE)
+JAVA_CLASS = re.compile(r"^\s*public\s+(?:final\s+)?class\s+(\w+)", re.MULTILINE)
+
+
+def surefire_report(log: str) -> dict | None:
+    """The Surefire summary the runner prints last for a Maven project, if there is one."""
+    reports = [line for line in log.splitlines() if line.startswith("SUREFIRE ")]
+    if not reports:
+        return None
+    try:
+        return json.loads(reports[-1].removeprefix("SUREFIRE "))
+    except ValueError:
+        return None
+
+
+def demonstrates_java_regression(report: dict) -> bool:
+    """True when a JUnit test failed an assertion, or the reviewed main sources threw."""
+    for problem in report["problems"]:
+        if problem["kind"] == "failure":
+            return True
+        exception = problem["type"].rsplit(".", 1)[-1]
+        innermost = problem["frames"][0] if problem["frames"] else ""
+        if innermost.startswith(SOURCE_ROOT) and exception not in JAVA_SETUP_ERRORS:
+            return True
+    return False
 
 
 def demonstrates_regression(log: str) -> bool:
-    """True when a failing unittest run shows changed behavior of the reviewed code.
+    """True when a failing test run shows changed behavior of the reviewed code.
 
     Accepts an assertion failure, or an exception raised inside the reviewed source
     (for example a guard that raises on the regression). Exceptions thrown by the test
     itself, and syntax, import or name errors, stay inconclusive.
+    Maven projects are judged from the runner's Surefire summary, Python projects from
+    unittest output.
     """
+    report = surefire_report(log)
+    if report is not None:
+        return demonstrates_java_regression(report)
     if "FAILED (" not in log:
         return False
     if "AssertionError" in log:
@@ -49,6 +89,19 @@ def demonstrates_regression(log: str) -> bool:
         if frames and frames[-1].startswith(SOURCE_ROOT) and exception not in SETUP_ERRORS:
             return True
     return False
+
+
+def junit_test_path(test: str) -> tuple[str, str] | None:
+    """Where a JUnit test class belongs in a Maven project, and its qualified class name."""
+    declared = JAVA_CLASS.search(test)
+    if not declared:
+        return None
+    name = declared.group(1)
+    package = JAVA_PACKAGE.search(test)
+    if not package:
+        return f"src/test/java/{name}.java", name
+    folder = package.group(1).replace(".", "/")
+    return f"src/test/java/{folder}/{name}.java", f"{package.group(1)}.{name}"
 
 
 class DockerExecutor:
@@ -77,14 +130,30 @@ class DockerExecutor:
         image = image or self.image
         name = f"review-exec-{uuid4().hex}"
         volume, staging = f"{name}-input", f"{name}-stage"
-        command = ["python", "-B", "/input/evidence/regression.py"] if test else suite
+        workspace, evidence = dict(files), {}
         # No model-defined shell or runtime selection. Suite is operator provisioned.
+        if not test:
+            command = suite
+        elif "pom.xml" in files:
+            # Maven compiles the JUnit regression class together with the project's tests.
+            placement = junit_test_path(test)
+            if placement is None or placement[0] in files:
+                return RunResult(
+                    exit_code=2,
+                    log="regression test must declare a new public JUnit test class",
+                    outcome="failed",
+                )
+            path, class_name = placement
+            workspace[path] = test
+            command = ["mvn", "test", f"-Dtest={class_name}"]
+        else:
+            evidence["evidence/regression.py"] = test
+            command = ["python", "-B", "/input/evidence/regression.py"]
         archive = io.BytesIO()
         with tarfile.open(fileobj=archive, mode="w") as tar:
-            entries = {f"workspace/{safe_path(k)}": v for k, v in files.items()}
+            entries = {f"workspace/{safe_path(k)}": v for k, v in workspace.items()}
             entries["evidence/command.json"] = json.dumps(command)
-            if test:
-                entries["evidence/regression.py"] = test
+            entries.update(evidence)
             for path, content in entries.items():
                 data = content.encode()
                 entry = tarfile.TarInfo(path)

@@ -29,6 +29,18 @@ LINE_NOTE = (
     "Source files under base and head are shown with each line prefixed by its 1-based line "
     "number and '| '. Cite head line numbers, and quote excerpts without that prefix."
 )
+REGRESSION_TESTS = {
+    "python": "Write a Python standard-library unittest file that ends with unittest.main(). "
+    "It runs as a script with the repository root on PYTHONPATH.",
+    "maven": "This is a Maven project. Write one public JUnit 5 (Jupiter) test class in the "
+    "package of the code under test, using org.junit.jupiter.api.Test and Assertions. Maven "
+    "compiles it with the project's tests and runs only that class.",
+}
+
+
+def regression_tests(snapshot):
+    """The test framework the sandbox runs for this snapshot: JUnit for Maven, else unittest."""
+    return REGRESSION_TESTS["maven" if "pom.xml" in snapshot.get("head", {}) else "python"]
 
 
 def readable(snapshot):
@@ -44,7 +56,7 @@ class FlueAgents:
     def __init__(self, providers: dict[str, dict[str, str]]):
         self.providers = providers
 
-    def request(self, provider, role, schema, evidence):
+    def request(self, provider, role, schema, evidence, snapshot):
         if provider not in self.providers:
             raise Problem(422, "model provider is not provisioned on this worker")
         configuration = self.providers[provider]
@@ -56,6 +68,7 @@ class FlueAgents:
         envelope = {
             "role": role,
             "task": TASKS[role],
+            "regression_tests": regression_tests(snapshot),
             "schema": schema.model_json_schema(),
             "evidence": evidence,
         }
@@ -81,7 +94,7 @@ class FlueAgents:
             raise Problem(422, "specialist returned an invalid or unavailable result") from None
 
     def investigate(self, provider, role, snapshot):
-        return self.request(provider, role, Investigation, readable(snapshot))
+        return self.request(provider, role, Investigation, readable(snapshot), snapshot)
 
     def validate(self, provider, candidate, snapshot, reproduction):
         return self.request(
@@ -93,6 +106,7 @@ class FlueAgents:
                 "snapshot": readable(snapshot),
                 "reproduction": reproduction,
             },
+            snapshot,
         )
 
     def repair(self, provider, candidate, snapshot, allowed):
@@ -105,6 +119,7 @@ class FlueAgents:
                 "snapshot": snapshot,
                 "authorized_source_paths": allowed,
             },
+            snapshot,
         )
 
 
