@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/wuchris-ch/pr-review-agent-flue?color=2f6b4f)](https://github.com/wuchris-ch/pr-review-agent-flue/releases/latest)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-2f6b4f)](LICENSE)
 
-AI code review that cites exact lines, and for small Python repositories proves a suspected bug with a failing test before proposing a fix.
+AI code review that cites exact lines, and for small Python and Java (Maven and JUnit) repositories proves a suspected bug with a failing test before proposing a fix.
 
 Review pull requests from your terminal, a GitHub Action, or a self-hosted GitHub App. Findings cite exact changed lines, use related repository context, and pass a separate evidence check before publication. On a local checkout, Claude Code or Codex can do the bug finding while this engine keeps every comment on a changed line and owns the verdict and publication. The optional review platform goes further: it reproduces a suspected regression with a test that passes on the base commit and fails on the PR, has an independent agent judge intent, and offers a fix that must pass that test and the existing suite before a developer can approve it.
 
@@ -14,7 +14,7 @@ Bring your own OpenAI-compatible model endpoint, or a signed-in Claude Code or C
 
 - **Public benchmark:** on 30 held-out PRs from Sentry, Grafana, Keycloak, Discourse and Cal.com, the agent reviewer (Claude Opus 5.5 in Claude Code with read-only tools, grounded by this engine) finds 56.1% of human-verified issues at 49.2% precision, averaged over three runs. Its F1 of 52.4% (runs from 51.7% to 52.8%) ranks 4th of 18 reviewers, including 17 commercial tools scored by the same judge. The earlier model pipeline found 29.1% (F1 37.0%).
 - **Two judges:** a second judge from another model family, Claude Sonnet 5.5, re-scored every reviewer and agreed with the main GPT-5.5 judge on 97.7% of 2,832 decisions. It also ranks the agent reviewer 4th.
-- **Live regression platform:** 9 of 9 seeded multi-file regressions reproduced with failing tests, 9 of 9 proposed fixes passed withheld contract tests, and 0 of 9 valid changes flagged.
+- **Live regression platform:** 9 of 9 seeded multi-file regressions reproduced with failing tests, 9 of 9 proposed fixes passed withheld contract tests, and 0 of 9 valid changes flagged. On a Java Maven project, the model wrote a JUnit test that reproduced an overflow regression in 3 of 3 runs, every fix passed the withheld contract test, and the valid change was never flagged.
 
 [![Precision and recall on 30 held-out PRs, compared with 17 commercial reviewers scored by the same judge](docs/assets/benchmark.svg)](docs/results.md)
 
@@ -82,7 +82,7 @@ The Action fetches the diff and source as data through GitHub's API. It does not
 - **Publish against the reviewed revision.** Bind the result to base, merge base, head and diff digest. Recheck before posting and reconcile saved receipts after a lost response.
 - **Measure changes.** Record per-stage attempts, latency, input size and numeric usage when available. Compare the full pipeline to a single model pass on the same cases and model.
 
-Evidence validation is source-based. For executable proof, the optional [review platform](docs/platform/quickstart.md) runs the same frozen regression test on base and PR commits, checks intent, tests a repair and records developer approval. Its console can publish reproduced evidence back to the PR. It currently supports small UTF-8 Python repositories and one candidate per review. [Live-model results](docs/results.md#regression-platform-with-a-live-model).
+Evidence validation is source-based. For executable proof, the optional [review platform](docs/platform/quickstart.md) runs the same frozen regression test on base and PR commits, checks intent, tests a repair and records developer approval. Its console can publish reproduced evidence back to the PR. It supports small UTF-8 Python repositories with `unittest` and Java repositories that build with Maven and test with JUnit 5, and progresses one candidate per review. For a Maven project, the sandbox builds offline in the network-isolated container, runs the agent's JUnit class with the project's tests and reads the Surefire reports. [Live-model results](docs/results.md#regression-platform-with-a-live-model).
 
 ## Documentation
 

@@ -7,8 +7,11 @@ Start with [GitHub Action setup](../docs/guides/github-action.md) to review your
 | [Tenant cache](scenarios/tenant-cache) | A cache hit bypasses tenant isolation | A cache key normalization that retains both identifiers |
 | [Cursor pagination](scenarios/cursor-pagination) | Inclusive cursor repeats the previous page boundary | An equivalent strict SQL predicate |
 | [Webhook idempotency](scenarios/webhook-idempotency) | A replay credits the account twice | An equivalent duplicate-event check |
+| [Retry backoff (Java)](scenarios/retry-backoff) | A shift overflows into negative retry delays | A saturating doubling loop |
 
 Every scenario has `base/`, `regression/`, `safe/`, both diffs, and `contract_test.py`. The checker executes the same frozen contract test against each revision. Base and safe pass; regression must fail an assertion. These are authored development scenarios, not sampled production PRs.
+
+The retry-backoff scenario is a Maven project with JUnit 5 tests for the [review platform](../docs/platform/quickstart.md). It has a withheld `ContractTest.java` instead of `contract_test.py` and no diffs. The platform's Docker tests run that contract against each variant in the sandbox image.
 
 ```sh
 npm run examples:check

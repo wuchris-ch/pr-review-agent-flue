@@ -4,9 +4,11 @@ Each scenario becomes a local Git mirror: main holds the base, pull request 1 th
 regression and pull request 2 a valid alternative change. The scenario's
 contract_test.py is withheld from the platform and used afterwards as an
 independent check of every proposed fix. The API and worker must be running
-with the selected provider configured.
+with the selected provider configured. Maven scenarios withhold ContractTest.java
+instead and run it in the sandbox image.
 
     DATABASE_URL=... uv run --project apps/platform python scripts/platform-live-eval.py --provider live-sol
+    ... platform-live-eval.py --provider live-sol --scenario retry-backoff
 """
 
 import argparse
@@ -25,6 +27,7 @@ from pathlib import Path
 import httpx
 from review_platform.contracts import digest
 from review_platform.db import Identity, Membership, Repository, Tenant, database
+from review_platform.execution import DockerExecutor
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = ROOT / "examples/scenarios"
@@ -55,10 +58,11 @@ def mirror(name: str, root: Path) -> dict:
 
     def commit(variant, message):
         for item in path.iterdir():
-            if item.name != ".git":
+            if item.is_dir() and item.name != ".git":
+                shutil.rmtree(item)
+            elif item.is_file():
                 item.unlink()
-        for source in (SCENARIOS / name / variant).iterdir():
-            shutil.copy(source, path / source.name)
+        shutil.copytree(SCENARIOS / name / variant, path, dirs_exist_ok=True)
         git(path, "add", "-A")
         git(path, "commit", "-q", "-m", message)
         return git(path, "rev-parse", "HEAD")
@@ -70,8 +74,19 @@ def mirror(name: str, root: Path) -> dict:
         heads[variant] = commit(variant, f"Change implementation ({variant} variant)")
         git(path, "update-ref", f"refs/pull/{number}/head", heads[variant])
         git(path, "checkout", "-q", "main")
-    modules = sorted(p.stem for p in (SCENARIOS / name / "base").glob("*.py"))
-    return {"path": path, "base": base, "heads": heads, "modules": modules}
+    source = SCENARIOS / name / "base"
+    if (source / "pom.xml").exists():
+        # Maven scenarios keep their own JUnit tests as the existing suite.
+        suite = ["mvn", "test"]
+        writable = sorted(
+            str(p.relative_to(source)) for p in (source / "src/main/java").rglob("*.java")
+        )
+    else:
+        # Python scenarios ship no tests, so the existing suite is an import check.
+        modules = sorted(p.stem for p in source.glob("*.py"))
+        suite = ["python", "-B", "-c", "import " + ", ".join(modules)]
+        writable = [f"{m}.py" for m in modules]
+    return {"path": path, "base": base, "heads": heads, "suite": suite, "writable": writable}
 
 
 def provision(sessions, tenant, provider, token, scenarios):
@@ -89,20 +104,15 @@ def provision(sessions, tenant, provider, token, scenarios):
         for name, info in scenarios.items():
             repo_id = f"{tenant}-{name}"
             if not session.get(Repository, repo_id):
-                # No contract test enters the repository; the existing suite is an import check.
+                # No contract test enters the repository.
                 session.add(
                     Repository(
                         id=repo_id,
                         tenant_id=tenant,
                         name=f"scenarios/{name}",
                         path=str(info["path"].resolve()),
-                        suite=[
-                            "python",
-                            "-B",
-                            "-c",
-                            "import " + ", ".join(info["modules"]),
-                        ],
-                        writable_paths=[f"{m}.py" for m in info["modules"]],
+                        suite=info["suite"],
+                        writable_paths=info["writable"],
                     )
                 )
                 session.flush()
@@ -121,6 +131,11 @@ def provision(sessions, tenant, provider, token, scenarios):
 
 def contract_passes(name, files):
     """Run the withheld contract test against a set of source files."""
+    java_contract = SCENARIOS / name / "ContractTest.java"
+    if java_contract.exists():
+        # Maven needs the runner image's JDK and offline repository, as on the platform.
+        result = DockerExecutor().run(files, java_contract.read_text(), [])
+        return result.outcome == "passed"
     with tempfile.TemporaryDirectory() as work:
         for path, text in files.items():
             Path(work, path).write_text(text)
@@ -146,11 +161,18 @@ def main():
     parser.add_argument("--root", type=Path, default=ROOT / ".demo/scenarios")
     parser.add_argument("--out", type=Path, default=ROOT / "evals/platform/runs")
     parser.add_argument("--timeout", type=int, default=2400)
+    parser.add_argument(
+        "--scenario", action="append", help="Run only this scenario; repeat for more."
+    )
     args = parser.parse_args()
 
     names = sorted(
-        p.name for p in SCENARIOS.iterdir() if (p / "contract_test.py").exists()
+        p.name
+        for p in SCENARIOS.iterdir()
+        if (p / "contract_test.py").exists() or (p / "ContractTest.java").exists()
     )
+    if args.scenario:
+        names = [name for name in names if name in args.scenario]
     scenarios = {name: mirror(name, args.root) for name in names}
     tenant = f"scenarios-{secrets.token_hex(3)}"
     token = secrets.token_urlsafe(32)

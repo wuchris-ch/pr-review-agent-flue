@@ -1,0 +1,40 @@
+{
+  "provider": "live-sol",
+  "completed_at": "2026-11-10T22:00:48.767234+00:00",
+  "regressions_reproduced": 1,
+  "regressions_reaching_approval": 1,
+  "fixes_passing_withheld_contract": 1,
+  "regressions": 1,
+  "valid_changes_flagged_for_approval": 0,
+  "valid_changes_reproduced": 0,
+  "valid_changes": 1,
+  "reviews": [
+    {
+      "scenario": "retry-backoff",
+      "variant": "regression",
+      "review": "9cfeaa70-101e-4487-9f32-830668480802",
+      "submitted": 1794347955.341892,
+      "state": "awaiting_approval",
+      "minutes": 1.5,
+      "candidates": 3,
+      "rejected_candidates": 0,
+      "reproduced": true,
+      "intent_accepted": true,
+      "fix_passed_platform_checks": true,
+      "fix_passes_withheld_contract": true
+    },
+    {
+      "scenario": "retry-backoff",
+      "variant": "safe",
+      "review": "5c2af69a-4e87-4666-b8d8-5b863cad860b",
+      "submitted": 1794347955.393541,
+      "state": "no_finding",
+      "minutes": 0.3,
+      "candidates": 0,
+      "rejected_candidates": 0,
+      "reproduced": null,
+      "intent_accepted": null,
+      "fix_passed_platform_checks": null
+    }
+  ]
+}
