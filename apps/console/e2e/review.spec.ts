@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { expectNoViolations } from "./axe";
 const session = JSON.parse(
   readFileSync(
     new URL("../../../.demo/browser-session.json", import.meta.url),
@@ -36,6 +37,7 @@ test("review evidence, approve and download a commit-bound fix", async ({
   await page.getByRole("button", { name: "Evidence", exact: true }).click();
   await page.getByRole("button", { name: "Approve fix", exact: true }).click();
   await expect(page.getByText("Approved for local application")).toBeVisible();
+  await expectNoViolations(page, "approved review");
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download approved fix" }).click();
   const download = await downloadPromise;

@@ -74,7 +74,11 @@ jobs:
           exit 1
       - run: uv run --project apps/platform python scripts/prepare-console-demo.py
       - run: npm exec --prefix apps/console -- playwright install --with-deps chromium
-      - run: npm test --prefix apps/console
+      # Runs first, while the demo review still shows its approval controls.
+      - name: Accessibility checks (axe-core, WCAG 2.2 AA)
+        run: npm run test:a11y --prefix apps/console
+      - name: Browser scenarios
+        run: npm test --prefix apps/console -- review.spec.ts
       - name: Service diagnostics on failure
         if: failure()
         run: |
