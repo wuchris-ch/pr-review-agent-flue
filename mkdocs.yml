@@ -1,0 +1,65 @@
+site_name: PR Review Agent
+site_description: AI code review that cites exact lines and proves suspected bugs with failing tests.
+site_url: https://wuchris-ch.github.io/pr-review-agent-flue/docs/
+repo_url: https://github.com/wuchris-ch/pr-review-agent-flue
+repo_name: wuchris-ch/pr-review-agent-flue
+edit_uri: ""
+
+docs_dir: docs
+# docs/index.html is the project landing page. The Pages workflow publishes it
+# at the site root and this documentation under /docs/.
+exclude_docs: |
+  index.html
+  README.md
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  palette:
+    primary: green
+    accent: green
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+hooks:
+  - scripts/mkdocs_hooks.py
+
+validation:
+  anchors: warn
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - Guides:
+      - GitHub Action: guides/github-action.md
+      - CLI and configuration: guides/configuration.md
+      - Review priorities: guides/review-priorities.md
+      - GitHub App: guides/github-app.md
+  - Architecture: architecture.md
+  - Review platform:
+      - Quickstart: platform/quickstart.md
+      - Architecture: platform/architecture.md
+      - Verification: platform/verification.md
+  - Examples: examples.md
+  - Evaluation:
+      - Evaluation guide: evaluation.md
+      - Results: results.md
+      - 2026-09-12 evidence: results/2026-09-12-evidence.md
+      - 2026-09-21 portable reviews: results/2026-09-21-portable-reviews.md
+  - Contributing: contributing.md

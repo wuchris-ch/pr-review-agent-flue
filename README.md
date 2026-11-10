@@ -18,7 +18,7 @@ Bring your own OpenAI-compatible model endpoint, or a signed-in Claude Code or C
 
 [![Precision and recall on 30 held-out PRs, compared with 17 commercial reviewers scored by the same judge](docs/assets/benchmark.svg)](docs/results.md)
 
-[Project site](https://wuchris-ch.github.io/pr-review-agent-flue/) · [Full results, method and limitations](docs/results.md)
+[Project site](https://wuchris-ch.github.io/pr-review-agent-flue/) · [Documentation site](https://wuchris-ch.github.io/pr-review-agent-flue/docs/) · [Full results, method and limitations](docs/results.md)
 
 [GitHub Action setup](docs/guides/github-action.md) · [CLI and configuration](docs/guides/configuration.md) · [Review platform](docs/platform/quickstart.md) · [Examples](examples/README.md) · [How it works](docs/architecture.md) · [Evaluation](evals/README.md)
 
