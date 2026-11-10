@@ -11,7 +11,7 @@ Checked locally on September 18, 2026 (America/Vancouver), from the successor re
 | Developer-approved, regression-tested repairs | `service.py`, `api.py`, `scripts/apply-approved-fix.py` | `test_apply.py`, approval/rejection, tamper, stale-head and unauthorized-path tests | Approval binds commit and evidence digest; authenticated local application; no automatic Git push |
 | Temporal recovery with PostgreSQL | `workflow.py`, `worker.py`, `db.py`, three Alembic migrations | `test_durable_integration.py`, `test_dispatch.py`, negative-result crash-window tests | Actual Temporal restart/replay and PostgreSQL concurrency exercised; local history uses Temporal's development server |
 | Outdated-review cancellation and duplicate GitHub prevention | Platform supersession and dispatch; existing `src/github/review.ts` and `src/github/client.ts` | Platform stale/late-write tests and `tests/github/binding.test.ts` | Cancellation fences platform writes; GitHub publication reconciliation is in the existing shared GitHub integration |
-| Console, repository roles and tenant boundaries | `apps/console/src`, `api.py`, `service.py`, composite foreign keys in `db.py` | Three Playwright scenarios; authorization/quota/cross-tenant API tests | Provider aliases, lifetime review allowances and audit trail; operator-provisioned tokens and memberships |
+| Console, repository roles and tenant boundaries | `apps/console/src`, `api.py`, `service.py`, composite foreign keys in `db.py` | Three Playwright scenarios; axe-core accessibility scans of every console screen; authorization/quota/cross-tenant API tests | Provider aliases, lifetime review allowances and audit trail; operator-provisioned tokens and memberships |
 
 ## Verification performed
 
@@ -55,3 +55,9 @@ The sandbox now builds and tests Java repositories that use Maven and JUnit 5. T
 - **Unit tests:** Surefire classification (assertions, source exceptions, setup errors, empty reports and a forged summary line) and JUnit class placement.
 - **Live model:** three runs with gpt-6.1-sol reproduced the regression with a model-written JUnit test, proposed fixes that passed the withheld contract test and did not flag the valid change. See [the transcript](../results/2026-11-10-java-maven.md).
 - **Checks:** 66 Python tests with Docker, Temporal and PostgreSQL integration, 206 TypeScript tests, Ruff, Biome, typecheck, scenario contracts, regression examples and a strict MkDocs build.
+
+## Console accessibility checks, November 10, 2026
+
+CI now checks the React console for accessibility on every pull request. `apps/console/e2e/accessibility.spec.ts` uses `@axe-core/playwright` 4.14.0 with the WCAG 2.0, 2.1 and 2.2 level A and AA rules. It scans the sign-in page and its error, the evidence tab with the approval controls, the patch and execution-log tabs, the new-review form, the audit log, settings, and a viewer at phone width. `review.spec.ts` also scans the review after a person approves the fix. A test fails on any violation and lists each rule and element. The platform job runs these checks as a named step, "Accessibility checks (axe-core, WCAG 2.2 AA)", before the browser scenarios.
+
+The first scan failed on every screen with one rule, `color-contrast` (serious). Fourteen muted text colors, such as labels, eyebrows, inactive tabs, badges, timestamps and footnotes, measured from 2.68:1 to 4.49:1 against the 4.5:1 minimum for normal text. Each is now darkened just enough, in the same hue, to reach at least 4.6:1 on its lightest background. The sidebar eyebrow sits on a dark background and gets a lighter shade instead (4.61:1). No other rule failed.

@@ -84,7 +84,11 @@ RUN_DOCKER_TESTS=1 RUN_TEMPORAL_TESTS=1 TEST_POSTGRES_URL="$DATABASE_URL" \
 uv run --project apps/platform python scripts/prepare-console-demo.py
 npm exec --prefix apps/console -- playwright install chromium
 npm test --prefix apps/console
+# Or only the accessibility checks, on a fresh fixture:
+npm run test:a11y --prefix apps/console
 ```
+
+The accessibility checks run axe-core with the WCAG 2.2 A and AA rules on the sign-in page and its error, every review tab, the new-review form, the audit log, settings and the viewer layout at phone width. The browser scenarios also scan the approved review. Run the accessibility checks before the scenarios, because the scenarios approve the demo fix. CI runs them in that order.
 
 The default Python suite mocks external execution and uses SQLite for quick feedback. The opt-in tests exercise real services. Browser tests capture `docs/platform/console.png` from the running application before approval. No test makes live model calls or writes to GitHub.
 

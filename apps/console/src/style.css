@@ -65,12 +65,12 @@ h3 {
   font-size: 14px;
 }
 p {
-  color: #697b72;
+  color: #5e6f67;
   line-height: 1.65;
 }
 small {
   font-size: 12px;
-  color: #7c8b83;
+  color: #636f69;
 }
 code,
 pre {
@@ -116,7 +116,11 @@ aside {
   font-size: 10px;
   letter-spacing: 1.6px;
   font-weight: 700;
-  color: #7e9387;
+  color: #5e6e65;
+}
+/* The sidebar is dark, so its eyebrow needs a lighter shade than on light panels. */
+.workspace > .eyebrow {
+  color: #82968b;
 }
 .muted {
   font-size: 11px;
@@ -196,7 +200,7 @@ header select {
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  color: #7a8e82;
+  color: #5f6f65;
 }
 .connection i {
   background: #4b8c66;
@@ -231,7 +235,7 @@ header select {
   border: 0;
 }
 .metrics span {
-  color: #6d8074;
+  color: #5f6f65;
   font-size: 11px;
 }
 .metrics strong {
@@ -294,7 +298,7 @@ header select {
   margin: 14px 0 6px;
 }
 .review-card p span {
-  color: #95a197;
+  color: #656d67;
 }
 .review-card small {
   font-size: 10px;
@@ -325,7 +329,7 @@ header select {
 .badge {
   font-size: 10px;
   background: #eef1ed;
-  color: #66796b;
+  color: #5e6f62;
   padding: 5px 8px;
   border-radius: 5px;
   white-space: nowrap;
@@ -333,7 +337,7 @@ header select {
 }
 .badge.awaiting_approval {
   background: #faf0d6;
-  color: #906a22;
+  color: #8a6621;
 }
 .badge.approved {
   background: #e5f0e4;
@@ -348,7 +352,7 @@ header select {
   display: flex;
   gap: 20px;
   font-size: 9px;
-  color: #849088;
+  color: #646d67;
   padding: 0 24px 22px;
 }
 .binding code {
@@ -368,7 +372,7 @@ header select {
   gap: 7px;
   align-items: center;
   font-size: 10px;
-  color: #8b9b8c;
+  color: #636e63;
 }
 .steps span {
   border: 1px solid #d4ded2;
@@ -395,7 +399,7 @@ header select {
 .tabs button {
   padding: 16px 0 12px;
   background: transparent;
-  color: #849486;
+  color: #636f64;
   border-radius: 0;
   font-size: 11px;
   border-bottom: 2px solid transparent;
@@ -424,7 +428,7 @@ header select {
   white-space: nowrap;
 }
 .reference code {
-  color: #69806c;
+  color: #5c715f;
   overflow-wrap: anywhere;
 }
 .checks {
@@ -487,7 +491,7 @@ header select {
 .footnote {
   text-align: right;
   font-size: 10px;
-  color: #8d9b8e;
+  color: #646e65;
   margin: 20px 0;
 }
 .error {
@@ -528,7 +532,7 @@ header select {
   font-size: 12px;
 }
 .audit time {
-  color: #839080;
+  color: #656f63;
 }
 .empty {
   padding: 50px 25px;
