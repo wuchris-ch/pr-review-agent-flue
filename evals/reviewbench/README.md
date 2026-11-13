@@ -11,6 +11,7 @@ Scores the agent reviewer on [ReviewBench](https://github.com/review-bench/Revie
 | `analyze.py` | Composes reviews from judged pools without another model call: one run, several runs merged, or runs of different pools merged. Each mix is scored for every choice of runs. |
 | `judge-models.json` | Model list that points ReviewBench's matcher at a local endpoint. |
 | `fresh-sample.json` | 30 pull requests outside the test set: the first 30 of the other 194 when sorted by SHA-256 of their key. |
+| `full-run.json` | The setup of the run over all 219 pull requests. It was committed before that run started. |
 | `results/` | Aggregate scores. Review text and source code stay out of the repository. |
 
 ## Run
