@@ -1,0 +1,212 @@
+[
+ {
+  "repo": "https://github.com/demaconsulting/BuildMark",
+  "nwo": "demaconsulting/BuildMark",
+  "pr_number": 137,
+  "base": "8d706c3e4ce616802f682c696a00dca848c67b63",
+  "head": "74a4b88d07f6d2d66f4f5f8b34ec83a53cf12f02"
+ },
+ {
+  "repo": "https://github.com/VeyronSakai/UniCortex",
+  "nwo": "VeyronSakai/UniCortex",
+  "pr_number": 162,
+  "base": "233db744cb9334c90eea27eeeae0eb8610ea7c4a",
+  "head": "e74a1d695f764ce933bb0abac76aceb3b76f6254"
+ },
+ {
+  "repo": "https://github.com/kutanti/litmusai",
+  "nwo": "kutanti/litmusai",
+  "pr_number": 67,
+  "base": "8d3aac3ea03aa726497d05b48d37df4d1e797bef",
+  "head": "48e739834ed4780252d4e86ec0114b594ca21d8a"
+ },
+ {
+  "repo": "https://github.com/LittleAndi/FileHorizon",
+  "nwo": "LittleAndi/FileHorizon",
+  "pr_number": 19,
+  "base": "9992d8dce2020862bdc0177c540e11f7ad4f8a23",
+  "head": "958f48b3b6fac8f25acd594807e54d8089a7d686"
+ },
+ {
+  "repo": "https://github.com/ls1intum/Artemis",
+  "nwo": "ls1intum/Artemis",
+  "pr_number": 12479,
+  "base": "dec2422f27c4b4fa45a1d70142604ea827b51301",
+  "head": "237b36560d91b57ec1b8948b4425cdba7ff25bb3"
+ },
+ {
+  "repo": "https://github.com/psalm/psalm-plugin-laravel",
+  "nwo": "psalm/psalm-plugin-laravel",
+  "pr_number": 642,
+  "base": "9d7696b1edbe260325a1d129ecfeceb11dffd717",
+  "head": "a867cca3f7a1f9844445f89d1c0b005048fba9af"
+ },
+ {
+  "repo": "https://github.com/davidortinau/SentenceStudio",
+  "nwo": "davidortinau/SentenceStudio",
+  "pr_number": 72,
+  "base": "b488d228ceeea1c29d5d54591a4b5c8ba9790712",
+  "head": "8941b5da55823d738d340cad6a429021318d8211"
+ },
+ {
+  "repo": "https://github.com/saasquatch/program-tools",
+  "nwo": "saasquatch/program-tools",
+  "pr_number": 490,
+  "base": "9e552794ea3a5e8124b4f02609b76ee25343e42f",
+  "head": "7a9aa6b405af88c754abfa1f8e8e9a3f03cde398"
+ },
+ {
+  "repo": "https://github.com/khanjal/gig-logger",
+  "nwo": "khanjal/gig-logger",
+  "pr_number": 430,
+  "base": "b22f30db9db71d86d5934a32db0e9252c1a37461",
+  "head": "f5e5bf9b0730d0326a525e5f37609bdd76c02460"
+ },
+ {
+  "repo": "https://github.com/scorbo2/ext-sn-statistics",
+  "nwo": "scorbo2/ext-sn-statistics",
+  "pr_number": 15,
+  "base": "eef945e2a8d421ccfa3ded7e7cd62e6731394b26",
+  "head": "05bd09018cd9a4b6274dc5e3f6dcffe37cba8cbe"
+ },
+ {
+  "repo": "https://github.com/auspatious/ldn-lulc",
+  "nwo": "auspatious/ldn-lulc",
+  "pr_number": 44,
+  "base": "42d906c968aef0ed088019f5f876b3d1671effff",
+  "head": "bc5877c7b59e0d574f18efa4f5508e6922eeeeec"
+ },
+ {
+  "repo": "https://github.com/supa-magic/spm",
+  "nwo": "supa-magic/spm",
+  "pr_number": 19,
+  "base": "35ba12abad66326fe01c152803a23fc282368d67",
+  "head": "c60d2e03d217cbe8abaed6d12c4fb7b0bdb0049f"
+ },
+ {
+  "repo": "https://github.com/SpanPanel/span",
+  "nwo": "SpanPanel/span",
+  "pr_number": 207,
+  "base": "fb408059e77858d187117ba47f92bdcede73b255",
+  "head": "212c534d8f2d584696b5579c2825b2a972cad719"
+ },
+ {
+  "repo": "https://github.com/dotnet/sdk",
+  "nwo": "dotnet/sdk",
+  "pr_number": 53693,
+  "base": "96683a0ad81c5694820f7824342a4ca5079bdd64",
+  "head": "e993b64d1603f69af66f23ba32f54aadb2397067"
+ },
+ {
+  "repo": "https://github.com/mamu7211/feirb-mailclient",
+  "nwo": "mamu7211/feirb-mailclient",
+  "pr_number": 215,
+  "base": "76d9db59beaf6a0942c84522b9d33058f721ee86",
+  "head": "d15c6ca689e20a95a1c5468d0e87f71f8b5e7496"
+ },
+ {
+  "repo": "https://github.com/sirosfoundation/go-wallet-backend",
+  "nwo": "sirosfoundation/go-wallet-backend",
+  "pr_number": 76,
+  "base": "a1485bf4cd0f0a25cbd5b5c352bbc8dd595a530b",
+  "head": "28ffb41aa8c3db76a718f7c712a47977223f0d25"
+ },
+ {
+  "repo": "https://github.com/WhatIfWeDigDeeper/application-tracker",
+  "nwo": "WhatIfWeDigDeeper/application-tracker",
+  "pr_number": 261,
+  "base": "fdac3c71dcb949a181b74f98e59562602f69c15b",
+  "head": "c1bdc879558947c4d1917519cee2dd2e7e3dabde"
+ },
+ {
+  "repo": "https://github.com/cjolivier01/hm-cupano",
+  "nwo": "cjolivier01/hm-cupano",
+  "pr_number": 14,
+  "base": "7abef34a645daae09b8b0617c2abb133a491d7f6",
+  "head": "03aa02465ce1ab5aae982ace21812b35cbe04eb3"
+ },
+ {
+  "repo": "https://github.com/kodrunhq/opencode-autopilot",
+  "nwo": "kodrunhq/opencode-autopilot",
+  "pr_number": 86,
+  "base": "817c1a45ed2e4496274fe09bf6efc0e34aba4c82",
+  "head": "3bb1ca09fd515c03d77e168e48ba347734b2ef16"
+ },
+ {
+  "repo": "https://github.com/heyitsaamir/teamscli",
+  "nwo": "heyitsaamir/teamscli",
+  "pr_number": 31,
+  "base": "e06b7f24444a75a36acd28fbaab3a3f08b33abce",
+  "head": "ec0e9d9a60bff66e8b28af4656803836c22001dd"
+ },
+ {
+  "repo": "https://github.com/arolariu/arolariu.ro",
+  "nwo": "arolariu/arolariu.ro",
+  "pr_number": 615,
+  "base": "ffbc51dba52141fe693a4991ff911b4456fb5078",
+  "head": "ef4814f491112c82ae7e2fe9a821b71f9994b506"
+ },
+ {
+  "repo": "https://github.com/s205109/AHKFlowApp",
+  "nwo": "s205109/AHKFlowApp",
+  "pr_number": 35,
+  "base": "b39f97c4b144b32609705cdfa57c7dca981373eb",
+  "head": "9ec13217fb700d3289ce4a293c17e287bacdff1c"
+ },
+ {
+  "repo": "https://github.com/Tzeusy/butlers",
+  "nwo": "Tzeusy/butlers",
+  "pr_number": 990,
+  "base": "bb491643b06ff6474b7f3f36094bed5ad5d353da",
+  "head": "d66a3fe89cb5806944235ab540f233c79433d615"
+ },
+ {
+  "repo": "https://github.com/hughdidit/DAISy-Agency",
+  "nwo": "hughdidit/DAISy-Agency",
+  "pr_number": 294,
+  "base": "daa9f5234921318a97907361b3c464b914089949",
+  "head": "690f26b60a336e59f40204fd105c8ecd6c8cd115"
+ },
+ {
+  "repo": "https://github.com/mikecubed/m3OS",
+  "nwo": "mikecubed/m3OS",
+  "pr_number": 84,
+  "base": "1f04d09ca740bac5640d9163ef9edc06768e6c60",
+  "head": "5e9d78eba1ea7c359c17beae6351d22aaab1fb6b"
+ },
+ {
+  "repo": "https://github.com/Mirkiux/featkit",
+  "nwo": "Mirkiux/featkit",
+  "pr_number": 17,
+  "base": "471774c774a89902228a0b74b696ff7304332437",
+  "head": "de0187b0e5e781ca08ef7d7923e33cba6531c200"
+ },
+ {
+  "repo": "https://github.com/vriesdemichael/keycloak-operator",
+  "nwo": "vriesdemichael/keycloak-operator",
+  "pr_number": 696,
+  "base": "bd0524bce599ccc367a4481f9b792305a8b074a1",
+  "head": "4db0ddeaea75e5d1d1a312473465153ed8f60661"
+ },
+ {
+  "repo": "https://github.com/ComposioHQ/agent-orchestrator",
+  "nwo": "ComposioHQ/agent-orchestrator",
+  "pr_number": 1277,
+  "base": "ba77929c9345a0dc897d53115504d0ae32745ce5",
+  "head": "76652c7ccefa3a371be74e8648c5204adc7f09a5"
+ },
+ {
+  "repo": "https://github.com/rulecom/rule-io-sdk",
+  "nwo": "rulecom/rule-io-sdk",
+  "pr_number": 35,
+  "base": "0e5589a360bb89f887f214f0b2d81bc2a4ad7fa3",
+  "head": "9b3046d9158445e422d08047b98fd0e5a24c524a"
+ },
+ {
+  "repo": "https://github.com/hackforla/devops-security",
+  "nwo": "hackforla/devops-security",
+  "pr_number": 154,
+  "base": "12f355213639cd3dd16133ef960008cdfeed7215",
+  "head": "dabde0cbb2cd71d88da17c02b42cf42e2c713139"
+ }
+]

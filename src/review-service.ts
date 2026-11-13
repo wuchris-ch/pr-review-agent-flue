@@ -1,3 +1,4 @@
+import type { AgentLens } from './agents/agent-reviewer.js';
 import { type AgentExecutor, runModelChild } from './agents/executor.js';
 import { exploreRepository, withExploredFiles } from './context/explore.js';
 import {
@@ -57,8 +58,13 @@ export interface ReviewOptions {
 }
 
 export interface AgentReview {
-  /** Runs the agent and returns its findings text. */
-  run(): Promise<string>;
+  /** Runs the agent once with the given review request and returns its findings text. */
+  run(lens: AgentLens): Promise<string>;
+  /**
+   * One entry per independent pass. Defaults to REVIEW_AGENT_RUNS `bugs` passes
+   * followed by REVIEW_AGENT_BREADTH_RUNS `breadth` passes.
+   */
+  passes?: readonly AgentLens[];
   /** Checkout root, stripped from absolute paths in the agent's answer. */
   root?: string;
   grounding?: Grounding;
@@ -160,7 +166,11 @@ export function createDefaultStages(
     return [
       createStaticStage(),
       createAgentStage({
-        review: () => agent.run(),
+        review: (_context, lens) => agent.run(lens),
+        passes: agent.passes ?? [
+          ...Array.from({ length: config.agentRuns }, () => 'bugs' as const),
+          ...Array.from({ length: config.agentBreadthRuns }, () => 'breadth' as const),
+        ],
         grounding: agent.grounding ?? 'near',
         tolerance: agent.tolerance ?? config.agentLineTolerance,
         ...(agent.root === undefined ? {} : { root: agent.root }),

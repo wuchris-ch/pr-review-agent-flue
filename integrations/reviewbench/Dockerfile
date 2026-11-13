@@ -21,7 +21,7 @@ WORKDIR /app
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-COPY integrations/reviewbench/adapter.mjs ./integrations/reviewbench/adapter.mjs
+COPY integrations/reviewbench/adapter.mjs integrations/reviewbench/review-pull-request.mjs ./integrations/reviewbench/
 # ReviewBench allows only the model API host; skip Claude Code's optional traffic.
 ENV CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 DISABLE_TELEMETRY=1 DISABLE_ERROR_REPORTING=1 DISABLE_AUTOUPDATER=1
 ENTRYPOINT ["node", "/app/integrations/reviewbench/adapter.mjs"]

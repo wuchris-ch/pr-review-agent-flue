@@ -1,0 +1,470 @@
+{
+ "measured": "2026-11-13",
+ "judge": {
+  "model": "gpt-6.1-sol",
+  "effort": "high"
+ },
+ "subset": "heldout/core",
+ "cases": 30,
+ "note": "Third judge. GPT-5.5, the main judge of the October results, is no longer served to the ChatGPT subscription used here.",
+ "scores": {
+  "augment": {
+   "tp": 73,
+   "fp": 61,
+   "fn": 37,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.5448,
+   "recall": 0.6636,
+   "f1": 0.5984
+  },
+  "baz": {
+   "tp": 40,
+   "fp": 38,
+   "fn": 70,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.5128,
+   "recall": 0.3636,
+   "f1": 0.4255
+  },
+  "bugbot": {
+   "tp": 53,
+   "fp": 43,
+   "fn": 57,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.5521,
+   "recall": 0.4818,
+   "f1": 0.5146
+  },
+  "claude": {
+   "tp": 43,
+   "fp": 45,
+   "fn": 67,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.4886,
+   "recall": 0.3909,
+   "f1": 0.4343
+  },
+  "codeant-v2": {
+   "tp": 37,
+   "fp": 87,
+   "fn": 73,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.2984,
+   "recall": 0.3364,
+   "f1": 0.3162
+  },
+  "coderabbit": {
+   "tp": 67,
+   "fp": 147,
+   "fn": 43,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.3131,
+   "recall": 0.6091,
+   "f1": 0.4136
+  },
+  "copilot": {
+   "tp": 65,
+   "fp": 127,
+   "fn": 45,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.3385,
+   "recall": 0.5909,
+   "f1": 0.4305
+  },
+  "copilot-v2": {
+   "tp": 74,
+   "fp": 118,
+   "fn": 36,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.3854,
+   "recall": 0.6727,
+   "f1": 0.4901
+  },
+  "devin": {
+   "tp": 47,
+   "fp": 25,
+   "fn": 63,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.6528,
+   "recall": 0.4273,
+   "f1": 0.5165
+  },
+  "gemini-v2": {
+   "tp": 63,
+   "fp": 72,
+   "fn": 47,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.4667,
+   "recall": 0.5727,
+   "f1": 0.5143
+  },
+  "gitlab": {
+   "tp": 56,
+   "fp": 53,
+   "fn": 54,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.5138,
+   "recall": 0.5091,
+   "f1": 0.5114
+  },
+  "graphite": {
+   "tp": 8,
+   "fp": 2,
+   "fn": 102,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.8,
+   "recall": 0.0727,
+   "f1": 0.1333
+  },
+  "greptile-v4-1": {
+   "tp": 52,
+   "fp": 54,
+   "fn": 58,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.4906,
+   "recall": 0.4727,
+   "f1": 0.4815
+  },
+  "kg": {
+   "tp": 20,
+   "fp": 9,
+   "fn": 90,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.6897,
+   "recall": 0.1818,
+   "f1": 0.2878
+  },
+  "macroscope": {
+   "tp": 47,
+   "fp": 43,
+   "fn": 63,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.5222,
+   "recall": 0.4273,
+   "f1": 0.47
+  },
+  "qodo-extended-v2": {
+   "tp": 66,
+   "fp": 36,
+   "fn": 44,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.6471,
+   "recall": 0.6,
+   "f1": 0.6226
+  },
+  "qodo-v2": {
+   "tp": 69,
+   "fp": 67,
+   "fn": 41,
+   "prs": 30,
+   "errors": 0,
+   "precision": 0.5074,
+   "recall": 0.6273,
+   "f1": 0.561
+  }
+ },
+ "agent_reviewer": {
+  "default (findings on changed lines)": {
+   "runs": [
+    {
+     "tp": 61,
+     "fp": 68,
+     "fn": 49,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.4729,
+     "recall": 0.5545,
+     "f1": 0.5105
+    },
+    {
+     "tp": 58,
+     "fp": 64,
+     "fn": 52,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.4754,
+     "recall": 0.5273,
+     "f1": 0.5
+    },
+    {
+     "tp": 61,
+     "fp": 64,
+     "fn": 49,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.488,
+     "recall": 0.5545,
+     "f1": 0.5191
+    }
+   ],
+   "mean": {
+    "precision": 0.4788,
+    "recall": 0.5454,
+    "f1": 0.5099
+   }
+  },
+  "the agent's own locations": {
+   "runs": [
+    {
+     "tp": 70,
+     "fp": 76,
+     "fn": 40,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.4795,
+     "recall": 0.6364,
+     "f1": 0.5469
+    },
+    {
+     "tp": 66,
+     "fp": 77,
+     "fn": 44,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.4615,
+     "recall": 0.6,
+     "f1": 0.5217
+    },
+    {
+     "tp": 62,
+     "fp": 77,
+     "fn": 48,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.446,
+     "recall": 0.5636,
+     "f1": 0.498
+    }
+   ],
+   "mean": {
+    "precision": 0.4623,
+    "recall": 0.6,
+    "f1": 0.5222
+   }
+  }
+ },
+ "ranking_by_f1": [
+  {
+   "rank": 1,
+   "reviewer": "qodo-extended-v2",
+   "f1": 0.6226
+  },
+  {
+   "rank": 2,
+   "reviewer": "augment",
+   "f1": 0.5984
+  },
+  {
+   "rank": 3,
+   "reviewer": "qodo-v2",
+   "f1": 0.561
+  },
+  {
+   "rank": 4,
+   "reviewer": "devin",
+   "f1": 0.5165
+  },
+  {
+   "rank": 5,
+   "reviewer": "bugbot",
+   "f1": 0.5146
+  },
+  {
+   "rank": 6,
+   "reviewer": "gemini-v2",
+   "f1": 0.5143
+  },
+  {
+   "rank": 7,
+   "reviewer": "gitlab",
+   "f1": 0.5114
+  },
+  {
+   "rank": 8,
+   "reviewer": "PR Review, agent reviewer (three-run mean)",
+   "f1": 0.5099
+  },
+  {
+   "rank": 9,
+   "reviewer": "copilot-v2",
+   "f1": 0.4901
+  },
+  {
+   "rank": 10,
+   "reviewer": "greptile-v4-1",
+   "f1": 0.4815
+  },
+  {
+   "rank": 11,
+   "reviewer": "macroscope",
+   "f1": 0.47
+  },
+  {
+   "rank": 12,
+   "reviewer": "claude",
+   "f1": 0.4343
+  },
+  {
+   "rank": 13,
+   "reviewer": "copilot",
+   "f1": 0.4305
+  },
+  {
+   "rank": 14,
+   "reviewer": "baz",
+   "f1": 0.4255
+  },
+  {
+   "rank": 15,
+   "reviewer": "coderabbit",
+   "f1": 0.4136
+  },
+  {
+   "rank": 16,
+   "reviewer": "codeant-v2",
+   "f1": 0.3162
+  },
+  {
+   "rank": 17,
+   "reviewer": "kg",
+   "f1": 0.2878
+  },
+  {
+   "rank": 18,
+   "reviewer": "graphite",
+   "f1": 0.1333
+  }
+ ],
+ "agent_reviewer_rank_of_18": {
+  "gpt-5.5": 4,
+  "claude-sonnet-5-5": 4,
+  "gpt-6.1-sol": 8
+ },
+ "agreement": {
+  "with_martian_gpt52_published_tools": {
+   "golden_decisions": 2006,
+   "agreement": 0.9531,
+   "cohens_kappa": 0.9056,
+   "found_by_both": 873,
+   "only_this_judge": 53,
+   "only_gpt52": 41
+  },
+  "with_gpt55_judge_published_tools": {
+   "decisions": 2006,
+   "agreement": 0.9845,
+   "cohens_kappa": 0.9689
+  },
+  "with_sonnet55_judge_published_tools": {
+   "decisions": 2006,
+   "agreement": 0.9751,
+   "cohens_kappa": 0.9499
+  },
+  "with_gpt55_judge_agent_runs": {
+   "decisions": 708,
+   "agreement": 0.9802,
+   "cohens_kappa": 0.9598
+  },
+  "with_sonnet55_judge_agent_runs": {
+   "decisions": 708,
+   "agreement": 0.9619,
+   "cohens_kappa": 0.9224
+  }
+ },
+ "multi_pass": {
+  "note": "Each configuration merges saved answers once: the three bug passes are the three held-out runs, and the broad pass ran once.",
+  "configurations": {
+   "three bug passes merged": {
+    "findings on changed lines": {
+     "tp": 76,
+     "fp": 114,
+     "fn": 34,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.4,
+     "recall": 0.6909,
+     "f1": 0.5067,
+     "findings_per_pr": 6.3
+    },
+    "the agent's own locations": {
+     "tp": 76,
+     "fp": 152,
+     "fn": 34,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.3333,
+     "recall": 0.6909,
+     "f1": 0.4497,
+     "findings_per_pr": 7.6
+    }
+   },
+   "one bug pass and one broad pass": {
+    "findings on changed lines": {
+     "tp": 84,
+     "fp": 292,
+     "fn": 26,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.2234,
+     "recall": 0.7636,
+     "f1": 0.3457,
+     "findings_per_pr": 12.5
+    },
+    "the agent's own locations": {
+     "tp": 92,
+     "fp": 369,
+     "fn": 18,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.1996,
+     "recall": 0.8364,
+     "f1": 0.3222,
+     "findings_per_pr": 15.4
+    }
+   },
+   "three bug passes and one broad pass": {
+    "findings on changed lines": {
+     "tp": 86,
+     "fp": 312,
+     "fn": 24,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.2161,
+     "recall": 0.7818,
+     "f1": 0.3386,
+     "findings_per_pr": 13.3
+    },
+    "the agent's own locations": {
+     "tp": 91,
+     "fp": 404,
+     "fn": 19,
+     "prs": 30,
+     "errors": 0,
+     "precision": 0.1838,
+     "recall": 0.8273,
+     "f1": 0.3008,
+     "findings_per_pr": 16.5
+    }
+   }
+  }
+ },
+ "highest_recall_published_tool": [
+  "copilot-v2",
+  0.6727
+ ]
+}

@@ -1,4 +1,4 @@
-import { runAgentReviewer } from '../agents/agent-reviewer.js';
+import { type AgentLens, runAgentReviewer } from '../agents/agent-reviewer.js';
 import { retrieveContext } from '../context/repository.js';
 import { reviewConfig } from '../core/config.js';
 import { DEFAULT_REPOSITORY_CONFIG } from '../core/repository-config.js';
@@ -28,19 +28,22 @@ export async function reviewFromSource(source: DiffSource): Promise<Review> {
   const config = reviewConfig();
   const checkout = request.checkout;
   const agentCli = config.agentCli;
+  const modelFor = (lens: AgentLens) =>
+    (lens === 'breadth' && config.agentBreadthModel) || config.agentModel;
   const agentReview =
     agentCli && checkout
       ? {
           root: checkout.root,
-          run: () =>
+          run: (lens: AgentLens) =>
             runAgentReviewer({
               cli: agentCli,
               cwd: checkout.root,
               description: checkout.description,
               diffCommand: checkout.diffCommand,
               effort: config.agentEffort,
+              lens,
               timeoutMs: config.agentTimeoutMs,
-              ...(config.agentModel ? { model: config.agentModel } : {}),
+              ...(modelFor(lens) ? { model: modelFor(lens) } : {}),
             }),
         }
       : undefined;

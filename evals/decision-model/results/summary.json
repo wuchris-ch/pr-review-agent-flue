@@ -1,0 +1,84 @@
+{
+ "verify": {
+  "rows": 565,
+  "true_positives": 352,
+  "run": {
+   "model": "jev-1.13.0",
+   "calls": 565,
+   "input_tokens": 1057416,
+   "cost_usd": 0.0444
+  },
+  "auc": 0.869,
+  "test_split": {
+   "rows": 190,
+   "cutoff_chosen_on_dev": 0.55,
+   "accuracy": 0.805,
+   "accuracy_always_yes": 0.611
+  },
+  "baseline_auc": {
+   "producer_true_positive_rate_leave_one_out": 0.862,
+   "message_length": 0.717
+  },
+  "auc_within_one_producer": {
+   "llm_review:claude-sonnet-4.6": {
+    "rows": 185,
+    "true_positives": 159,
+    "auc": 0.673
+   },
+   "llm_review:gemini-2.5-pro": {
+    "rows": 85,
+    "true_positives": 28,
+    "auc": 0.757
+   }
+  },
+  "severity_exact_agreement_on_true_positives": 0.452
+ },
+ "verify_text_only": {
+  "rows": 565,
+  "true_positives": 352,
+  "run": {
+   "model": "jev-1.13.0",
+   "calls": 565,
+   "input_tokens": 309945,
+   "cost_usd": 0.013
+  },
+  "auc": 0.868,
+  "test_split": {
+   "rows": 190,
+   "cutoff_chosen_on_dev": 0.6,
+   "accuracy": 0.779,
+   "accuracy_always_yes": 0.611
+  }
+ },
+ "duplicates": {
+  "pairs": 1701,
+  "same_problem": 677,
+  "run": {
+   "model": "jev-1.13.0",
+   "calls": 1701,
+   "input_tokens": 1033740,
+   "cost_usd": 0.0434
+  },
+  "auc": 0.992,
+  "baseline_auc": {
+   "title_word_overlap": 0.914,
+   "line_closeness": 0.838
+  },
+  "model_at_0.5": {
+   "precision": 0.952,
+   "recall": 0.928
+  },
+  "model_at_0.7": {
+   "precision": 0.974,
+   "recall": 0.895
+  },
+  "rule_within_3_lines": {
+   "precision": 0.827,
+   "recall": 0.69
+  },
+  "rule_within_3_lines_and_title_overlap_0.2": {
+   "precision": 0.983,
+   "recall": 0.502
+  }
+ }
+}

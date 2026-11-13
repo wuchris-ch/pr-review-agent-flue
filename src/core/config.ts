@@ -41,6 +41,12 @@ export interface ReviewConfig {
   agentEffort: string;
   /** Wall clock for one agent review. */
   agentTimeoutMs: number;
+  /** Independent bug-hunt passes the agent makes; their findings are merged. */
+  agentRuns: number;
+  /** Extra passes with the broad review request, which reports every distinct problem. */
+  agentBreadthRuns: number;
+  /** Model for the broad passes; the agent model when undefined. */
+  agentBreadthModel?: string;
   /** Run evidence validation over the agent's grounded findings. */
   agentValidate: boolean;
   /** Lines a proposal may sit from the changed line it is tied to. */
@@ -99,6 +105,7 @@ export function reviewConfig(env: NodeJS.ProcessEnv = process.env): ReviewConfig
   if (agentCli && !AGENT_CLIS.includes(agentCli as AgentCli))
     throw new Error('REVIEW_AGENT_CLI must be claude or codex');
   const agentModel = env.REVIEW_AGENT_CLI_MODEL?.trim();
+  const agentBreadthModel = env.REVIEW_AGENT_BREADTH_MODEL?.trim();
   return {
     concurrency: integer(env, 'REVIEW_CONCURRENCY', 6, 1, 12),
     partitionBytes: integer(env, 'REVIEW_PARTITION_KIB', 48, 8, 96) * 1024,
@@ -119,6 +126,13 @@ export function reviewConfig(env: NodeJS.ProcessEnv = process.env): ReviewConfig
     ...(agentModel ? { agentModel } : {}),
     agentEffort: env.REVIEW_AGENT_CLI_EFFORT?.trim() || 'high',
     agentTimeoutMs: integer(env, 'REVIEW_AGENT_CLI_TIMEOUT_SECONDS', 1200, 60, 3600) * 1000,
+    // One plain pass by default. On ReviewBench's 25 test pull requests one pass scored F1 40,
+    // five merged passes 54, and one broad pass 64 at three times the findings (docs/results.md).
+    agentRuns: integer(env, 'REVIEW_AGENT_RUNS', 1, 1, 5),
+    agentBreadthRuns: integer(env, 'REVIEW_AGENT_BREADTH_RUNS', 0, 0, 3),
+    // A cheaper model can do the broad passes: there Claude Sonnet 5.5 scored F1 61 against 64 for
+    // Opus 5.5, at 41% of the cost.
+    ...(agentBreadthModel ? { agentBreadthModel } : {}),
     agentValidate: flag(env, 'REVIEW_AGENT_VALIDATE', false),
     // Exact changed lines: on the development split this kept the same F1 as the
     // agent's own locations while removing a third of its unsupported comments.

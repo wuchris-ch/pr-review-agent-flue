@@ -46,6 +46,10 @@ The importer pins [Martian's public code review benchmark](https://github.com/wi
 
 For a held-out experiment, choose and freeze the evaluation split before prompt changes, group related PRs together, and reserve a separate development split. A public benchmark can have appeared in model training, so measure private or newly collected consenting-repository PRs before generalizing. Do not claim a benchmark win from the six development cases.
 
+## ReviewBench and the decision model
+
+[`evals/reviewbench`](reviewbench/README.md) scores the agent reviewer offline on ReviewBench pull requests with that benchmark's own matcher and scorer, one pass or several merged. [`evals/decision-model`](decision-model/README.md) measures whether a decision model can verify findings and detect duplicates.
+
 ## Human feedback
 
 Use `pr-review feedback` to record useful findings or false positives with reasons. Deduplicate repeated ratings per finding/input. Track confirmed finding precision, serious-defect recall, clean-PR false-positive rate, accepted-comment rate, latency, failure rate and reported tokens. Keep raw comments private and publish only reviewed aggregates. Promote a policy change only when it improves the chosen metric without unacceptable regressions on the others.
