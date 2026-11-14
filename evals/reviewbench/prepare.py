@@ -58,13 +58,15 @@ def one(entry):
         git(repo, "checkout", "-q", "--force", "--detach", head)
         pr_dir = args.work / "pr" / key
         pr_dir.mkdir(parents=True, exist_ok=True)
-        diff = git(repo, "diff", f"{base}...{head}").stdout
-        (pr_dir / "diff.patch").write_text(diff)
+        # Bytes, as the benchmark hands them to a reviewer: a diff can hold text that is not UTF-8.
+        diff = subprocess.run(["git", "-C", str(repo), "diff", f"{base}...{head}"], capture_output=True, env=env, check=True).stdout
+        (pr_dir / "diff.patch").write_bytes(diff)
         (pr_dir / "pr.json").write_text(json.dumps({"repo": entry["repo"], "pr_number": int(number), "base": base,
                                                     "head": head, "nwo": nwo, "key": key}))
         return key, f"ok, diff {len(diff.splitlines())} lines"
     except subprocess.CalledProcessError as error:
-        return key, f"FAILED {error.stderr.strip()[:160]}"
+        stderr = error.stderr.decode(errors="replace") if isinstance(error.stderr, bytes) else error.stderr
+        return key, f"FAILED {stderr.strip()[:160]}"
 
 
 with ThreadPoolExecutor(6) as pool:

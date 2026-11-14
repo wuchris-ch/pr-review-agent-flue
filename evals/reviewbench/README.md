@@ -9,10 +9,11 @@ Scores the agent reviewer on [ReviewBench](https://github.com/review-bench/Revie
 | `findings.mjs` | Pool mode: every finding of every run in one findings file per pull request. Engine mode: the findings the adapter writes for one configuration, from the saved answers. |
 | `judge.ts` | Matches a findings directory to the golden findings with ReviewBench's matcher and computes grounded precision, recall and F1 with its scorer. |
 | `analyze.py` | Composes reviews from judged pools without another model call: one run, several runs merged, or runs of different pools merged. Each mix is scored for every choice of runs. |
+| `report.py` | Sums the scorer's counts of judged findings over the whole benchmark and over subsets, in the leaderboard's three severity views. |
 | `judge-models.json` | Model list that points ReviewBench's matcher at a local endpoint. |
 | `fresh-sample.json` | 30 pull requests outside the test set: the first 30 of the other 194 when sorted by SHA-256 of their key. |
 | `full-run.json` | The setup of the run over all 219 pull requests. It was committed before that run started. |
-| `results/` | Aggregate scores. Review text and source code stay out of the repository. |
+| `results/` | Aggregate scores, and the public leaderboard's numbers on the day of the run. Review text and source code stay out of the repository. |
 
 ## Run
 
@@ -52,6 +53,23 @@ To score exactly what the adapter writes for one configuration, build its findin
 node evals/reviewbench/findings.mjs --engine bugs=answers/bugs:1,breadth=answers/broad:1 --out engine/bugs1-broad1
 (cd ../ReviewBench && npx tsx "$OLDPWD/evals/reviewbench/judge.ts" --bench . --pool "$OLDPWD/engine/bugs1-broad1" \
   --provider claude-cli --model claude-sonnet-5)
+```
+
+## All 219 pull requests
+
+`full-run.json` fixes the setup of the run over the whole benchmark. The steps are the ones above with `prepare.py --full`, one run of each kind of pass, and the adapter's findings for each configuration. `report.py` then writes the scores and [`scripts/render-reviewbench-chart.mjs`](../../scripts/render-reviewbench-chart.mjs) draws them beside the leaderboard.
+
+```sh
+python3 evals/reviewbench/prepare.py --bench ../ReviewBench --full --work work
+node evals/reviewbench/review.mjs --work work --out answers/bugs --lens bugs
+node evals/reviewbench/review.mjs --work work --out answers/broad --lens breadth
+node evals/reviewbench/findings.mjs --work work --engine bugs=answers/bugs:1 --out engine/default
+node evals/reviewbench/findings.mjs --work work --engine bugs=answers/bugs:1,breadth=answers/broad:1 --out engine/thorough
+# Judge engine/default and engine/thorough as in step 4, then:
+python3 evals/reviewbench/report.py --bench ../ReviewBench --scored default=engine/default --scored thorough=engine/thorough \
+  --subset test_set=../ReviewBench/corpus/test/test.json --subset fresh_sample=evals/reviewbench/fresh-sample.json \
+  --answers default=answers/bugs --answers thorough=answers/bugs,answers/broad --out evals/reviewbench/results/full-run.json
+node scripts/render-reviewbench-chart.mjs
 ```
 
 ## What is scored

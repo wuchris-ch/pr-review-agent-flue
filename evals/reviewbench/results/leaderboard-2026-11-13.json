@@ -1,0 +1,519 @@
+{
+ "retrieved": "2026-11-13",
+ "source": [
+  "https://review-bench.ai/api/leaderboard",
+  "https://review-bench.ai/api/leaderboard/metrics?severities=High,Medium&preference=balanced&rankingMetric=grounded",
+  "https://review-bench.ai/api/leaderboard/metrics?severities=High&preference=balanced&rankingMetric=grounded"
+ ],
+ "note": "Grounded precision, recall and F1 of the configurations the leaderboard lists, in its three severity views. The first address also returns configurations the leaderboard does not list; best_all_severities_f1_of_all holds the highest all-severities F1 among all of them.",
+ "configurations_returned": 41,
+ "best_all_severities_f1_of_all": 0.6929,
+ "listed": [
+  {
+   "id": "ohmybug",
+   "name": "OhMyBug",
+   "configuration": null,
+   "rounds": 3,
+   "findings_per_pr": 37.1,
+   "all": {
+    "precision": 0.8169,
+    "recall": 0.6017,
+    "f1": 0.6929
+   },
+   "high_medium": {
+    "precision": 0.9347,
+    "recall": 0.7259,
+    "f1": 0.8172
+   },
+   "high": {
+    "precision": 0.92,
+    "recall": 0.7561,
+    "f1": 0.8301
+   }
+  },
+  {
+   "id": "intent-review-agent",
+   "name": "intent-review-agent",
+   "configuration": null,
+   "rounds": 3,
+   "findings_per_pr": 17.6,
+   "all": {
+    "precision": 0.8177,
+    "recall": 0.5068,
+    "f1": 0.6258
+   },
+   "high_medium": {
+    "precision": 0.9372,
+    "recall": 0.6827,
+    "f1": 0.79
+   },
+   "high": {
+    "precision": 0.9198,
+    "recall": 0.7438,
+    "f1": 0.8225
+   }
+  },
+  {
+   "id": "copilot-code-review-high",
+   "name": "Copilot code review",
+   "configuration": "Max",
+   "rounds": 3,
+   "findings_per_pr": 7.1,
+   "all": {
+    "precision": 0.8781,
+    "recall": 0.2799,
+    "f1": 0.4245
+   },
+   "high_medium": {
+    "precision": 0.9248,
+    "recall": 0.4596,
+    "f1": 0.614
+   },
+   "high": {
+    "precision": 0.9685,
+    "recall": 0.622,
+    "f1": 0.7575
+   }
+  },
+  {
+   "id": "laude-revengine-prime-anthropic-claude-opus-5-5",
+   "name": "Laude RevEngine",
+   "configuration": "anthropic/claude-opus-5.5",
+   "rounds": 3,
+   "findings_per_pr": 11.4,
+   "all": {
+    "precision": 0.8358,
+    "recall": 0.4628,
+    "f1": 0.5957
+   },
+   "high_medium": {
+    "precision": 0.9256,
+    "recall": 0.5858,
+    "f1": 0.7175
+   },
+   "high": {
+    "precision": 0.9284,
+    "recall": 0.6062,
+    "f1": 0.7334
+   }
+  },
+  {
+   "id": "copilot-code-review-medium",
+   "name": "Copilot code review",
+   "configuration": "Balanced",
+   "rounds": 3,
+   "findings_per_pr": 5.0,
+   "all": {
+    "precision": 0.8819,
+    "recall": 0.2177,
+    "f1": 0.3491
+   },
+   "high_medium": {
+    "precision": 0.9331,
+    "recall": 0.3841,
+    "f1": 0.5442
+   },
+   "high": {
+    "precision": 0.9685,
+    "recall": 0.5816,
+    "f1": 0.7268
+   }
+  },
+  {
+   "id": "codex-gpt-5-6-sol-max",
+   "name": "Codex",
+   "configuration": "GPT-5.6 Sol \u00b7 Max",
+   "rounds": 3,
+   "findings_per_pr": 3.4,
+   "all": {
+    "precision": 0.8599,
+    "recall": 0.1846,
+    "f1": 0.304
+   },
+   "high_medium": {
+    "precision": 0.9294,
+    "recall": 0.3318,
+    "f1": 0.489
+   },
+   "high": {
+    "precision": 0.9626,
+    "recall": 0.5526,
+    "f1": 0.7021
+   }
+  },
+  {
+   "id": "codex-gpt-5-6-sol-ultra",
+   "name": "Codex",
+   "configuration": "GPT-5.6 Sol \u00b7 Ultra",
+   "rounds": 3,
+   "findings_per_pr": 3.5,
+   "all": {
+    "precision": 0.859,
+    "recall": 0.1786,
+    "f1": 0.2957
+   },
+   "high_medium": {
+    "precision": 0.9349,
+    "recall": 0.3302,
+    "f1": 0.488
+   },
+   "high": {
+    "precision": 0.9531,
+    "recall": 0.5523,
+    "f1": 0.6993
+   }
+  },
+  {
+   "id": "klaussy-claude-opus-5-5-1",
+   "name": "Klaussy",
+   "configuration": "claude-opus-5-5 \u00b7 1",
+   "rounds": 3,
+   "findings_per_pr": 25.9,
+   "all": {
+    "precision": 0.8024,
+    "recall": 0.5809,
+    "f1": 0.6739
+   },
+   "high_medium": {
+    "precision": 0.928,
+    "recall": 0.6298,
+    "f1": 0.7504
+   },
+   "high": {
+    "precision": 0.9328,
+    "recall": 0.5516,
+    "f1": 0.6932
+   }
+  },
+  {
+   "id": "qodo",
+   "name": "Qodo",
+   "configuration": null,
+   "rounds": 3,
+   "findings_per_pr": 4.7,
+   "all": {
+    "precision": 0.8533,
+    "recall": 0.2207,
+    "f1": 0.3506
+   },
+   "high_medium": {
+    "precision": 0.94,
+    "recall": 0.3838,
+    "f1": 0.5451
+   },
+   "high": {
+    "precision": 0.9527,
+    "recall": 0.5328,
+    "f1": 0.6834
+   }
+  },
+  {
+   "id": "block-review-sol-opus-off",
+   "name": "block/review",
+   "configuration": "sol-opus \u00b7 off",
+   "rounds": 3,
+   "findings_per_pr": 5.9,
+   "all": {
+    "precision": 0.8873,
+    "recall": 0.3262,
+    "f1": 0.4771
+   },
+   "high_medium": {
+    "precision": 0.9383,
+    "recall": 0.4723,
+    "f1": 0.6283
+   },
+   "high": {
+    "precision": 0.9427,
+    "recall": 0.5348,
+    "f1": 0.6825
+   }
+  },
+  {
+   "id": "heydeer-deep-detailed",
+   "name": "HeyDeer",
+   "configuration": "deep \u00b7 detailed",
+   "rounds": 3,
+   "findings_per_pr": 3.6,
+   "all": {
+    "precision": 0.8858,
+    "recall": 0.1447,
+    "f1": 0.2487
+   },
+   "high_medium": {
+    "precision": 0.9375,
+    "recall": 0.2713,
+    "f1": 0.4209
+   },
+   "high": {
+    "precision": 0.99,
+    "recall": 0.5145,
+    "f1": 0.6771
+   }
+  },
+  {
+   "id": "codex-gpt-5-6-sol-xhigh",
+   "name": "Codex",
+   "configuration": "GPT-5.6 Sol \u00b7 xHigh",
+   "rounds": 3,
+   "findings_per_pr": 3.5,
+   "all": {
+    "precision": 0.8877,
+    "recall": 0.1769,
+    "f1": 0.295
+   },
+   "high_medium": {
+    "precision": 0.926,
+    "recall": 0.2873,
+    "f1": 0.4386
+   },
+   "high": {
+    "precision": 0.9718,
+    "recall": 0.514,
+    "f1": 0.6724
+   }
+  },
+  {
+   "id": "copilot-code-review-low",
+   "name": "Copilot code review",
+   "configuration": "Lite",
+   "rounds": 3,
+   "findings_per_pr": 4.8,
+   "all": {
+    "precision": 0.8737,
+    "recall": 0.2298,
+    "f1": 0.3638
+   },
+   "high_medium": {
+    "precision": 0.9592,
+    "recall": 0.3616,
+    "f1": 0.5252
+   },
+   "high": {
+    "precision": 0.9452,
+    "recall": 0.5095,
+    "f1": 0.6621
+   }
+  },
+  {
+   "id": "devin-ai",
+   "name": "Devin AI",
+   "configuration": null,
+   "rounds": 3,
+   "findings_per_pr": 5.0,
+   "all": {
+    "precision": 0.8398,
+    "recall": 0.2375,
+    "f1": 0.3703
+   },
+   "high_medium": {
+    "precision": 0.9385,
+    "recall": 0.3831,
+    "f1": 0.5441
+   },
+   "high": {
+    "precision": 0.9312,
+    "recall": 0.5124,
+    "f1": 0.6611
+   }
+  },
+  {
+   "id": "diffox-ultra",
+   "name": "diffox ultra",
+   "configuration": null,
+   "rounds": 3,
+   "findings_per_pr": 20.1,
+   "all": {
+    "precision": 0.7827,
+    "recall": 0.535,
+    "f1": 0.6356
+   },
+   "high_medium": {
+    "precision": 0.9236,
+    "recall": 0.6091,
+    "f1": 0.7341
+   },
+   "high": {
+    "precision": 0.9432,
+    "recall": 0.503,
+    "f1": 0.6561
+   }
+  },
+  {
+   "id": "deepseek-harness-reviewer-deepseek-flash-high-2400",
+   "name": "DeepSeek Harness Reviewer",
+   "configuration": "deepseek-flash \u00b7 high \u00b7 2400",
+   "rounds": 3,
+   "findings_per_pr": 4.3,
+   "all": {
+    "precision": 0.8945,
+    "recall": 0.2565,
+    "f1": 0.3987
+   },
+   "high_medium": {
+    "precision": 0.943,
+    "recall": 0.3728,
+    "f1": 0.5344
+   },
+   "high": {
+    "precision": 0.9505,
+    "recall": 0.492,
+    "f1": 0.6484
+   }
+  },
+  {
+   "id": "opswiki-opswiki-hybrid-review-v2-deepseek-v4-flash",
+   "name": "opswiki",
+   "configuration": "opswiki-hybrid-review-v2 \u00b7 deepseek-v4-flash",
+   "rounds": 3,
+   "findings_per_pr": 3.6,
+   "all": {
+    "precision": 0.8871,
+    "recall": 0.2211,
+    "f1": 0.354
+   },
+   "high_medium": {
+    "precision": 0.9369,
+    "recall": 0.3622,
+    "f1": 0.5224
+   },
+   "high": {
+    "precision": 0.9271,
+    "recall": 0.4886,
+    "f1": 0.6399
+   }
+  },
+  {
+   "id": "klaussy-claude-sonnet-5-5-1",
+   "name": "Klaussy",
+   "configuration": "claude-sonnet-5-5 \u00b7 1",
+   "rounds": 3,
+   "findings_per_pr": 7.0,
+   "all": {
+    "precision": 0.8408,
+    "recall": 0.2984,
+    "f1": 0.4405
+   },
+   "high_medium": {
+    "precision": 0.9334,
+    "recall": 0.4195,
+    "f1": 0.5788
+   },
+   "high": {
+    "precision": 0.9352,
+    "recall": 0.476,
+    "f1": 0.6309
+   }
+  },
+  {
+   "id": "cursor",
+   "name": "Cursor",
+   "configuration": null,
+   "rounds": 3,
+   "findings_per_pr": 1.8,
+   "all": {
+    "precision": 0.8767,
+    "recall": 0.0957,
+    "f1": 0.1726
+   },
+   "high_medium": {
+    "precision": 0.9325,
+    "recall": 0.1969,
+    "f1": 0.3252
+   },
+   "high": {
+    "precision": 0.9602,
+    "recall": 0.4454,
+    "f1": 0.6085
+   }
+  },
+  {
+   "id": "klaussy-claude-sonnet-5-5-default",
+   "name": "Klaussy",
+   "configuration": "claude-sonnet-5-5 \u00b7 default",
+   "rounds": 3,
+   "findings_per_pr": 4.8,
+   "all": {
+    "precision": 0.8652,
+    "recall": 0.2264,
+    "f1": 0.3589
+   },
+   "high_medium": {
+    "precision": 0.9257,
+    "recall": 0.354,
+    "f1": 0.5122
+   },
+   "high": {
+    "precision": 0.9556,
+    "recall": 0.4395,
+    "f1": 0.602
+   }
+  },
+  {
+   "id": "diffox",
+   "name": "diffox",
+   "configuration": null,
+   "rounds": 3,
+   "findings_per_pr": 22.7,
+   "all": {
+    "precision": 0.7805,
+    "recall": 0.5046,
+    "f1": 0.613
+   },
+   "high_medium": {
+    "precision": 0.9216,
+    "recall": 0.5819,
+    "f1": 0.7134
+   },
+   "high": {
+    "precision": 0.9165,
+    "recall": 0.4366,
+    "f1": 0.5914
+   }
+  },
+  {
+   "id": "cubic",
+   "name": "Cubic",
+   "configuration": null,
+   "rounds": 1,
+   "findings_per_pr": 5.4,
+   "all": {
+    "precision": 0.8548,
+    "recall": 0.1627,
+    "f1": 0.2734
+   },
+   "high_medium": {
+    "precision": 0.9383,
+    "recall": 0.2026,
+    "f1": 0.3332
+   },
+   "high": {
+    "precision": 0.9348,
+    "recall": 0.2212,
+    "f1": 0.3578
+   }
+  },
+  {
+   "id": "greptile",
+   "name": "Greptile",
+   "configuration": null,
+   "rounds": 1,
+   "findings_per_pr": 2.2,
+   "all": {
+    "precision": 0.8611,
+    "recall": 0.1617,
+    "f1": 0.2723
+   },
+   "high_medium": {
+    "precision": 0.9122,
+    "recall": 0.2008,
+    "f1": 0.3292
+   },
+   "high": {
+    "precision": 0.9524,
+    "recall": 0.2022,
+    "f1": 0.3335
+   }
+  }
+ ]
+}

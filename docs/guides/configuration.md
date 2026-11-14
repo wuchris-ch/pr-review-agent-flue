@@ -69,6 +69,8 @@ One plain pass is the default. It reports about five findings per pull request a
 | `REVIEW_AGENT_BREADTH_RUNS=1` | 18.1 | 53.9% | 83.1% | $0.92 |
 | `REVIEW_AGENT_BREADTH_RUNS=2` with `REVIEW_AGENT_BREADTH_MODEL=claude-sonnet-5-5` | 31.4 | 64.9% | 77.0% | $0.82 |
 
+Over all 219 ReviewBench pull requests, the default covers 22.3% of the true findings at 87.8% precision for $0.41, and `REVIEW_AGENT_BREADTH_RUNS=1` covers 51.4% at 82.1% for $1.06.
+
 The broad request finds what repeating the plain request does not: five plain passes together never reported 213 of the 352 true findings. Two passes that report the same problem are merged when they cite the same file within three lines and their titles share words. A failed pass is noted in the review and the other passes still count.
 
 The GitHub Action and App read pull requests through the API without a checkout, so they keep the model passes. [ReviewBench](../../integrations/reviewbench/README.md) shows the agent reviewer packaged as a container.

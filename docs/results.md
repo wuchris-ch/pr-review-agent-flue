@@ -7,8 +7,8 @@ Measured October 1, October 9 and November 13, 2026 (America/Vancouver). Every n
 - **Agent reviewer on a public benchmark.** On the 30 held-out pull requests of a 50-PR public benchmark, the agent reviewer found 56.1% of 110 human-verified issues at 49.2% precision, averaged over three runs (F1 52.4%; the runs scored 52.7%, 51.7% and 52.8%). Among 18 reviewers scored by the same judge it ranks 4th under two judges and 8th under a third, where five reviewers sit within 0.7 F1 points. Qodo (extended), Augment and Qodo lead under every judge. It is Claude Opus 5.5 in Claude Code with read-only tools, and this engine ties each finding to a changed line before publishing it.
 - **Up from the model pipeline.** The October 1 model pipeline averaged 29.1% recall at 50.8% precision over three runs (F1 37.0%). The agent reviewer nearly doubled recall at about the same precision, and found 6 of 10 critical issues in every run where the pipeline found 1.
 - **Three judges.** A second judge from another model family, Claude Sonnet 5.5, re-scored every reviewer. It agreed with the main GPT-5.5 judge on 97.7% of 2,832 decisions (Cohen's kappa 0.95) and also ranks the agent reviewer 4th on its three-run mean, at F1 53.0%. A third judge, gpt-6.1-sol, agreed with GPT-5.5 on 98.5% of 2,006 decisions and puts the agent reviewer at F1 51.0%, 8th.
-- **More passes find more (November 13).** Three merged passes found 69.1% of the held-out issues, more than any of the 17 published tools, at the F1 of one pass. On [ReviewBench](#reviewbench-offline-november-13), where a pull request has 14 labelled true findings, one pass covers a quarter of them. A second pass with a broad review request raised grounded F1 over all severities from 40.0 to 65.4 on the 25-PR test set and from 37.5 to 69.6 on 30 other pull requests; the highest official score in that view is 69.3. On high-severity findings, the leaderboard's default view, it scored 74.2 and 66.7, in the middle of the official list. These are offline scores with the benchmark's own matcher and scorer, and no official run has been made.
-- **The benchmark adapter would have crashed on 10 of 55 pull requests.** The engine refused large diffs, binary files and very large files before the agent started. The adapter now reviews those too.
+- **More passes find more (November 13).** Three merged passes found 69.1% of the held-out issues, more than any of the 17 published tools, at the F1 of one pass. On [ReviewBench](#reviewbench-offline-november-13), where a pull request has 12 labelled true findings, one pass covers 22% of them. A second pass with a broad review request raised grounded F1 over all severities from 35.6 to 63.2 on all 219 pull requests, and from 34.3 to 61.1 on the 164 that no earlier run had reviewed. Placed among the 23 configurations on the public leaderboard, 63.2 is 4th of 24, and the highest is 69.3. On high-severity findings, the leaderboard's default view, it scored 65.3, which is 16th of 24. These are offline scores of one round with the benchmark's own matcher and scorer, and no official entry exists yet.
+- **The benchmark adapter would have crashed on 29 of 219 pull requests.** The engine refused large diffs, binary files and very large files before the agent started. The adapter now reviews those too.
 - **A decision model merges duplicates and cannot verify findings.** [Jev](../evals/decision-model/README.md) told whether two findings describe the same problem with AUC 0.992. Asked whether a finding is true, it scored the same with and without the code (AUC 0.869 and 0.868).
 - **Regression platform with a live model.** Across three runs over three seeded multi-file regressions and three valid alternative changes, it reproduced 9 of 9 regressions with failing tests, every proposed fix passed contract tests the agents never saw (9 of 9), and it flagged 0 of 9 valid changes.
 
@@ -217,9 +217,28 @@ The tables above compose reviews from pooled matcher decisions. As a check, the 
 | Test set, 25 PRs | 18.0 | 85.5% | 54.0% | 66.2% | 65.4% |
 | Fresh sample, 30 PRs | 18.6 | 85.1% | 59.9% | 70.3% | 69.6% |
 
+#### All 219 pull requests
+
+The last run covers the whole benchmark. Its setup was [committed before it started](../evals/reviewbench/full-run.json): Claude Opus 5.5 at high effort in Claude Code 2.1.321, one round, the default configuration (one plain pass) and the thorough one (one plain pass and one broad pass), scored on the findings file the adapter writes. The 55 pull requests above kept their first saved answers. The other 164 were reviewed once for each kind of pass. No earlier run had reviewed them, so they are the check on settings that were chosen on the test set.
+
+The 219 pull requests have 2,623 true findings: 181 high, 891 medium and 1,551 low severity ([`full-run.json`](../evals/reviewbench/results/full-run.json)).
+
+| Pull requests | Configuration | Findings per PR | Precision | Recall | F1 | F1, high and medium severity | F1, high severity | Cost per PR |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| All 219 | One plain pass | 4.0 | 87.8% | 22.3% | 35.6% | 50.3% | 57.6% | $0.41 |
+| All 219 | One plain and one broad pass | 15.7 | 82.1% | 51.4% | **63.2%** | **72.1%** | **65.3%** | $1.06 |
+| The 164 not reviewed before | One plain pass | 3.8 | 86.5% | 21.4% | 34.3% | 48.7% | 53.8% | $0.42 |
+| The 164 not reviewed before | One plain and one broad pass | 14.8 | 80.7% | 49.1% | 61.1% | 69.8% | 64.5% | $1.06 |
+
+The second pass holds on the 164 new pull requests: F1 over all severities rose from 34.3 to 61.1, and high-severity F1 from 53.8 to 64.5. The test set and the fresh sample scored higher than the rest (66.2 and 70.3 against 61.1), so the number for all 219 is the one to quote. Every one of the 438 reviews gave an answer. Two reached the 13-minute limit on the first try and finished on the second. The median review took 48 seconds for the plain pass and 85 seconds for the broad pass.
+
 #### Beside the leaderboard
 
-The [public leaderboard](https://review-bench.ai) holds official runs over all 219 pull requests. Its default view counts high-severity findings only. The rows below are its numbers on November 13 for eight of its 23 listed configurations, in its three views, followed by this reviewer's offline scores.
+The [public leaderboard](https://review-bench.ai) holds official runs over the same 219 pull requests, three rounds for most entries. It lists 23 configurations, and its default view counts high-severity findings only. The chart places this reviewer's offline scores among them in two of the leaderboard's three views. The leaderboard's numbers were [retrieved on November 13](../evals/reviewbench/results/leaderboard-2026-11-13.json).
+
+![ReviewBench grounded F1 of the 23 listed configurations and of PR Review with one and two passes, on all severities and on high severity only](assets/reviewbench.svg)
+
+The table holds eight of the 23 listed configurations and this reviewer's two.
 
 | Reviewer | Findings per PR | F1, all severities | F1, high and medium severity | F1, high severity |
 |---|---:|---:|---:|---:|
@@ -231,16 +250,16 @@ The [public leaderboard](https://review-bench.ai) holds official runs over all 2
 | Qodo | 4.7 | 35.1% | 54.5% | 68.3% |
 | Devin | 5.0 | 37.0% | 54.4% | 66.1% |
 | Cursor | 1.8 | 17.3% | 32.5% | 60.9% |
-| **PR Review, one plain pass, test set (offline)** | 4.8 | 40.0% | 59.6% | 67.2% |
-| **PR Review, one plain pass, fresh sample (offline)** | 4.4 | 37.5% | 47.8% | 64.3% |
-| **PR Review, one plain and one broad pass, test set (offline)** | 18.1 | 65.4% | 79.0% | 74.2% |
-| **PR Review, one plain and one broad pass, fresh sample (offline)** | 19.3 | 69.6% | 77.4% | 66.7% |
+| **PR Review, one plain pass (offline)** | 4.0 | 35.6% | 50.3% | 57.6% |
+| **PR Review, one plain and one broad pass (offline)** | 15.7 | 63.2% | 72.1% | 65.3% |
 
-OhMyBug and intent-review-agent are the first two in the default view, and 69.3% is the highest all-severities F1 on the list. The PR Review rows are offline measurements on 25 and 30 of the 219 pull requests, with the same matcher model and scorer. Only an official run gives this reviewer a place on that list.
+Placed among the 23 listed configurations, the two-pass reviewer is 4th of 24 on all severities, behind OhMyBug, Klaussy with Claude Opus 5.5 and diffox ultra (63.6%). It is 5th of 24 on high and medium severity and 16th of 24 on high severity. One plain pass is 14th, 17th and 22nd. The second pass adds most where a pull request has many medium and low findings. On high-severity findings recall rose from 40.9% to 50.8%, and the first two entries on the list find about 75%.
 
-#### The adapter refused 10 of 55 pull requests
+The PR Review rows are offline measurements of one round, with the same matcher model and scorer. Only an official run gives this reviewer a place on that list.
 
-Running the adapter's code over all 55 checkouts showed that the engine refused 10 of them before the agent started: 3 diffs over 1 MiB, 3 changes with a binary file and 4 with one file too large for a model message. In a benchmark run each would have produced no findings file. The engine indexes the diff to tie findings to changed lines, and the agent does not need that index, because it reads the checkout itself. The adapter now reviews such a pull request anyway and keeps the agent's own locations ([`review-pull-request.mjs`](../integrations/reviewbench/review-pull-request.mjs)). The command line still refuses these changes, because publication needs the index.
+#### The adapter refused 29 of 219 pull requests
+
+Running the adapter's code over the first 55 checkouts showed that the engine refused 10 of them before the agent started: 3 diffs over 1 MiB, 3 changes with a binary file and 4 with one file too large for a model message. Over all 219 pull requests it refused 29. In a benchmark run each would have produced no findings file. The engine indexes the diff to tie findings to changed lines, and the agent does not need that index, because it reads the checkout itself. The adapter now reviews such a pull request anyway and keeps the agent's own locations ([`review-pull-request.mjs`](../integrations/reviewbench/review-pull-request.mjs)). The command line still refuses these changes, because publication needs the index.
 
 ### Decision model
 
@@ -326,8 +345,8 @@ Running live for the first time exposed four defects that scripted fixtures had 
 - The agent reviewer and the model pipeline ran three times each on held-out PRs. Every other row ran once, including the published tools. Independent benchmark analyses report that gaps of a few F1 points between reviewers can be sampling or judge noise, and the agent reviewer's lead over 5th place (Cursor Bugbot, 51.5%) is within that range.
 - The held-out split is no longer untouched for the agent reviewer, because its plain-prompt run was scored there before the design work. A larger benchmark is the next test; [`integrations/reviewbench`](../integrations/reviewbench) packages the agent reviewer for ReviewBench.
 - The judges are models. They agree closely with each other and with Martian's published judge, but none is a human adjudicator.
-- The ReviewBench scores are offline: 25 test pull requests and 30 others out of 219, grounded metrics only, with most configurations composed from pooled matcher decisions. Each fresh-sample pass ran once. High-severity scores rest on 36 and 20 true findings. The benchmark's official run is the test that counts, and it has not been made.
-- The broad review request was written from the ReviewBench test set's misses. The fresh sample is the check on it, and the Martian held-out result shows the cost: on a benchmark that counts every unlisted finding as false, the broad pass lowers F1 by 16 points.
+- The ReviewBench scores are offline and self-scored: grounded metrics only, with the matcher model served through Claude Code at low effort. The run over all 219 pull requests is one round, where most official entries are the mean of three, and two of its 438 reviews ran again after they reached the time limit, which an official run does not do. The other configurations were measured on 25 test pull requests and 30 others, most of them composed from pooled matcher decisions. The benchmark's official run is the test that counts, and it has not been made.
+- The broad review request was written from the ReviewBench test set's misses. The fresh sample and the 164 pull requests of the last run are the check on it, and the Martian held-out result shows the cost: on a benchmark that counts every unlisted finding as false, the broad pass lowers F1 by 16 points.
 - The multi-pass configurations on the Martian held-out set were each judged once, by one judge. The three merged passes are the same three runs reported one by one above.
 - With a diff over 1 MiB, a binary file or one very large file, the command line still refuses to review. Only the ReviewBench adapter reviews such changes, because it does not need changed-line grounding.
 - The agent reviewer needs a local checkout and a signed-in Claude Code or Codex CLI. The GitHub Action and App read pull requests through the API and use the model pipeline.

@@ -47,7 +47,17 @@ async function worker() {
     let correspondences;
     if (existsSync(cachePath)) correspondences = JSON.parse(readFileSync(cachePath, "utf8"));
     else {
-      const pipeline = await dedup(candidate.findings, golden, { matcher: { provider: opts.provider, modelId: opts.model } });
+      let pipeline: any;
+      // The matcher model sometimes answers with text that is not JSON. Ask again before giving up.
+      for (let attempt = 1; ; attempt++) {
+        try {
+          pipeline = await dedup(candidate.findings, golden, { matcher: { provider: opts.provider, modelId: opts.model } });
+          break;
+        } catch (error) {
+          if (attempt === 3) throw error;
+          console.log(key + ": matcher attempt " + attempt + " failed (" + (error as Error).message + "), asking again");
+        }
+      }
       correspondences = pipeline.correspondences;
       calls += pipeline.matcher_stats?.llm_calls ?? 0;
       writeFileSync(cachePath, JSON.stringify(correspondences));

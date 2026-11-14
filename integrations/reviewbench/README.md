@@ -4,7 +4,7 @@
 
 `adapter.mjs` reads the contract's inputs, runs the agent reviewer in the checkout (Claude Code by default, read-only tools), merges the findings of its passes and writes `/work/out/findings.json`. It prints the settings it applied, for example `cli=claude model=claude-opus-5-5 effort=high runs=1 breadth_runs=1`.
 
-The engine cannot index every diff: it refuses one over 1 MiB, one with a binary file and one with a file too large for a model message. That was 10 of 55 benchmark pull requests checked. The agent reads the checkout itself, so the adapter still reviews those and keeps the agent's own locations.
+The engine cannot index every diff: it refuses one over 1 MiB, one with a binary file and one with a file too large for a model message. That is 29 of the 219 benchmark pull requests. The agent reads the checkout itself, so the adapter still reviews those and keeps the agent's own locations.
 
 [`evals/reviewbench`](../../evals/reviewbench/README.md) scores a configuration offline before a submission, with the benchmark's matcher and scorer.
 
@@ -44,5 +44,5 @@ Registration happens on [review-bench.ai](https://review-bench.ai) with a GitHub
 | Egress | `api.anthropic.com` |
 | Labels | `cli=claude`, `model=claude-opus-5-5`, `effort=high`, and the pass counts when they differ from the defaults |
 
-The final run reviews all 219 pull requests three times with your key. Use a dedicated key with a spend cap. At the API-equivalent cost of the [offline runs](../../docs/results.md#reviewbench-offline-november-13), 657 reviews cost about $240 to $280 with the default settings, $600 to $780 with `RB_CONFIG_BREADTH_RUNS=1`, and $540 with `RB_CONFIG_BREADTH_RUNS=2` and `RB_CONFIG_BREADTH_MODEL=claude-sonnet-5-5`.
+The final run reviews all 219 pull requests three times with your key. Use a dedicated key with a spend cap. At the API-equivalent cost of the [offline run over all 219 pull requests](../../docs/results.md#all-219-pull-requests), 657 reviews cost about $270 with the default settings and about $700 with `RB_CONFIG_BREADTH_RUNS=1`. With `RB_CONFIG_BREADTH_RUNS=2` and `RB_CONFIG_BREADTH_MODEL=claude-sonnet-5-5` the estimate from the test set is $540.
 
