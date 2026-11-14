@@ -25,6 +25,8 @@ const options = {
   // the agent arms run a coding agent there (REVIEW_AGENT_CLI, REVIEW_AGENT_CLI_MODEL).
   workspaces: '',
   // Saved agent answers, `<case>-<repetition>.md`; reused when present so arms stay paired.
+  // With REVIEW_AGENT_RUNS or REVIEW_AGENT_BREADTH_RUNS set, later passes are saved as
+  // `<case>-<repetition>.bugs2.md`, `<case>-<repetition>.breadth1.md` and so on.
   agentCache: '',
 };
 for (let n = 2; n < process.argv.length; n += 2) {
@@ -152,9 +154,12 @@ function explorationReaderFor(item, arm) {
   return gitReader(repository, item.head);
 }
 const agentRuns = new Map();
-/** One agent answer per case and repetition, shared by every agent arm and saved for reuse. */
-function agentAnswer(item, repetition) {
-  const key = `${item.id}-${repetition}`;
+const agentModel = (lens) =>
+  (lens === 'breadth' && process.env.REVIEW_AGENT_BREADTH_MODEL) ||
+  process.env.REVIEW_AGENT_CLI_MODEL;
+/** One agent answer per case, repetition and pass, shared by every agent arm and saved for reuse. */
+function agentAnswer(item, repetition, lens = 'bugs', pass = 1) {
+  const key = `${item.id}-${repetition}${lens === 'bugs' && pass === 1 ? '' : `.${lens}${pass}`}`;
   if (!agentRuns.has(key))
     agentRuns.set(
       key,
@@ -168,10 +173,9 @@ function agentAnswer(item, repetition) {
             'The checked-out branch `pr` contains the pull request; `main` is the base branch.',
           diffCommand: 'git diff main...pr',
           effort: process.env.REVIEW_AGENT_CLI_EFFORT || 'high',
+          lens,
           timeoutMs: 1_200_000,
-          ...(process.env.REVIEW_AGENT_CLI_MODEL
-            ? { model: process.env.REVIEW_AGENT_CLI_MODEL }
-            : {}),
+          ...(agentModel(lens) ? { model: agentModel(lens) } : {}),
         });
         if (saved) {
           mkdirSync(options.agentCache, { recursive: true, mode: 0o700 });
@@ -181,6 +185,14 @@ function agentAnswer(item, repetition) {
       })(),
     );
   return agentRuns.get(key);
+}
+/** Numbers the passes of one review so each maps to its own saved answer. */
+function agentPasses(item, repetition) {
+  const made = { bugs: 0, breadth: 0 };
+  return (lens) => {
+    made[lens] += 1;
+    return agentAnswer(item, repetition, lens, made[lens]);
+  };
 }
 const tasks = [];
 for (const item of cases)
@@ -203,7 +215,7 @@ async function worker() {
               root: resolve(options.workspaces || root, item.id),
               grounding: arm === 'agent-raw' ? 'off' : 'near',
               validate: arm === 'agent-validated',
-              run: () => agentAnswer(item, repetition),
+              run: agentPasses(item, repetition),
             }
           : undefined;
         const result = await reviewDiffDetailed(diff, {

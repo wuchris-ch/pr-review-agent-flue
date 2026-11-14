@@ -1,12 +1,15 @@
 # Results
 
-Measured October 1 and October 9, 2026 (America/Vancouver). Every number below comes from files in this repository; commands to reproduce them are at the end.
+Measured October 1, October 9 and November 13, 2026 (America/Vancouver). Every number below comes from files in this repository; commands to reproduce them are at the end.
 
 ## Summary
 
-- **Agent reviewer on a public benchmark.** On the 30 held-out pull requests of a 50-PR public benchmark, the agent reviewer found 56.1% of 110 human-verified issues at 49.2% precision, averaged over three runs (F1 52.4%; the runs scored 52.7%, 51.7% and 52.8%). In each run it ranks 4th of 18 reviewers scored by the same judge, behind Qodo (extended), Augment and Qodo. It is Claude Opus 5.5 in Claude Code with read-only tools, and this engine ties each finding to a changed line before publishing it.
+- **Agent reviewer on a public benchmark.** On the 30 held-out pull requests of a 50-PR public benchmark, the agent reviewer found 56.1% of 110 human-verified issues at 49.2% precision, averaged over three runs (F1 52.4%; the runs scored 52.7%, 51.7% and 52.8%). Among 18 reviewers scored by the same judge it ranks 4th under two judges and 8th under a third, where five reviewers sit within 0.7 F1 points. Qodo (extended), Augment and Qodo lead under every judge. It is Claude Opus 5.5 in Claude Code with read-only tools, and this engine ties each finding to a changed line before publishing it.
 - **Up from the model pipeline.** The October 1 model pipeline averaged 29.1% recall at 50.8% precision over three runs (F1 37.0%). The agent reviewer nearly doubled recall at about the same precision, and found 6 of 10 critical issues in every run where the pipeline found 1.
-- **Two judges.** A second judge from another model family, Claude Sonnet 5.5, re-scored every reviewer. It agreed with the main GPT-5.5 judge on 97.7% of 2,832 decisions (Cohen's kappa 0.95) and also ranks the agent reviewer 4th on its three-run mean, at F1 53.0%.
+- **Three judges.** A second judge from another model family, Claude Sonnet 5.5, re-scored every reviewer. It agreed with the main GPT-5.5 judge on 97.7% of 2,832 decisions (Cohen's kappa 0.95) and also ranks the agent reviewer 4th on its three-run mean, at F1 53.0%. A third judge, gpt-6.1-sol, agreed with GPT-5.5 on 98.5% of 2,006 decisions and puts the agent reviewer at F1 51.0%, 8th.
+- **More passes find more (November 13).** Three merged passes found 69.1% of the held-out issues, more than any of the 17 published tools, at the F1 of one pass. On [ReviewBench](#reviewbench-offline-november-13), where a pull request has 12 labelled true findings, one pass covers 22% of them. A second pass with a broad review request raised grounded F1 over all severities from 35.6 to 63.2 on all 219 pull requests, and from 34.3 to 61.1 on the 164 that no earlier run had reviewed. Placed among the 23 configurations on the public leaderboard, 63.2 is 4th of 24, and the highest is 69.3. On high-severity findings, the leaderboard's default view, it scored 65.3, which is 16th of 24. These are offline scores of one round with the benchmark's own matcher and scorer, and no official entry exists yet.
+- **The benchmark adapter would have crashed on 29 of 219 pull requests.** The engine refused large diffs, binary files and very large files before the agent started. The adapter now reviews those too.
+- **A decision model merges duplicates and cannot verify findings.** [Jev](../evals/decision-model/README.md) told whether two findings describe the same problem with AUC 0.992. Asked whether a finding is true, it scored the same with and without the code (AUC 0.869 and 0.868).
 - **Regression platform with a live model.** Across three runs over three seeded multi-file regressions and three valid alternative changes, it reproduced 9 of 9 regressions with failing tests, every proposed fix passed contract tests the agents never saw (9 of 9), and it flagged 0 of 9 valid changes.
 
 ## Public benchmark: 50 real pull requests
@@ -23,29 +26,29 @@ Measured October 1 and October 9, 2026 (America/Vancouver). Every number below c
 
 ![Precision and recall on 30 held-out PRs, compared with 17 commercial reviewers scored by the same judge](assets/benchmark.svg)
 
-PR Review's two rows are means of three runs. The published tools are Martian's published runs, re-scored. The last column is F1 from the second judge.
+PR Review's two rows are means of three runs. The published tools are Martian's published runs, re-scored. Rank, F1, precision and recall are from the GPT-5.5 judge. The last two columns are F1 from the [second](#second-judge) and [third](#third-judge-november-13) judges.
 
-| Rank | Reviewer | F1 | Precision | Recall | F1, second judge |
-|---:|---|---:|---:|---:|---:|
-| 1 | Qodo (extended) | 66.0% | 68.6% | 63.6% | 64.5% |
-| 2 | Augment | 59.3% | 54.1% | 65.5% | 61.4% |
-| 3 | Qodo | 55.3% | 50.0% | 61.8% | 55.5% |
-| 4 | **PR Review, agent reviewer** | 52.4% | 49.2% | 56.1% | 53.0% |
-| 5 | Cursor Bugbot | 51.5% | 55.2% | 48.2% | 52.7% |
-| 6 | GitLab Duo | 50.7% | 51.4% | 50.0% | 50.9% |
-| 7 | Gemini | 50.4% | 45.6% | 56.4% | 50.8% |
-| 8 | Devin | 49.5% | 62.5% | 40.9% | 51.6% |
-| 9 | GitHub Copilot (v2) | 49.0% | 38.5% | 67.3% | 50.5% |
-| 10 | Greptile v4.1 | 48.1% | 49.1% | 47.3% | 48.4% |
-| 11 | Macroscope | 47.0% | 52.2% | 42.7% | 49.0% |
-| 12 | GitHub Copilot | 43.2% | 34.0% | 59.1% | 44.0% |
-| 13 | Claude | 42.4% | 47.7% | 38.2% | 44.4% |
-| 14 | CodeRabbit | 42.0% | 31.8% | 61.8% | 42.1% |
-| 15 | Baz | 41.7% | 50.6% | 35.5% | 41.9% |
-| 16 | **PR Review, model pipeline** | 37.0% | 50.8% | 29.1% | 39.0% |
-| 17 | CodeAnt | 31.6% | 29.8% | 33.6% | 34.2% |
-| 18 | KG | 28.8% | 69.0% | 18.2% | 30.2% |
-| 19 | Graphite | 13.3% | 80.0% | 7.3% | 13.3% |
+| Rank | Reviewer | F1 | Precision | Recall | F1, second judge | F1, third judge |
+|---:|---|---:|---:|---:|---:|---:|
+| 1 | Qodo (extended) | 66.0% | 68.6% | 63.6% | 64.5% | 62.3% |
+| 2 | Augment | 59.3% | 54.1% | 65.5% | 61.4% | 59.8% |
+| 3 | Qodo | 55.3% | 50.0% | 61.8% | 55.5% | 56.1% |
+| 4 | **PR Review, agent reviewer** | 52.4% | 49.2% | 56.1% | 53.0% | 51.0% |
+| 5 | Cursor Bugbot | 51.5% | 55.2% | 48.2% | 52.7% | 51.5% |
+| 6 | GitLab Duo | 50.7% | 51.4% | 50.0% | 50.9% | 51.1% |
+| 7 | Gemini | 50.4% | 45.6% | 56.4% | 50.8% | 51.4% |
+| 8 | Devin | 49.5% | 62.5% | 40.9% | 51.6% | 51.6% |
+| 9 | GitHub Copilot (v2) | 49.0% | 38.5% | 67.3% | 50.5% | 49.0% |
+| 10 | Greptile v4.1 | 48.1% | 49.1% | 47.3% | 48.4% | 48.1% |
+| 11 | Macroscope | 47.0% | 52.2% | 42.7% | 49.0% | 47.0% |
+| 12 | GitHub Copilot | 43.2% | 34.0% | 59.1% | 44.0% | 43.0% |
+| 13 | Claude | 42.4% | 47.7% | 38.2% | 44.4% | 43.4% |
+| 14 | CodeRabbit | 42.0% | 31.8% | 61.8% | 42.1% | 41.4% |
+| 15 | Baz | 41.7% | 50.6% | 35.5% | 41.9% | 42.6% |
+| 16 | **PR Review, model pipeline** | 37.0% | 50.8% | 29.1% | 39.0% | not scored |
+| 17 | CodeAnt | 31.6% | 29.8% | 33.6% | 34.2% | 31.6% |
+| 18 | KG | 28.8% | 69.0% | 18.2% | 30.2% | 28.8% |
+| 19 | Graphite | 13.3% | 80.0% | 7.3% | 13.3% | 13.3% |
 
 Strict profile (bugs, security, concurrency, data and API only), means of three runs: agent reviewer 51.6% F1 (47.7% precision, 56.3% recall) against 36.9% for the model pipeline.
 
@@ -126,6 +129,146 @@ GPT-5.5 stays the main judge. To check that the results do not depend on one mod
 
 A decision is whether one reviewer found one golden issue on one PR. The two judges rank the 24 single-run reviewers almost identically (Spearman 0.99), and Sonnet is slightly more generous: it counted 1,232 matches where GPT-5.5 counted 1,213. Every reviewer's scores under both judges: [`heldout-two-judges-report.json`](../evals/martian/results/heldout-two-judges-report.json); agreement: [`second-judge-agreement.json`](../evals/martian/results/second-judge-agreement.json).
 
+## More passes and a third judge (November 13)
+
+The agent reviewer makes one pass with a short request. This section measures what more passes add on two benchmarks that score a long review in opposite ways, and it re-scores the October results with a third judge. The agent used claude-opus-5-5 at high effort in Claude Code 2.1.321, and claude-sonnet-5-5 where named.
+
+### Third judge (November 13)
+
+GPT-5.5 is no longer served to the ChatGPT subscription used here, so new results on this benchmark need another judge. gpt-6.1-sol at high effort re-scored the 17 published tools and the three held-out runs of the agent reviewer with the same prompt and matching rule.
+
+| Comparison, 17 published tools | Decisions | Agreement | Cohen's kappa |
+|---|---:|---:|---:|
+| gpt-6.1-sol and GPT-5.5 | 2,006 | 98.5% | 0.97 |
+| gpt-6.1-sol and Sonnet 5.5 | 2,006 | 97.5% | 0.95 |
+| gpt-6.1-sol and Martian's GPT-5.2 | 2,006 | 95.3% | 0.91 |
+
+Under this judge the agent reviewer scores F1 51.0% (47.9% precision, 54.5% recall; the runs scored 51.0, 50.0 and 51.9) and ranks 8th of 18. Devin (51.6%), Cursor Bugbot (51.5%), Gemini (51.4%) and GitLab Duo (51.1%) are within 0.7 points above it. Qodo (extended), Augment and Qodo keep the first three places under all three judges. Behind them, the order of the next five reviewers depends on the judge. Report: [`heldout-third-judge-report.json`](../evals/martian/results/heldout-third-judge-report.json).
+
+### The broad review request
+
+The plain request asks for "the bugs and problems this pull request introduces that the author should fix before merging". A strong agent answers with about five serious findings and stops. The broad request asks for every distinct problem in the code the pull request adds or changes. It names what to check in each changed file (correctness, security, performance, interface design, tests, documentation, maintainability and accessibility) and says to include medium and low priority problems. It was written after reading what five plain passes missed on ReviewBench's test set. `REVIEW_AGENT_BREADTH_RUNS` adds broad passes to a review, and the engine merges their findings with the plain passes ([configuration](guides/configuration.md#thorough-reviews)).
+
+### More passes on the held-out pull requests
+
+The three held-out runs were merged into one review, and one broad pass was added. gpt-6.1-sol judged each configuration once.
+
+| Configuration, findings on changed lines | Findings per PR | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| One plain pass, mean of three runs | 4.2 | 47.9% | 54.5% | 51.0% |
+| Three plain passes merged | 6.3 | 40.0% | 69.1% | 50.7% |
+| One plain pass and one broad pass | 12.5 | 22.3% | 76.4% | 34.6% |
+| Three plain passes and one broad pass | 13.3 | 21.6% | 78.2% | 33.9% |
+
+- **Three merged passes found 76 of the 110 issues.** The highest recall among the 17 published tools under this judge is 67.3% (GitHub Copilot v2, at 38.5% precision). F1 stayed at the level of one pass.
+- **The broad pass found 84 of the 110 issues**, and 92 at the agent's own locations, while precision fell to 22%. This benchmark lists 3.7 issues per pull request and counts every other finding as false, so a review with 12 findings scores low precision on it.
+- **Changed-line grounding.** For the three merged passes it removed 38 findings that matched no issue and none that matched one. With the broad pass it removed 77 unmatched findings and 8 matched ones.
+
+### ReviewBench, offline (November 13)
+
+**Dataset.** [ReviewBench](https://github.com/review-bench/ReviewBench/tree/4c9fc63c4a72a46291bc61a9eecf0efd5d7c6106), pinned at `4c9fc63`: 219 pull requests from 187 repositories. Each has a golden set of review findings, and each golden finding is labelled a true or false positive with a severity. The public test set has 25 pull requests with 352 true positives (36 high, 134 medium and 182 low severity) and 213 false positives. That is 14 true findings per pull request, half of them low severity.
+
+**Scoring.** The benchmark's own matcher and scorer, run locally by [`evals/reviewbench`](../evals/reviewbench/README.md) with Claude Sonnet 5, the benchmark's judge model. Grounded precision is the share of matched findings whose golden finding is a true positive. Grounded recall is the share of true-positive golden findings that some finding covers. A finding that matches no golden finding counts neither for nor against precision. The leaderboard ranks by grounded F1 and shows it in three views: high-severity findings only (its default), high and medium severity, and all severities.
+
+**Method.** Every agent answer was saved. All findings of all runs of one kind went to the matcher once, as a pool, and each configuration was then composed from the pools and scored for every choice of runs. "One plain pass and one broad pass", for example, is the mean over the 10 pairs of one of 5 plain passes and one of 2 broad passes. Findings keep the agent's own locations, as in the [adapter](../integrations/reviewbench/README.md). Precision, recall and the first F1 column cover all severities. Cost is Claude Code's API-equivalent figure, the mean over the saved reviews.
+
+#### Test set (25 pull requests)
+
+| Configuration | Findings per PR | Precision | Recall | F1 | F1, high and medium severity | F1, high severity | Cost per PR |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| One plain pass (default) | 4.8 | 91.4% | 25.6% | 40.0% | 59.6% | 67.2% | $0.36 |
+| Three plain passes | 10.0 | 90.2% | 34.5% | 49.9% | 69.2% | 73.0% | $1.09 |
+| Five plain passes | 13.1 | 89.9% | 38.4% | 53.8% | 72.6% | 74.5% | $1.81 |
+| One broad pass | 15.5 | 82.7% | 51.7% | 63.6% | 76.5% | 68.9% | $0.56 |
+| One broad pass, Sonnet 5.5 | 15.8 | 78.4% | 50.0% | 61.1% | 70.6% | 71.4% | $0.23 |
+| One plain pass and one broad pass | 18.1 | 83.1% | 53.9% | 65.4% | 79.0% | 74.2% | $0.92 |
+| One plain pass and two broad passes | 26.4 | 81.4% | 60.7% | 69.6% | 82.4% | 78.1% | $1.47 |
+| One plain pass and two Sonnet 5.5 broad passes | 31.4 | 77.0% | 64.9% | 70.4% | 81.9% | 79.2% | $0.82 |
+| Three plain passes and two Sonnet 5.5 broad passes | 34.9 | 77.2% | 66.5% | 71.5% | 83.5% | 82.0% | $1.54 |
+| Five plain, two broad and two Sonnet 5.5 broad passes | 49.6 | 76.5% | 73.0% | 74.7% | 87.3% | 86.2% | $3.38 |
+
+- **One plain pass stops early.** It reports 4.8 findings per pull request at 91.4% precision and covers a quarter of the true findings. Its five runs scored F1 between 37.1 and 42.4.
+- **Repeating the request helps slowly.** Five merged passes cover 38.4%. None of the five reported 213 of the 352 true findings: 14 of 36 with high severity, 57 of 134 with medium and 142 of 182 with low.
+- **A different request finds what repetition does not.** One broad pass covers 51.7% at 82.7% precision, more than five plain passes at a third of the cost.
+- **A cheaper model does the broad passes.** Two Sonnet 5.5 broad passes cover more than two Opus 5.5 broad passes (63.1% against 59.7%) at 41% of the cost, with 4 points less precision.
+- **High-severity findings need both requests.** One plain pass covers 51.7% of them and one broad pass 54.2%; together they cover 60.8%. The plain pass is already aimed at serious defects, so the broad pass adds most among medium and low severity findings.
+- **Changed-line grounding costs recall here.** Keeping only findings on a line the change edits lowered the F1 of single passes by 3 to 6 points, because ReviewBench matches findings by file. The adapter keeps the agent's own locations by default. Publication to GitHub still ties every comment to a changed line.
+
+All 20 configurations: [`test-set.json`](../evals/reviewbench/results/test-set.json).
+
+#### Fresh sample (30 pull requests)
+
+The broad request was written from the test set's misses, so the test set cannot confirm it. Thirty of the other 194 pull requests were drawn before any run: the first 30 when sorted by SHA-256 of their key ([`fresh-sample.json`](../evals/reviewbench/fresh-sample.json)). They have 392 true positives (20 high, 154 medium and 218 low severity). Each pass ran once.
+
+| Configuration | Findings per PR | Precision | Recall | F1 | F1, high and medium severity | F1, high severity | Cost per PR |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| One plain pass (default) | 4.4 | 89.8% | 23.7% | 37.5% | 47.8% | 64.3% | $0.43 |
+| One broad pass | 16.7 | 85.8% | 55.9% | 67.7% | 75.1% | 64.3% | $0.76 |
+| One plain pass and one broad pass | 19.3 | 85.1% | 58.9% | 69.6% | 77.4% | 66.7% | $1.19 |
+
+The fresh sample repeats the test set on all severities: one plain pass covers a quarter of the true findings, and adding one broad pass raises F1 by 32 points. On high severity the gain is 2 points here and 7 on the test set. The fresh sample has 20 high-severity true findings and the test set 36, so one finding moves that recall by 3 to 5 points. Numbers: [`fresh-sample.json`](../evals/reviewbench/results/fresh-sample.json).
+
+#### The adapter's own output
+
+The tables above compose reviews from pooled matcher decisions. As a check, the adapter's code built the findings file for one plain pass and one broad pass from the saved answers, and the matcher judged those files directly ([`adapter-path.json`](../evals/reviewbench/results/adapter-path.json)).
+
+| Sample | Findings per PR | Precision | Recall | F1 | Composed from pools |
+|---|---:|---:|---:|---:|---:|
+| Test set, 25 PRs | 18.0 | 85.5% | 54.0% | 66.2% | 65.4% |
+| Fresh sample, 30 PRs | 18.6 | 85.1% | 59.9% | 70.3% | 69.6% |
+
+#### All 219 pull requests
+
+The last run covers the whole benchmark. Its setup was [committed before it started](../evals/reviewbench/full-run.json), in [commit `942a1b0`](https://github.com/wuchris-ch/pr-review-agent-flue/pull/26/commits/942a1b0d696873e73ebf5f6a27f9f4570e5afe8a): Claude Opus 5.5 at high effort in Claude Code 2.1.321, one round, the default configuration (one plain pass) and the thorough one (one plain pass and one broad pass), scored on the findings file the adapter writes. The 55 pull requests above kept their first saved answers. The other 164 were reviewed once for each kind of pass. No earlier run had reviewed them, so they are the check on settings that were chosen on the test set.
+
+The 219 pull requests have 2,623 true findings: 181 high, 891 medium and 1,551 low severity ([`full-run.json`](../evals/reviewbench/results/full-run.json)).
+
+| Pull requests | Configuration | Findings per PR | Precision | Recall | F1 | F1, high and medium severity | F1, high severity | Cost per PR |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| All 219 | One plain pass | 4.0 | 87.8% | 22.3% | 35.6% | 50.3% | 57.6% | $0.41 |
+| All 219 | One plain and one broad pass | 15.7 | 82.1% | 51.4% | **63.2%** | **72.1%** | **65.3%** | $1.06 |
+| The 164 not reviewed before | One plain pass | 3.8 | 86.5% | 21.4% | 34.3% | 48.7% | 53.8% | $0.42 |
+| The 164 not reviewed before | One plain and one broad pass | 14.8 | 80.7% | 49.1% | 61.1% | 69.8% | 64.5% | $1.06 |
+
+The second pass holds on the 164 new pull requests: F1 over all severities rose from 34.3 to 61.1, and high-severity F1 from 53.8 to 64.5. The test set and the fresh sample scored higher than the rest (66.2 and 70.3 against 61.1), so the number for all 219 is the one to quote. Every one of the 438 reviews gave an answer. Two reached the 13-minute limit on the first try and finished on the second. The median review took 48 seconds for the plain pass and 85 seconds for the broad pass.
+
+#### Beside the leaderboard
+
+The [public leaderboard](https://review-bench.ai) holds official runs over the same 219 pull requests, three rounds for most entries. It lists 23 configurations, and its default view counts high-severity findings only. The chart places this reviewer's offline scores among them in two of the leaderboard's three views. The leaderboard's numbers were [retrieved on November 13](../evals/reviewbench/results/leaderboard-2026-11-13.json).
+
+![ReviewBench grounded F1 of the 23 listed configurations and of PR Review with one and two passes, on all severities and on high severity only](assets/reviewbench.svg)
+
+The table holds eight of the 23 listed configurations and this reviewer's two.
+
+| Reviewer | Findings per PR | F1, all severities | F1, high and medium severity | F1, high severity |
+|---|---:|---:|---:|---:|
+| OhMyBug | 37.1 | 69.3% | 81.7% | 83.0% |
+| intent-review-agent | 17.6 | 62.6% | 79.0% | 82.2% |
+| GitHub Copilot code review, Max | 7.1 | 42.4% | 61.4% | 75.7% |
+| Laude RevEngine, Claude Opus 5.5 | 11.4 | 59.6% | 71.8% | 73.3% |
+| Klaussy, Claude Opus 5.5 | 25.9 | 67.4% | 75.0% | 69.3% |
+| Qodo | 4.7 | 35.1% | 54.5% | 68.3% |
+| Devin | 5.0 | 37.0% | 54.4% | 66.1% |
+| Cursor | 1.8 | 17.3% | 32.5% | 60.9% |
+| **PR Review, one plain pass (offline)** | 4.0 | 35.6% | 50.3% | 57.6% |
+| **PR Review, one plain and one broad pass (offline)** | 15.7 | 63.2% | 72.1% | 65.3% |
+
+Placed among the 23 listed configurations, the two-pass reviewer is 4th of 24 on all severities, behind OhMyBug, Klaussy with Claude Opus 5.5 and diffox ultra (63.6%). It is 5th of 24 on high and medium severity and 16th of 24 on high severity. One plain pass is 14th, 17th and 22nd. The second pass adds most where a pull request has many medium and low findings. On high-severity findings recall rose from 40.9% to 50.8%, and the first two entries on the list find about 75%.
+
+The PR Review rows are offline measurements of one round, with the same matcher model and scorer. Only an official run gives this reviewer a place on that list.
+
+#### The adapter refused 29 of 219 pull requests
+
+Running the adapter's code over the first 55 checkouts showed that the engine refused 10 of them before the agent started: 3 diffs over 1 MiB, 3 changes with a binary file and 4 with one file too large for a model message. Over all 219 pull requests it refused 29. In a benchmark run each would have produced no findings file. The engine indexes the diff to tie findings to changed lines, and the agent does not need that index, because it reads the checkout itself. The adapter now reviews such a pull request anyway and keeps the agent's own locations ([`review-pull-request.mjs`](../integrations/reviewbench/review-pull-request.mjs)). The command line still refuses these changes, because publication needs the index.
+
+### Decision model
+
+A decision model answers typed questions with probabilities and writes no text. [Two experiments](../evals/decision-model/README.md) with Jev on the ReviewBench test set measured the two jobs it could do in this reviewer.
+
+- **Verifying a finding: no.** Asked whether each of 565 labelled findings is a true positive, it scored AUC 0.869 with the diff and file in view and 0.868 with only the finding's text. Knowing which tool wrote the finding scores 0.862. It ranks writing style.
+- **Detecting duplicates: yes.** On 1,701 labelled pairs of findings from different passes it scored AUC 0.992, with 95.2% precision at 92.8% recall. The engine's rule (same file, at most three lines apart, shared title words) reaches 98.3% precision at 50.2% recall.
+- **End to end.** Merging five plain passes with the model left 8.4 findings per pull request, where the rule leaves 13.1, and cost 1.2 points of recall. The whole run cost $0.07 for 2,695 pairs. The engine keeps its rule, which needs no extra service.
+
 ## Model pipeline (October 1)
 
 The sections below record how the model pipeline was improved before the agent reviewer. Its first held-out run ranked 7th of 18 on precision and 15th on F1. The GitHub Action and App still use it, because they read pull requests through the API without a checkout.
@@ -201,7 +344,11 @@ Running live for the first time exposed four defects that scripted fixtures had 
 - These are well-known open-source PRs, so they may appear in model training data. A fresh, consenting-repository set would be a stronger test.
 - The agent reviewer and the model pipeline ran three times each on held-out PRs. Every other row ran once, including the published tools. Independent benchmark analyses report that gaps of a few F1 points between reviewers can be sampling or judge noise, and the agent reviewer's lead over 5th place (Cursor Bugbot, 51.5%) is within that range.
 - The held-out split is no longer untouched for the agent reviewer, because its plain-prompt run was scored there before the design work. A larger benchmark is the next test; [`integrations/reviewbench`](../integrations/reviewbench) packages the agent reviewer for ReviewBench.
-- The judges are models. They agree closely with each other and with Martian's published judge, but neither is a human adjudicator.
+- The judges are models. They agree closely with each other and with Martian's published judge, but none is a human adjudicator.
+- The ReviewBench scores are offline and self-scored: grounded metrics only, with the matcher model served through Claude Code at low effort. The run over all 219 pull requests is one round, where most official entries are the mean of three, and two of its 438 reviews ran again after they reached the time limit, which an official run does not do. The other configurations were measured on 25 test pull requests and 30 others, most of them composed from pooled matcher decisions. The benchmark's official run is the test that counts, and it has not been made.
+- The broad review request was written from the ReviewBench test set's misses. The fresh sample and the 164 pull requests of the last run are the check on it, and the Martian held-out result shows the cost: on a benchmark that counts every unlisted finding as false, the broad pass lowers F1 by 16 points.
+- The multi-pass configurations on the Martian held-out set were each judged once, by one judge. The three merged passes are the same three runs reported one by one above.
+- With a diff over 1 MiB, a binary file or one very large file, the command line still refuses to review. Only the ReviewBench adapter reviews such changes, because it does not need changed-line grounding.
 - The agent reviewer needs a local checkout and a signed-in Claude Code or Codex CLI. The GitHub Action and App read pull requests through the API and use the model pipeline.
 - The platform scenarios are authored examples. The platform supports small UTF-8 Python repositories and Maven projects with JUnit 5, whose dependencies must be cached in the runner image, and progresses one candidate per review. The Java result covers one scenario.
 - Model pipeline runs used a ChatGPT subscription through a local OpenAI-compatible bridge to the Codex CLI. Reported token counts include that client's fixed system prompt, so no per-review dollar cost is claimed for them. Agent reviewer runs used a Claude subscription; the dollar figures above are Claude Code's API-equivalent estimates.
@@ -241,5 +388,7 @@ JUDGE_BASE_URL=http://127.0.0.1:8792/v1 JUDGE_API_KEY=local python3 evals/martia
 node scripts/compare-pipeline.mjs --dataset external --cases <ids> --arms context-explored --concurrency 10 \
   --sources ~/.cache/pr-review-benchmark-sources
 ```
+
+November 13: the third judge is the same `judge.py` command with `--model gpt-6.1-sol --effort high` against an OpenAI-compatible endpoint that serves that model. The multi-pass arms add `REVIEW_AGENT_RUNS=3` or `REVIEW_AGENT_BREADTH_RUNS=1` to the agent reviewer command above. ReviewBench: [`evals/reviewbench/README.md`](../evals/reviewbench/README.md). Decision model: [`evals/decision-model/README.md`](../evals/decision-model/README.md).
 
 Platform: start the services from [the quickstart](platform/quickstart.md) with a live provider, then run `uv run --project apps/platform python scripts/platform-live-eval.py --provider <alias>`.

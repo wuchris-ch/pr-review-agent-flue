@@ -1,0 +1,29 @@
+{
+  "registered": "2026-11-13",
+  "benchmark": "review-bench/ReviewBench at commit 4c9fc63c4a72a46291bc61a9eecf0efd5d7c6106",
+  "pull_requests": "all 219 in corpus/manifest.json",
+  "rounds": 1,
+  "reviewer": {
+    "cli": "claude",
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "grounding": "off"
+  },
+  "configurations": {
+    "default": {
+      "RB_CONFIG_RUNS": 1,
+      "RB_CONFIG_BREADTH_RUNS": 0
+    },
+    "thorough": {
+      "RB_CONFIG_RUNS": 1,
+      "RB_CONFIG_BREADTH_RUNS": 1
+    }
+  },
+  "scored": "The findings the adapter writes for each configuration (findings.mjs in engine mode), matched and scored by the benchmark's own matcher and scorer with Claude Sonnet 5.",
+  "reported": [
+    "Grounded precision, recall and F1 on all severities, on high and medium severity, and on high severity, for all 219 pull requests.",
+    "The same for the 164 pull requests outside the test set and the fresh sample. No earlier run of this project reviewed them."
+  ],
+  "reused": "The 55 pull requests reviewed earlier keep their first saved answer for each kind of pass.",
+  "failures": "A review that fails three times is run again later. A pull request with no answer after that counts with zero findings."
+}

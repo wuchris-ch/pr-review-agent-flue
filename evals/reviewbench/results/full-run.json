@@ -1,0 +1,204 @@
+{
+ "measured": "2026-11-13",
+ "note": "One round over all 219 pull requests with the setup in evals/reviewbench/full-run.json. default is one plain pass; thorough is one plain pass and one broad pass. Scored on the findings the adapter writes. rest is the 164 pull requests outside the test set and the fresh sample.",
+ "pull_requests": 219,
+ "configurations": {
+  "default": {
+   "all": {
+    "pull_requests": 219,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 4.0,
+    "cost_usd_per_pr": 0.41,
+    "all": {
+     "precision": 0.8778,
+     "recall": 0.223,
+     "f1": 0.3557,
+     "golden_true_positives": 2623
+    },
+    "high_medium": {
+     "precision": 0.9384,
+     "recall": 0.3433,
+     "f1": 0.5027,
+     "golden_true_positives": 1072
+    },
+    "high": {
+     "precision": 0.9718,
+     "recall": 0.4088,
+     "f1": 0.5756,
+     "golden_true_positives": 181
+    }
+   },
+   "test_set": {
+    "pull_requests": 25,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 5.0,
+    "cost_usd_per_pr": 0.38,
+    "all": {
+     "precision": 0.8977,
+     "recall": 0.267,
+     "f1": 0.4116,
+     "golden_true_positives": 352
+    },
+    "high_medium": {
+     "precision": 0.9683,
+     "recall": 0.4353,
+     "f1": 0.6006,
+     "golden_true_positives": 170
+    },
+    "high": {
+     "precision": 0.9444,
+     "recall": 0.5278,
+     "f1": 0.6771,
+     "golden_true_positives": 36
+    }
+   },
+   "fresh_sample": {
+    "pull_requests": 30,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 4.3,
+    "cost_usd_per_pr": 0.43,
+    "all": {
+     "precision": 0.9167,
+     "recall": 0.227,
+     "f1": 0.3639,
+     "golden_true_positives": 392
+    },
+    "high_medium": {
+     "precision": 0.9796,
+     "recall": 0.3046,
+     "f1": 0.4647,
+     "golden_true_positives": 174
+    },
+    "high": {
+     "precision": 0.9,
+     "recall": 0.45,
+     "f1": 0.6,
+     "golden_true_positives": 20
+    }
+   },
+   "rest": {
+    "pull_requests": 164,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 3.8,
+    "cost_usd_per_pr": 0.42,
+    "all": {
+     "precision": 0.8653,
+     "recall": 0.2139,
+     "f1": 0.3431,
+     "golden_true_positives": 1879
+    },
+    "high_medium": {
+     "precision": 0.9214,
+     "recall": 0.331,
+     "f1": 0.4871,
+     "golden_true_positives": 728
+    },
+    "high": {
+     "precision": 1.0,
+     "recall": 0.368,
+     "f1": 0.538,
+     "golden_true_positives": 125
+    }
+   }
+  },
+  "thorough": {
+   "all": {
+    "pull_requests": 219,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 15.7,
+    "cost_usd_per_pr": 1.06,
+    "all": {
+     "precision": 0.8209,
+     "recall": 0.5139,
+     "f1": 0.6321,
+     "golden_true_positives": 2623
+    },
+    "high_medium": {
+     "precision": 0.9334,
+     "recall": 0.5868,
+     "f1": 0.7206,
+     "golden_true_positives": 1072
+    },
+    "high": {
+     "precision": 0.9149,
+     "recall": 0.5083,
+     "f1": 0.6535,
+     "golden_true_positives": 181
+    }
+   },
+   "test_set": {
+    "pull_requests": 25,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 18.0,
+    "cost_usd_per_pr": 0.95,
+    "all": {
+     "precision": 0.855,
+     "recall": 0.5398,
+     "f1": 0.6618,
+     "golden_true_positives": 352
+    },
+    "high_medium": {
+     "precision": 0.9804,
+     "recall": 0.6353,
+     "f1": 0.771,
+     "golden_true_positives": 170
+    },
+    "high": {
+     "precision": 0.9474,
+     "recall": 0.5278,
+     "f1": 0.6779,
+     "golden_true_positives": 36
+    }
+   },
+   "fresh_sample": {
+    "pull_requests": 30,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 18.6,
+    "cost_usd_per_pr": 1.19,
+    "all": {
+     "precision": 0.8506,
+     "recall": 0.5995,
+     "f1": 0.7033,
+     "golden_true_positives": 392
+    },
+    "high_medium": {
+     "precision": 0.9697,
+     "recall": 0.6322,
+     "f1": 0.7654,
+     "golden_true_positives": 174
+    },
+    "high": {
+     "precision": 0.8333,
+     "recall": 0.55,
+     "f1": 0.6627,
+     "golden_true_positives": 20
+    }
+   },
+   "rest": {
+    "pull_requests": 164,
+    "pull_requests_without_findings_file": 0,
+    "findings_per_pr": 14.8,
+    "cost_usd_per_pr": 1.06,
+    "all": {
+     "precision": 0.8072,
+     "recall": 0.4912,
+     "f1": 0.6108,
+     "golden_true_positives": 1879
+    },
+    "high_medium": {
+     "precision": 0.9133,
+     "recall": 0.5646,
+     "f1": 0.6978,
+     "golden_true_positives": 728
+    },
+    "high": {
+     "precision": 0.9206,
+     "recall": 0.496,
+     "f1": 0.6447,
+     "golden_true_positives": 125
+    }
+   }
+  }
+ },
+ "judge": "claude-cli/claude-sonnet-5"
+}

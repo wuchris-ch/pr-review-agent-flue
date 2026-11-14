@@ -1,0 +1,21 @@
+{
+  "providers": {
+    "claude-cli": {
+      "baseUrl": "http://127.0.0.1:8795/v1",
+      "api": "openai-completions",
+      "apiKey": "local",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsStore": false
+      },
+      "models": [
+        {
+          "id": "claude-sonnet-5",
+          "reasoning": true,
+          "contextWindow": 200000,
+          "maxTokens": 32000
+        }
+      ]
+    }
+  }
+}

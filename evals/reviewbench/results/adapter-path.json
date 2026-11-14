@@ -1,0 +1,39 @@
+{
+ "measured": "2026-11-13",
+ "judge": "claude-sonnet-5 (ReviewBench matcher and scorer, grounded metrics)",
+ "note": "Findings built by integrations/reviewbench/review-pull-request.mjs from saved answers (run 1 of each pass) and judged directly.",
+ "configurations": [
+  {
+   "sample": "test set",
+   "pull_requests": 25,
+   "configuration": "one bug pass and one broad pass",
+   "findings_per_pr": 18.0,
+   "micro": {
+    "grounded_precision": 0.855,
+    "grounded_recall": 0.5398,
+    "grounded_f1": 0.6618
+   },
+   "macro": {
+    "grounded_precision": 0.834,
+    "grounded_recall": 0.5507,
+    "grounded_f1": 0.6633
+   }
+  },
+  {
+   "sample": "fresh sample",
+   "pull_requests": 30,
+   "configuration": "one bug pass and one broad pass",
+   "findings_per_pr": 18.6,
+   "micro": {
+    "grounded_precision": 0.8506,
+    "grounded_recall": 0.5995,
+    "grounded_f1": 0.7033
+   },
+   "macro": {
+    "grounded_precision": 0.8482,
+    "grounded_recall": 0.6471,
+    "grounded_f1": 0.7341
+   }
+  }
+ ]
+}

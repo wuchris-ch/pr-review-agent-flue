@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 586" width="880" height="586" role="img" aria-labelledby="title desc">
+<title id="title">ReviewBench grounded F1, scored offline, beside the public leaderboard</title>
+<desc id="desc">With two passes PR Review scores 63.2% grounded F1 on all severities and 65.3% on high severity, scored offline on all 219 pull requests. Placed among the 23 configurations the leaderboard lists, that is number 4 and number 16 of 24. With one pass it scores 35.6% and 57.6%.</desc>
+<rect width="880" height="586" fill="#fbfaf7"/>
+<g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7a72">
+<text x="24.0" y="30" font-size="13" font-weight="600" fill="#22382f">All severities</text>
+<text x="24.0" y="47" font-size="11">Grounded F1, sorted from highest</text>
+<line x1="202.0" x2="202.0" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="202.0" y="526" text-anchor="middle" font-size="10.5">0%</text>
+<line x1="242.4" x2="242.4" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="242.4" y="526" text-anchor="middle" font-size="10.5">20%</text>
+<line x1="282.9" x2="282.9" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="282.9" y="526" text-anchor="middle" font-size="10.5">40%</text>
+<line x1="323.3" x2="323.3" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="323.3" y="526" text-anchor="middle" font-size="10.5">60%</text>
+<line x1="363.8" x2="363.8" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="363.8" y="526" text-anchor="middle" font-size="10.5">80%</text>
+<text x="194.0" y="74.5" text-anchor="end">OhMyBug</text>
+<rect x="202.0" y="65" width="140.1" height="12" rx="2" fill="#a7b2ac"><title>OhMyBug: 69.3%</title></rect>
+<text x="348.1" y="74.5">69.3%</text>
+<text x="194.0" y="92.5" text-anchor="end">Klaussy, Opus 5.5</text>
+<rect x="202.0" y="83" width="136.3" height="12" rx="2" fill="#a7b2ac"><title>Klaussy, Opus 5.5: 67.4%</title></rect>
+<text x="344.3" y="92.5">67.4%</text>
+<text x="194.0" y="110.5" text-anchor="end">diffox ultra</text>
+<rect x="202.0" y="101" width="128.5" height="12" rx="2" fill="#a7b2ac"><title>diffox ultra: 63.6%</title></rect>
+<text x="336.5" y="110.5">63.6%</text>
+<text x="194.0" y="128.5" text-anchor="end" font-weight="600" fill="#2f6b4f">PR Review, two passes</text>
+<rect x="202.0" y="119" width="127.8" height="12" rx="2" fill="#2f6b4f"><title>PR Review, two passes: 63.2%</title></rect>
+<text x="335.8" y="128.5" font-weight="600" fill="#2f6b4f">63.2%</text>
+<text x="194.0" y="146.5" text-anchor="end">intent-review-agent</text>
+<rect x="202.0" y="137" width="126.6" height="12" rx="2" fill="#a7b2ac"><title>intent-review-agent: 62.6%</title></rect>
+<text x="334.6" y="146.5">62.6%</text>
+<text x="194.0" y="164.5" text-anchor="end">diffox</text>
+<rect x="202.0" y="155" width="124.0" height="12" rx="2" fill="#a7b2ac"><title>diffox: 61.3%</title></rect>
+<text x="332.0" y="164.5">61.3%</text>
+<text x="194.0" y="182.5" text-anchor="end">Laude RevEngine, Opus 5.5</text>
+<rect x="202.0" y="173" width="120.5" height="12" rx="2" fill="#a7b2ac"><title>Laude RevEngine, Opus 5.5: 59.6%</title></rect>
+<text x="328.5" y="182.5">59.6%</text>
+<text x="194.0" y="200.5" text-anchor="end">block/review</text>
+<rect x="202.0" y="191" width="96.5" height="12" rx="2" fill="#a7b2ac"><title>block/review: 47.7%</title></rect>
+<text x="304.5" y="200.5">47.7%</text>
+<text x="194.0" y="218.5" text-anchor="end">Klaussy, Sonnet 5.5 (1)</text>
+<rect x="202.0" y="209" width="89.1" height="12" rx="2" fill="#a7b2ac"><title>Klaussy, Sonnet 5.5 (1): 44.0%</title></rect>
+<text x="297.1" y="218.5">44.0%</text>
+<text x="194.0" y="236.5" text-anchor="end">Copilot code review, Max</text>
+<rect x="202.0" y="227" width="85.8" height="12" rx="2" fill="#a7b2ac"><title>Copilot code review, Max: 42.4%</title></rect>
+<text x="293.8" y="236.5">42.4%</text>
+<text x="194.0" y="254.5" text-anchor="end">DeepSeek Harness Reviewer</text>
+<rect x="202.0" y="245" width="80.6" height="12" rx="2" fill="#a7b2ac"><title>DeepSeek Harness Reviewer: 39.9%</title></rect>
+<text x="288.6" y="254.5">39.9%</text>
+<text x="194.0" y="272.5" text-anchor="end">Devin</text>
+<rect x="202.0" y="263" width="74.9" height="12" rx="2" fill="#a7b2ac"><title>Devin: 37.0%</title></rect>
+<text x="282.9" y="272.5">37.0%</text>
+<text x="194.0" y="290.5" text-anchor="end">Copilot code review, Lite</text>
+<rect x="202.0" y="281" width="73.6" height="12" rx="2" fill="#a7b2ac"><title>Copilot code review, Lite: 36.4%</title></rect>
+<text x="281.6" y="290.5">36.4%</text>
+<text x="194.0" y="308.5" text-anchor="end">Klaussy, Sonnet 5.5</text>
+<rect x="202.0" y="299" width="72.6" height="12" rx="2" fill="#a7b2ac"><title>Klaussy, Sonnet 5.5: 35.9%</title></rect>
+<text x="280.6" y="308.5">35.9%</text>
+<text x="194.0" y="326.5" text-anchor="end" font-weight="600" fill="#2f6b4f">PR Review, one pass</text>
+<rect x="202.0" y="317" width="71.9" height="12" rx="2" fill="#2f6b4f"><title>PR Review, one pass: 35.6%</title></rect>
+<text x="279.9" y="326.5" font-weight="600" fill="#2f6b4f">35.6%</text>
+<text x="194.0" y="344.5" text-anchor="end">opswiki</text>
+<rect x="202.0" y="335" width="71.6" height="12" rx="2" fill="#a7b2ac"><title>opswiki: 35.4%</title></rect>
+<text x="279.6" y="344.5">35.4%</text>
+<text x="194.0" y="362.5" text-anchor="end">Qodo</text>
+<rect x="202.0" y="353" width="70.9" height="12" rx="2" fill="#a7b2ac"><title>Qodo: 35.1%</title></rect>
+<text x="278.9" y="362.5">35.1%</text>
+<text x="194.0" y="380.5" text-anchor="end">Copilot code review, Balanced</text>
+<rect x="202.0" y="371" width="70.6" height="12" rx="2" fill="#a7b2ac"><title>Copilot code review, Balanced: 34.9%</title></rect>
+<text x="278.6" y="380.5">34.9%</text>
+<text x="194.0" y="398.5" text-anchor="end">Codex, GPT-5.6 Sol Max</text>
+<rect x="202.0" y="389" width="61.5" height="12" rx="2" fill="#a7b2ac"><title>Codex, GPT-5.6 Sol Max: 30.4%</title></rect>
+<text x="269.5" y="398.5">30.4%</text>
+<text x="194.0" y="416.5" text-anchor="end">Codex, GPT-5.6 Sol Ultra</text>
+<rect x="202.0" y="407" width="59.8" height="12" rx="2" fill="#a7b2ac"><title>Codex, GPT-5.6 Sol Ultra: 29.6%</title></rect>
+<text x="267.8" y="416.5">29.6%</text>
+<text x="194.0" y="434.5" text-anchor="end">Codex, GPT-5.6 Sol xHigh</text>
+<rect x="202.0" y="425" width="59.7" height="12" rx="2" fill="#a7b2ac"><title>Codex, GPT-5.6 Sol xHigh: 29.5%</title></rect>
+<text x="267.7" y="434.5">29.5%</text>
+<text x="194.0" y="452.5" text-anchor="end">Cubic</text>
+<rect x="202.0" y="443" width="55.3" height="12" rx="2" fill="#a7b2ac"><title>Cubic: 27.3%</title></rect>
+<text x="263.3" y="452.5">27.3%</text>
+<text x="194.0" y="470.5" text-anchor="end">Greptile</text>
+<rect x="202.0" y="461" width="55.1" height="12" rx="2" fill="#a7b2ac"><title>Greptile: 27.2%</title></rect>
+<text x="263.1" y="470.5">27.2%</text>
+<text x="194.0" y="488.5" text-anchor="end">HeyDeer</text>
+<rect x="202.0" y="479" width="50.3" height="12" rx="2" fill="#a7b2ac"><title>HeyDeer: 24.9%</title></rect>
+<text x="258.3" y="488.5">24.9%</text>
+<text x="194.0" y="506.5" text-anchor="end">Cursor</text>
+<rect x="202.0" y="497" width="34.9" height="12" rx="2" fill="#a7b2ac"><title>Cursor: 17.3%</title></rect>
+<text x="242.9" y="506.5">17.3%</text>
+<text x="452.0" y="30" font-size="13" font-weight="600" fill="#22382f">High severity only (the leaderboard’s default view)</text>
+<text x="452.0" y="47" font-size="11">Grounded F1, sorted from highest</text>
+<line x1="630.0" x2="630.0" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="630.0" y="526" text-anchor="middle" font-size="10.5">0%</text>
+<line x1="670.4" x2="670.4" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="670.4" y="526" text-anchor="middle" font-size="10.5">20%</text>
+<line x1="710.9" x2="710.9" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="710.9" y="526" text-anchor="middle" font-size="10.5">40%</text>
+<line x1="751.3" x2="751.3" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="751.3" y="526" text-anchor="middle" font-size="10.5">60%</text>
+<line x1="791.8" x2="791.8" y1="58" y2="512" stroke="#e3e2db"/>
+<text x="791.8" y="526" text-anchor="middle" font-size="10.5">80%</text>
+<text x="622.0" y="74.5" text-anchor="end">OhMyBug</text>
+<rect x="630.0" y="65" width="167.9" height="12" rx="2" fill="#a7b2ac"><title>OhMyBug: 83.0%</title></rect>
+<text x="803.9" y="74.5">83.0%</text>
+<text x="622.0" y="92.5" text-anchor="end">intent-review-agent</text>
+<rect x="630.0" y="83" width="166.3" height="12" rx="2" fill="#a7b2ac"><title>intent-review-agent: 82.3%</title></rect>
+<text x="802.3" y="92.5">82.3%</text>
+<text x="622.0" y="110.5" text-anchor="end">Copilot code review, Max</text>
+<rect x="630.0" y="101" width="153.2" height="12" rx="2" fill="#a7b2ac"><title>Copilot code review, Max: 75.8%</title></rect>
+<text x="789.2" y="110.5">75.8%</text>
+<text x="622.0" y="128.5" text-anchor="end">Laude RevEngine, Opus 5.5</text>
+<rect x="630.0" y="119" width="148.3" height="12" rx="2" fill="#a7b2ac"><title>Laude RevEngine, Opus 5.5: 73.3%</title></rect>
+<text x="784.3" y="128.5">73.3%</text>
+<text x="622.0" y="146.5" text-anchor="end">Copilot code review, Balanced</text>
+<rect x="630.0" y="137" width="147.0" height="12" rx="2" fill="#a7b2ac"><title>Copilot code review, Balanced: 72.7%</title></rect>
+<text x="783.0" y="146.5">72.7%</text>
+<text x="622.0" y="164.5" text-anchor="end">Codex, GPT-5.6 Sol Max</text>
+<rect x="630.0" y="155" width="142.0" height="12" rx="2" fill="#a7b2ac"><title>Codex, GPT-5.6 Sol Max: 70.2%</title></rect>
+<text x="778.0" y="164.5">70.2%</text>
+<text x="622.0" y="182.5" text-anchor="end">Codex, GPT-5.6 Sol Ultra</text>
+<rect x="630.0" y="173" width="141.4" height="12" rx="2" fill="#a7b2ac"><title>Codex, GPT-5.6 Sol Ultra: 69.9%</title></rect>
+<text x="777.4" y="182.5">69.9%</text>
+<text x="622.0" y="200.5" text-anchor="end">Klaussy, Opus 5.5</text>
+<rect x="630.0" y="191" width="140.2" height="12" rx="2" fill="#a7b2ac"><title>Klaussy, Opus 5.5: 69.3%</title></rect>
+<text x="776.2" y="200.5">69.3%</text>
+<text x="622.0" y="218.5" text-anchor="end">Qodo</text>
+<rect x="630.0" y="209" width="138.2" height="12" rx="2" fill="#a7b2ac"><title>Qodo: 68.3%</title></rect>
+<text x="774.2" y="218.5">68.3%</text>
+<text x="622.0" y="236.5" text-anchor="end">block/review</text>
+<rect x="630.0" y="227" width="138.0" height="12" rx="2" fill="#a7b2ac"><title>block/review: 68.3%</title></rect>
+<text x="774.0" y="236.5">68.3%</text>
+<text x="622.0" y="254.5" text-anchor="end">HeyDeer</text>
+<rect x="630.0" y="245" width="136.9" height="12" rx="2" fill="#a7b2ac"><title>HeyDeer: 67.7%</title></rect>
+<text x="772.9" y="254.5">67.7%</text>
+<text x="622.0" y="272.5" text-anchor="end">Codex, GPT-5.6 Sol xHigh</text>
+<rect x="630.0" y="263" width="136.0" height="12" rx="2" fill="#a7b2ac"><title>Codex, GPT-5.6 Sol xHigh: 67.2%</title></rect>
+<text x="772.0" y="272.5">67.2%</text>
+<text x="622.0" y="290.5" text-anchor="end">Copilot code review, Lite</text>
+<rect x="630.0" y="281" width="133.9" height="12" rx="2" fill="#a7b2ac"><title>Copilot code review, Lite: 66.2%</title></rect>
+<text x="769.9" y="290.5">66.2%</text>
+<text x="622.0" y="308.5" text-anchor="end">Devin</text>
+<rect x="630.0" y="299" width="133.7" height="12" rx="2" fill="#a7b2ac"><title>Devin: 66.1%</title></rect>
+<text x="769.7" y="308.5">66.1%</text>
+<text x="622.0" y="326.5" text-anchor="end">diffox ultra</text>
+<rect x="630.0" y="317" width="132.7" height="12" rx="2" fill="#a7b2ac"><title>diffox ultra: 65.6%</title></rect>
+<text x="768.7" y="326.5">65.6%</text>
+<text x="622.0" y="344.5" text-anchor="end" font-weight="600" fill="#2f6b4f">PR Review, two passes</text>
+<rect x="630.0" y="335" width="132.2" height="12" rx="2" fill="#2f6b4f"><title>PR Review, two passes: 65.3%</title></rect>
+<text x="768.2" y="344.5" font-weight="600" fill="#2f6b4f">65.3%</text>
+<text x="622.0" y="362.5" text-anchor="end">DeepSeek Harness Reviewer</text>
+<rect x="630.0" y="353" width="131.1" height="12" rx="2" fill="#a7b2ac"><title>DeepSeek Harness Reviewer: 64.8%</title></rect>
+<text x="767.1" y="362.5">64.8%</text>
+<text x="622.0" y="380.5" text-anchor="end">opswiki</text>
+<rect x="630.0" y="371" width="129.4" height="12" rx="2" fill="#a7b2ac"><title>opswiki: 64.0%</title></rect>
+<text x="765.4" y="380.5">64.0%</text>
+<text x="622.0" y="398.5" text-anchor="end">Klaussy, Sonnet 5.5 (1)</text>
+<rect x="630.0" y="389" width="127.6" height="12" rx="2" fill="#a7b2ac"><title>Klaussy, Sonnet 5.5 (1): 63.1%</title></rect>
+<text x="763.6" y="398.5">63.1%</text>
+<text x="622.0" y="416.5" text-anchor="end">Cursor</text>
+<rect x="630.0" y="407" width="123.1" height="12" rx="2" fill="#a7b2ac"><title>Cursor: 60.9%</title></rect>
+<text x="759.1" y="416.5">60.9%</text>
+<text x="622.0" y="434.5" text-anchor="end">Klaussy, Sonnet 5.5</text>
+<rect x="630.0" y="425" width="121.7" height="12" rx="2" fill="#a7b2ac"><title>Klaussy, Sonnet 5.5: 60.2%</title></rect>
+<text x="757.7" y="434.5">60.2%</text>
+<text x="622.0" y="452.5" text-anchor="end">diffox</text>
+<rect x="630.0" y="443" width="119.6" height="12" rx="2" fill="#a7b2ac"><title>diffox: 59.1%</title></rect>
+<text x="755.6" y="452.5">59.1%</text>
+<text x="622.0" y="470.5" text-anchor="end" font-weight="600" fill="#2f6b4f">PR Review, one pass</text>
+<rect x="630.0" y="461" width="116.4" height="12" rx="2" fill="#2f6b4f"><title>PR Review, one pass: 57.6%</title></rect>
+<text x="752.4" y="470.5" font-weight="600" fill="#2f6b4f">57.6%</text>
+<text x="622.0" y="488.5" text-anchor="end">Cubic</text>
+<rect x="630.0" y="479" width="72.4" height="12" rx="2" fill="#a7b2ac"><title>Cubic: 35.8%</title></rect>
+<text x="708.4" y="488.5">35.8%</text>
+<text x="622.0" y="506.5" text-anchor="end">Greptile</text>
+<rect x="630.0" y="497" width="67.4" height="12" rx="2" fill="#a7b2ac"><title>Greptile: 33.4%</title></rect>
+<text x="703.4" y="506.5">33.4%</text>
+<rect x="24" y="543" width="11" height="11" rx="2" fill="#a7b2ac"/>
+<text x="42" y="552">Official runs listed on review-bench.ai, 23 configurations, retrieved November 13, 2026</text>
+<rect x="24" y="561" width="11" height="11" rx="2" fill="#2f6b4f"/>
+<text x="42" y="570" fill="#2f6b4f">PR Review, scored offline on the same 219 pull requests with the benchmark’s matcher and scorer, one round</text>
+</g>
+</svg>

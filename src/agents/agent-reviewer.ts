@@ -7,6 +7,13 @@ import { join } from 'node:path';
 export const AGENT_CLIS = ['claude', 'codex'] as const;
 export type AgentCli = (typeof AGENT_CLIS)[number];
 
+/**
+ * What one agent pass looks for. `bugs` asks for the defects the author must fix
+ * before merging; `breadth` asks for every distinct problem, small ones included.
+ */
+export const AGENT_LENSES = ['bugs', 'breadth'] as const;
+export type AgentLens = (typeof AGENT_LENSES)[number];
+
 const MAX_AGENT_STDOUT_BYTES = 16 * 1024 * 1024;
 const FAILURE_TAIL_CHARS = 4096;
 
@@ -20,8 +27,17 @@ export interface AgentReviewerOptions {
   readonly diffCommand: string;
   readonly model?: string;
   readonly effort?: string;
+  /** Which review request to send. Defaults to `bugs`. */
+  readonly lens?: AgentLens;
   readonly timeoutMs: number;
 }
+
+const FINDINGS_FORMAT = [
+  '- [P1] Short title | path/relative/to/repo:line',
+  '  Explanation of the problem, when it happens and its impact.',
+  '',
+  'Use P0 for critical, P1 for high, P2 for medium and P3 for low priority. If there are no issues, reply with: No findings.',
+];
 
 /**
  * A plain review request.
@@ -37,10 +53,38 @@ export function agentReviewPrompt(description: string, diffCommand: string): str
     '',
     'Report the bugs and problems this pull request introduces that the author should fix before merging. Reply with only the list of findings, one per issue, in exactly this format:',
     '',
-    '- [P1] Short title | path/relative/to/repo:line',
-    '  Explanation of the problem, when it happens and its impact.',
+    ...FINDINGS_FORMAT,
+  ].join('\n');
+}
+
+/**
+ * A review request for completeness.
+ *
+ * The plain request makes a strong agent report about five serious defects and
+ * stop. On ReviewBench's test set that covered a quarter of the labelled true
+ * findings; this request, which names the kinds of problem to check in every
+ * changed file, covered half in one pass. It reports about three times as many
+ * findings at lower precision, so it is an opt-in pass beside the plain one.
+ */
+export function agentBreadthPrompt(description: string, diffCommand: string): string {
+  return [
+    `Review this pull request thoroughly, the way a careful senior reviewer would. ${description} Use \`${diffCommand}\` to see the change and read the surrounding code as needed.`,
     '',
-    'Use P0 for critical, P1 for high, P2 for medium and P3 for low priority. If there are no issues, reply with: No findings.',
+    'Report every distinct problem in the code this pull request adds or changes, including small ones. Go through each changed file and check:',
+    '- correctness, edge cases and error handling',
+    '- security, concurrency and resource use',
+    '- performance',
+    '- API and interface design, and compatibility with existing callers',
+    '- tests: missing coverage for the new behaviour, and tests that do not test what they claim',
+    '- documentation, comments and messages that no longer match the code',
+    '- maintainability: duplicated logic, dead code, misleading names, inconsistency with the rest of the codebase',
+    '- accessibility, for user interface changes',
+    '',
+    'Report a problem only when you can name the line and say what is wrong and why it matters. Skip pure formatting and personal style preferences. Do not stop at the most serious issues; include medium and low priority ones.',
+    '',
+    'Reply with only the list of findings, one per issue, in exactly this format:',
+    '',
+    ...FINDINGS_FORMAT,
   ].join('\n');
 }
 
@@ -143,7 +187,10 @@ export function agentFailureReason(stdout: string, stderr: string): string {
 export async function runAgentReviewer(options: AgentReviewerOptions): Promise<string> {
   const scratch = mkdtempSync(join(tmpdir(), 'pr-review-agent-'));
   const outputFile = join(scratch, 'last-message.md');
-  const prompt = agentReviewPrompt(options.description, options.diffCommand);
+  const prompt = (options.lens === 'breadth' ? agentBreadthPrompt : agentReviewPrompt)(
+    options.description,
+    options.diffCommand,
+  );
   const { command, args, stdin } = invocation(options, prompt, outputFile);
   try {
     const stdout = await new Promise<string>((resolve, reject) => {

@@ -52,8 +52,26 @@ With Claude Opus 5.5, the agent reviewer found 56% of the known issues on 30 hel
 | `REVIEW_AGENT_CLI_MODEL` | The CLI's own default; for example `claude-opus-5-5` or `gpt-6.1-sol` |
 | `REVIEW_AGENT_CLI_EFFORT` | `high` |
 | `REVIEW_AGENT_CLI_TIMEOUT_SECONDS` | 1200 seconds for one agent review |
+| `REVIEW_AGENT_RUNS` | 1; independent passes with the plain review request (1 to 5). The passes run at the same time and their findings are merged |
+| `REVIEW_AGENT_BREADTH_RUNS` | 0; extra passes with the broad review request (0 to 3), which asks for every distinct problem in each changed file, small ones included |
+| `REVIEW_AGENT_BREADTH_MODEL` | The agent model; a different model for the broad passes, for example `claude-sonnet-5-5` |
 | `REVIEW_AGENT_LINE_TOLERANCE` | 0; how many lines a finding may sit from the changed line it is tied to |
 | `REVIEW_AGENT_VALIDATE` | `false`; also run evidence validation over the agent's findings. Off because on the development split it removed 8 of 19 real issues along with 19 of 35 false ones and lowered F1 ([results](../results.md#development-decisions-20-prs-48-issues)) |
+
+### Thorough reviews
+
+One plain pass is the default. It reports about five findings per pull request and stops at the serious ones. More passes trade a longer review for more of the real problems. Measured on ReviewBench's 25-PR test set, where a pull request has 14 labelled true findings on average ([results](../results.md#reviewbench-offline-november-13)):
+
+| Settings | Findings per PR | True findings covered | Precision | Cost per PR |
+| --- | ---: | ---: | ---: | ---: |
+| Default | 4.8 | 25.6% | 91.4% | $0.36 |
+| `REVIEW_AGENT_RUNS=5` | 13.1 | 38.4% | 89.9% | $1.81 |
+| `REVIEW_AGENT_BREADTH_RUNS=1` | 18.1 | 53.9% | 83.1% | $0.92 |
+| `REVIEW_AGENT_BREADTH_RUNS=2` with `REVIEW_AGENT_BREADTH_MODEL=claude-sonnet-5-5` | 31.4 | 64.9% | 77.0% | $0.82 |
+
+Over all 219 ReviewBench pull requests, the default covers 22.3% of the true findings at 87.8% precision for $0.41, and `REVIEW_AGENT_BREADTH_RUNS=1` covers 51.4% at 82.1% for $1.06.
+
+The broad request finds what repeating the plain request does not: five plain passes together never reported 213 of the 352 true findings. Two passes that report the same problem are merged when they cite the same file within three lines and their titles share words. A failed pass is noted in the review and the other passes still count.
 
 The GitHub Action and App read pull requests through the API without a checkout, so they keep the model passes. [ReviewBench](../../integrations/reviewbench/README.md) shows the agent reviewer packaged as a container.
 
