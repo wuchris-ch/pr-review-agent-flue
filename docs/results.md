@@ -219,7 +219,7 @@ The tables above compose reviews from pooled matcher decisions. As a check, the 
 
 #### All 219 pull requests
 
-The last run covers the whole benchmark. Its setup was [committed before it started](../evals/reviewbench/full-run.json): Claude Opus 5.5 at high effort in Claude Code 2.1.321, one round, the default configuration (one plain pass) and the thorough one (one plain pass and one broad pass), scored on the findings file the adapter writes. The 55 pull requests above kept their first saved answers. The other 164 were reviewed once for each kind of pass. No earlier run had reviewed them, so they are the check on settings that were chosen on the test set.
+The last run covers the whole benchmark. Its setup was [committed before it started](../evals/reviewbench/full-run.json), in [commit `942a1b0`](https://github.com/wuchris-ch/pr-review-agent-flue/pull/26/commits/942a1b0d696873e73ebf5f6a27f9f4570e5afe8a): Claude Opus 5.5 at high effort in Claude Code 2.1.321, one round, the default configuration (one plain pass) and the thorough one (one plain pass and one broad pass), scored on the findings file the adapter writes. The 55 pull requests above kept their first saved answers. The other 164 were reviewed once for each kind of pass. No earlier run had reviewed them, so they are the check on settings that were chosen on the test set.
 
 The 219 pull requests have 2,623 true findings: 181 high, 891 medium and 1,551 low severity ([`full-run.json`](../evals/reviewbench/results/full-run.json)).
 
